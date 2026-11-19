@@ -673,5 +673,430 @@ window.ATLAS.decisions = [
       own: ['The data-layer design: filters, partitions, keys and caches.', 'Automated cross-tenant leak tests in CI.'],
       evidence: ['Cross-tenant query test results.', 'A review of every place tenant data is copied (caches, logs, indexes).']
     }
+  },
+  {
+    id: 'vector-hybrid-search', theme: 'architecture', lead: 'pe', title: 'Vector vs hybrid search: when is each appropriate?',
+    question: 'Should retrieval rely purely on dense vectors or combine keyword BM25, dense vectors and semantic reranking?',
+    door: 'two-way', doorNote: 'Index schemas in [[ai-search]] support adding BM25 fields or vector fields without re-creating the entire service, though backfilling vectors takes time.',
+    why: 'Dense vector search excels at conceptual similarity and cross-lingual meaning, but fails on exact keyword matching: serial numbers, acronyms, product SKUs and error codes. Hybrid search with Reciprocal Rank Fusion (RRF) and semantic reranking solves both.',
+    cols: ['Retrieval mode', 'Strengths', 'Weaknesses', 'Latency', 'Best fit'],
+    rows: [
+      ['Pure Dense Vector Search', 'Handles synonyms, conceptual queries, multi-lingual questions', 'Misses exact part numbers, product SKUs, unique IDs and rare technical terms', 'Fast (20-60ms)', 'Conversational FAQ, semantic discovery'],
+      ['Pure Keyword Search (BM25)', 'Exact term matching, fast, low cost, familiar search syntax', 'Cannot handle synonyms, paraphrasing or cross-language queries', 'Very fast (10-30ms)', 'Log search, lookup by invoice ID or SKU'],
+      ['Hybrid Search (BM25 + Vector via RRF)', 'Combines keyword precision with semantic breadth; reciprocal rank fusion fuses scores', 'Requires maintaining both inverted index and vector store in search', 'Moderate (40-80ms)', 'Enterprise intranet, technical documentation'],
+      ['Hybrid + Semantic Reranker (Turing L2)', 'Highest measured Recall@5 and NDCG@10; deep cross-encoder re-evaluates top 50 passages', 'Adds 100-250ms latency and usage-based billing per 1,000 queries', 'Higher (150-300ms)', 'Customer-facing assistants, high-stakes compliance']
+    ],
+    rules: [
+      ['Queries contain acronyms, product SKUs, error codes or part numbers', 'Use Hybrid search (BM25 + Vector). Pure vector will disappoint.'],
+      ['The application serves external customers where accuracy drives revenue or brand trust', 'Enable the Semantic Reranker. The 15-25% NDCG boost is worth the latency.'],
+      ['End-to-end latency budget is under 100ms', 'Use Hybrid search with RRF but skip the semantic reranker.'],
+      ['Search corpus is small (<5,000 documents) and questions are broad', 'Pure dense vector search is often sufficient for early prototypes.']
+    ],
+    redflags: [
+      'Choosing pure vector search for enterprise catalogs with complex alphanumeric product codes.',
+      'Assuming vector similarity guarantees factual relevance without measuring Recall@K on golden queries.',
+      'Enabling semantic reranking without checking the p95 latency impact on streaming token generation.',
+      'Failing to test exact-match search queries during pre-pilot evaluations.'
+    ],
+    ask: [
+      'What percentage of user queries contain exact terms, product codes or acronyms?',
+      'What is our measured Recall@5 and NDCG difference between pure vector and hybrid plus reranker?',
+      'What is the end-to-end latency budget from user prompt to first generated token?',
+      'What is the monthly cost impact of the Semantic Reranker at expected production query volumes?'
+    ],
+    revisit: 'When query latency exceeds SLAs, when search evaluation metrics plateau, or when Azure AI Search updates vector search ranking capabilities.',
+    related: ['ai-search', 'foundry-models', 'apim', 'blob'],
+    em: {
+      call: 'Default to Hybrid + Semantic Reranking for production user-facing assistants. Relevance directly impacts task completion rate.',
+      own: ['Budget allocation for semantic reranking queries.', 'The customer satisfaction SLA tied to retrieval accuracy.'],
+      evidence: ['Evaluation scorecard comparing Recall@5 and MRR across vector, hybrid and reranked modes.', 'Monthly cost estimate at 1x and 10x query volumes.']
+    },
+    pe: {
+      call: 'Implement Reciprocal Rank Fusion (RRF) in [[ai-search]] combining text-embedding-3 vectors and BM25 keywords; tune semantic reranker thresholds.',
+      own: ['Search schema design, vector indexing algorithms (HNSW vs exhaustivenearestneighbors), and RRF weight tuning.', 'Latency profiling for the search step in the end-to-end trace.'],
+      evidence: [
+        'Benchmark results measuring retrieval latency (P50/P95) and NDCG@10 on a representative test corpus.',
+        'Precision and recall evaluation on keyword-heavy test queries containing product codes and acronyms.'
+      ]
+    }
+  },
+  {
+    id: 'classic-vs-agentic-rag', theme: 'strategy', lead: 'both', title: 'Classic vs agentic RAG: what complexity justifies agentic retrieval?',
+    question: 'Should the system use deterministic single-shot retrieval or autonomous multi-step reasoning and query planning?',
+    door: 'mixed', doorNote: 'Two-way to start with classic RAG; moving to agentic RAG multiplies token cost and adds stateful orchestration.',
+    why: 'Classic RAG answers questions that can be satisfied by a single search query over a single corpus. Agentic RAG decomposes complex questions, searches multiple indexes in parallel, reflects on missing information, and iteratively gathers facts. However, it costs 3x-8x more tokens and takes significantly longer.',
+    cols: ['Pattern', 'Reasoning steps', 'Token multiplier', 'Latency', 'When it fits'],
+    rows: [
+      ['Classic Single-Shot RAG', '1 model call: embed query, retrieve top-k chunks, generate answer', '1x baseline', '1-3 seconds', 'Single-domain Q&A, FAQ assistants, static manuals'],
+      ['Query Routing RAG', '2 model calls: classify query intent, route to specialized index, generate', '1.3x baseline', '2-4 seconds', 'Multi-department portals (HR vs IT vs Legal) with clear routing rules'],
+      ['Agentic Multi-Step RAG', '3-8 model calls: decompose query, execute multiple tool searches, evaluate sufficiency, synthesize', '3x-8x baseline', '5-15 seconds', 'Comparative analysis, multi-hop reasoning, unstructured investigation'],
+      ['GraphRAG', 'Pre-computed knowledge graph communities + global query synthesis', '1.5x query, high build cost', '4-10 seconds', 'Holistic corpus summarization ("What are the main systemic risks across all reports?")']
+    ],
+    rules: [
+      ['The user question can be answered by finding 1 to 5 passages in a single document', 'Stay with Classic RAG. Agentic complexity is completely unjustified.'],
+      ['Questions require comparing data across multiple systems (e.g. ERP database plus policy manuals)', 'Use Agentic RAG with parallel tool calling via [[agent-framework]].'],
+      ['Questions are global and open-ended across an entire corpus', 'Use GraphRAG or pre-computed community summaries.'],
+      ['Token budget is tight or response must stream within 2 seconds', 'Do not use Agentic RAG; optimize chunking and hybrid search in Classic RAG instead.']
+    ],
+    redflags: [
+      'Deploying an agentic loop for simple lookup tasks where a single vector query produces 95% accuracy.',
+      'Allowing unbounded iteration loops in agentic retrieval without hard step and timeout limits.',
+      'Measuring only final answer quality while ignoring tool invocation errors and intermediate token costs.',
+      'Failing to stream intermediate thought tokens to users during a 10-second agentic retrieval process.'
+    ],
+    ask: [
+      'What proportion of real user questions actually require multi-hop reasoning or multiple queries?',
+      'What is the measured task completion rate of Classic RAG versus Agentic RAG on our eval set?',
+      'What is our tolerance for 10-second response latencies and 5x higher token consumption?',
+      'Have we implemented hard loop limits (maximum 3-5 retrieval iterations)?'
+    ],
+    revisit: 'When single-shot RAG evaluation scores stall below acceptance thresholds, or when user feedback highlights multi-document comparison failures.',
+    related: ['ai-search', 'foundry-agent-service', 'agent-framework', 'foundry-models', 'cosmos'],
+    em: {
+      call: 'Start with Classic RAG. Only fund Agentic RAG when benchmark evals prove single-shot retrieval fails on critical multi-source business workflows.',
+      own: ['ROI justification for the 3x-8x token cost multiplier.', 'User experience sign-off on 5-15 second response latencies.'],
+      evidence: ['Evaluation data showing accuracy gains on complex queries versus the added cost and latency.', 'Guardrails documentation specifying hard iteration and token caps.']
+    },
+    pe: {
+      call: 'Design modular retrieval tools behind clean interfaces. Implement Classic RAG first; add agentic query planners in [[foundry-agent-service]] only for flagged complex queries.',
+      own: ['Agent planner architecture, iteration loop controls, and parallel tool dispatching.', 'Instrumenting distributed traces to capture intermediate sub-queries and tool responses.'],
+      evidence: [
+        'Trace waterfall diagrams showing sub-query execution times and intermediate reflection steps.',
+        'Benchmark evaluation comparing single-shot vs multi-hop retrieval accuracy on complex test questions.'
+      ]
+    }
+  },
+  {
+    id: 'search-vs-cosmos', theme: 'architecture', lead: 'pe', title: 'Azure AI Search vs Cosmos DB: which vector store?',
+    question: 'Should vector embeddings live in specialized Azure AI Search or in an operational database like Azure Cosmos DB?',
+    door: 'one-way', doorNote: 'Migrating vector indexes and embedding stores between services requires changing ingestion pipelines, query logic and access control.',
+    why: 'Azure AI Search is a dedicated search engine offering hybrid keyword plus vector search, integrated document cracking, and semantic ranking. Azure Cosmos DB is a low-latency NoSQL database with vector indexing capabilities. Mixing up their roles leads to either building complex search features from scratch in Cosmos DB or overloading AI Search with high-throughput transactional writes.',
+    cols: ['Capability', 'Azure AI Search (Foundry IQ)', 'Azure Cosmos DB (NoSQL / MongoDB vCore)', 'Azure Database for PostgreSQL (pgvector)'],
+    rows: [
+      ['Primary workload', 'Information retrieval, document Q&A, enterprise RAG', 'Operational transactional data with embedded similarity search', 'Relational enterprise applications with vector extensions'],
+      ['Hybrid search', 'Native BM25 + Vector + Semantic Ranker (Turing L2)', 'Vector search only; keyword search requires separate index or custom logic', 'Full-text search (tsvector) + pgvector with custom SQL joining'],
+      ['Document ingestion', 'Built-in indexers for Blob, Cosmos, SQL with auto-chunking & OCR', 'Application-managed ingestion pipelines', 'Application-managed ingestion or pg_cron pipelines'],
+      ['Data updates & writes', 'Batch indexing or document push; search units scaled for queries', 'Millisecond transactional point reads and writes at high QPS', 'ACID transactional relational writes with foreign keys'],
+      ['Access control', 'Document-level security filters (OData), Entra ID RBAC', 'Partition-key tenancy, Entra ID RBAC, connection string auth', 'Row-Level Security (RLS), Postgres roles, Entra ID']
+    ],
+    rules: [
+      ['The primary goal is document Q&A, enterprise knowledge retrieval, or grounding an LLM', 'Use [[ai-search|Azure AI Search]]. Building hybrid search, OCR, and semantic reranking in a database is reinventing the wheel.'],
+      ['Vector similarity is an operational feature augmenting existing transactional user records', 'Use [[cosmos|Azure Cosmos DB]] vector search. Avoid running a separate search service when queries join operational state.'],
+      ['The application is already built on relational PostgreSQL and needs similarity matching on catalog items', 'Use [[postgres|Azure Database for PostgreSQL with pgvector]].'],
+      ['Strict document-level ACLs (trimming by user groups) are required for compliance', 'Use [[ai-search|Azure AI Search]] with native security filters.']
+    ],
+    redflags: [
+      'Attempting to build full-text keyword search and reciprocal rank fusion manually on top of a database vector store.',
+      'Using Azure AI Search as an operational database with high-frequency single-record updates.',
+      'Ignoring vector index memory requirements in Cosmos DB or Postgres sizing.',
+      'Choosing a vector database solely because developers are familiar with SQL, ignoring RAG retrieval quality.'
+    ],
+    ask: [
+      'Do our queries need hybrid search (combining exact keyword matching and conceptual similarity)?',
+      'Are we indexing unstructured documents (PDFs, Word) or operational database entities?',
+      'What is our write frequency: batch document indexing or thousands of transactional updates per second?',
+      'Who owns maintaining the vector indexing pipeline, chunking and embedding logic?'
+    ],
+    revisit: 'When document volume exceeds search tier limits, when write throughput bottlenecks the search indexer, or when operational and vector queries need atomic transactions.',
+    related: ['ai-search', 'cosmos', 'postgres', 'blob', 'doc-intelligence'],
+    em: {
+      call: 'Default to Azure AI Search for all document and knowledge RAG projects. Use Cosmos DB only when vector search is an extension of existing operational customer records.',
+      own: ['Service licensing costs and team skill alignment.', 'Vendor and architecture consistency across company AI initiatives.'],
+      evidence: [
+        'Comparison of engineering maintenance hours between managed AI Search and building custom search pipelines on a database.',
+        'Total cost of ownership projection including search units vs request unit (RU) scaling.'
+      ]
+    },
+    pe: {
+      call: 'Pick Azure AI Search when retrieval quality (BM25 + vectors + reranking + ACLs) determines application success. Keep Cosmos DB for transactional user profiles and session stores.',
+      own: ['Data layer boundaries: separating operational record stores from search indexes.', 'Benchmarking search latency, vector indexing memory, and partition key strategy.'],
+      evidence: [
+        'Proof-of-concept benchmark measuring Recall@K and indexing throughput between AI Search and Cosmos DB.',
+        'Memory sizing calculations for vector storage against anticipated document counts.'
+      ]
+    }
+  },
+  {
+    id: 'chunking-strategy', theme: 'architecture', lead: 'pe', title: 'Chunking strategies: fixed, semantic, hierarchical or document-aware?',
+    question: 'How should documents be parsed, segmented and indexed for optimal embedding and retrieval?',
+    door: 'two-way', doorNote: 'Re-chunking requires re-indexing the corpus and re-generating embeddings, but does not alter cloud infrastructure.',
+    why: 'Bad chunking is the single most common cause of failed RAG pilots. If chunks are too small, they lose context; if too large, they dilute vector embeddings and fill the LLM context with irrelevant noise. Naive token chunking breaks sentences and flattens tables.',
+    cols: ['Strategy', 'How it works', 'Preserves', 'Downside', 'Best fit'],
+    rows: [
+      ['Fixed-Size Chunking (e.g. 500 tokens, 10% overlap)', 'Splits text by token or character count with a sliding window', 'Nothing semantic; cuts arbitrarily across paragraphs', 'Splits sentences, severs table rows, breaks code blocks', 'Quick prototypes, flat homogeneous text'],
+      ['Semantic / Sentence Chunking', 'Splits text on sentence boundaries or embedding similarity shifts', 'Complete sentences and coherent paragraphs', 'Variable chunk sizes; tables can still be fragmented', 'Narrative prose, articles, customer feedback'],
+      ['Hierarchical / Parent-Child Chunking', 'Indexes small child chunks (100-200 tokens) for precise vector matching; returns parent chunk (800-1200 tokens) to model', 'Fine-grained retrieval accuracy with broad surrounding context', 'More complex index schema and higher document count', 'Technical specifications, manuals, contracts'],
+      ['Document-Layout-Aware Chunking', 'Uses [[doc-intelligence]] to parse titles, headers, markdown sections, tables and figures', 'Document hierarchy, structural headings, table structure', 'Requires specialized OCR/parsing service step during ingestion', 'Complex enterprise documents, financial reports, PDF forms']
+    ],
+    rules: [
+      ['Documents contain tables, multi-column layouts, forms or financial figures', 'Mandate Document-Layout-Aware chunking with [[doc-intelligence]]. Naive token chunking destroys tables.'],
+      ['Target documents have deep structural hierarchy (policies, regulations, legal agreements)', 'Use Hierarchical / Parent-Child chunking. Index small passages for high retrieval precision, inject the parent section for full LLM context.'],
+      ['You are building a rapid proof-of-concept on simple text files', 'Use fixed-size 512-token chunks with 50-token overlap to prove value before investing in custom parsers.'],
+      ['Questions ask about specific numerical values in tables', 'Inject table rows as markdown tables or structured JSON chunks with table headers prepended to each row.']
+    ],
+    redflags: [
+      'Splitting complex financial reports with a fixed 500-token window that chops tables in half.',
+      'Ignoring document titles and section headings during chunking, so retrieved passages have no context.',
+      'Creating chunks larger than 1,500 tokens for embedding models, causing semantic dilution.',
+      'Failing to test retrieval accuracy specifically on queries that target tabular data.'
+    ],
+    ask: [
+      'What document formats make up our corpus (scanned PDFs, native Word, HTML, presentation slides)?',
+      'How are tables and structured data extracted and represented in the chunked text?',
+      'Are section titles and document metadata prepended to each chunk before embedding?',
+      'What is the measured difference in retrieval recall between fixed-size and layout-aware chunking?'
+    ],
+    revisit: 'When document ingestion fails on new file formats, or when users report hallucinations on questions involving tables or multi-part sections.',
+    related: ['doc-intelligence', 'ai-search', 'blob', 'foundry-models'],
+    em: {
+      call: 'Mandate layout-aware document parsing for enterprise documents. Investing in proper document cracking saves weeks of downstream prompt debugging.',
+      own: ['Budgeting for Azure AI Document Intelligence ingestion costs.', 'Establishing acceptance criteria for document extraction quality.'],
+      evidence: ['Visual sample inspection showing parsed layout and tables in markdown format.', 'Evaluation report testing tabular retrieval accuracy.']
+    },
+    pe: {
+      call: 'Implement layout-driven chunking with Document Intelligence; attach parent metadata and headers to every child chunk. Use parent-child retrieval in [[ai-search]].',
+      own: ['Ingestion pipeline architecture, parser error handling, and chunk size benchmarking.', 'Index schema design supporting parent-child document relationships.'],
+      evidence: [
+        'Recall@K evaluation results comparing fixed token chunking against layout-aware hierarchical chunking.',
+        'Passage extraction accuracy test specifically targeting complex multi-column tables and diagrams.'
+      ]
+    }
+  },
+  {
+    id: 'reranking-tradeoff', theme: 'architecture', lead: 'pe', title: 'Semantic reranking: when does relevance justify latency?',
+    question: 'Should the search pipeline include a deep cross-encoder semantic reranker after initial vector retrieval?',
+    door: 'two-way', doorNote: 'Enabling or disabling the Semantic Reranker in [[ai-search]] is an API flag; no index rebuilding or data migration is required.',
+    why: 'First-stage retrieval (vector cosine similarity or BM25) is fast (20-50ms) but relies on approximate nearest neighbors or term frequencies. A second-stage semantic reranker passes the top 50 passages through a deep language model (Microsoft Turing) to score relevance, lifting NDCG by 15-25% at the cost of 100-250ms latency.',
+    cols: ['Stage', 'Engine', 'Recall / NDCG impact', 'Latency added', 'Cost impact'],
+    rows: [
+      ['L1 Keyword only (BM25)', 'Lucene inverted index', 'Baseline precision on exact terms; poor on synonyms', '0ms (base search)', 'Included in Search Units'],
+      ['L1 Dense Vector only', 'HNSW / Cosine similarity', 'Captures semantic intent; misses exact codes', '0ms (base search)', 'Included in Search Units'],
+      ['L1 Hybrid (RRF fusion)', 'Reciprocal Rank Fusion', '+10-15% NDCG over pure vector or keyword alone', '+10-20ms', 'Included in Search Units'],
+      ['L2 Semantic Reranker', 'Turing multi-lingual cross-encoder', '+15-25% additional NDCG@10 lift over L1 hybrid', '+100-250ms', 'Billed per 1,000 reranked queries beyond free tier (first 1,000/month free)']
+    ],
+    rules: [
+      ['The application is customer-facing, answers high-stakes questions, or handles messy conversational queries', 'Enable Semantic Reranker. The significant relevance boost far outweighs the 150ms delay.'],
+      ['The system is an autonomous agent executing 5 to 10 sequential tool calls per user task', 'Evaluate carefully. Adding 200ms per search step across 8 iterations adds 1.6s of delay.'],
+      ['Users are waiting on streaming text and overall latency SLA is generous (>3 seconds)', 'Enable Semantic Reranker. Users perceive streaming time-to-first-token rather than total generation time.'],
+      ['Queries are simple keyword lookups against high-QPS telemetry logs', 'Disable Semantic Reranker. L1 BM25 is sufficient and keeps cost at zero.']
+    ],
+    redflags: [
+      'Disabling the reranker to save 150ms while the LLM takes 4,000ms to generate the final response anyway.',
+      'Running semantic reranking on 500 candidate chunks instead of the recommended top 50.',
+      'Failing to monitor monthly semantic reranker call volumes against planned budget.',
+      'Evaluating search quality purely on vector similarity scores without evaluating end-to-end answer relevance.'
+    ],
+    ask: [
+      'What is the measured NDCG@5 difference on our domain dataset with semantic reranking enabled vs disabled?',
+      'What proportion of our end-to-end response time is spent in search versus LLM token generation?',
+      'How many queries per day will hit the semantic reranker, and what is the monthly cost?',
+      'Does the increased precision allow us to send fewer chunks (e.g. top-3 instead of top-10) to the LLM, reducing generation cost?'
+    ],
+    revisit: 'When query volumes scale significantly, when latency SLAs tighten, or when model context caching reduces the penalty of sending more chunks.',
+    related: ['ai-search', 'foundry-models', 'apim', 'azure-monitor'],
+    em: {
+      call: 'Turn semantic reranking ON for all enterprise knowledge assistants. The precision improvement directly prevents hallucinations and protects brand reputation.',
+      own: ['Monitoring monthly search bill overages and approving reranker query allocations.', 'Ensuring product managers understand the trade-off between 150ms latency and answer quality.'],
+      evidence: ['Evaluation scorecard showing answer groundedness and relevance with and without semantic reranking.', 'Cost forecast modeling reranker query volume.']
+    },
+    pe: {
+      call: 'Enable semantic reranking in [[ai-search]]; set `queryType=semantic` and configure semantic configurations with title, content, and keyword field mappings.',
+      own: ['Semantic configuration tuning in search index definitions.', 'Instrumenting search stage latency in Application Insights to detect p95/p99 latency spikes.'],
+      evidence: [
+        'A/B test evaluation metrics demonstrating NDCG@10 improvements on test datasets.',
+        'Latency trace breakdown showing P50, P95, and P99 times for L1 hybrid search versus L2 semantic reranking.'
+      ]
+    }
+  },
+  {
+    id: 'graphrag-vs-vector', theme: 'architecture', lead: 'pe', title: 'GraphRAG vs vector RAG: when are entity relationships important?',
+    question: 'When does a project require knowledge graph extraction and community summaries rather than standard vector retrieval?',
+    door: 'mixed', doorNote: 'Building a knowledge graph requires a substantial one-way offline extraction investment; query retrieval can fall back to standard vector search at any time.',
+    why: 'Vector RAG is a "local" retrieval technique: it finds specific text chunks similar to a query. However, it cannot answer global questions that require understanding cross-document themes, corporate connections, or complex multi-hop entity relationships. GraphRAG extracts entities, relationships and claims into hierarchical communities, but costs significantly more to build and maintain.',
+    cols: ['Approach', 'How it indexes', 'Query capability', 'Build cost', 'Update complexity'],
+    rows: [
+      ['Standard Vector RAG', 'Chunks text and computes dense embeddings', 'Local specific Q&A ("What is the refund policy for Plan B?")', 'Low ($0.0001 per document)', 'Simple (append new chunks to index)'],
+      ['Hybrid Vector + Metadata', 'Embeddings plus structured database metadata filters', 'Filtered local Q&A ("Find refund policies for Region EU in 2024")', 'Low to Moderate', 'Simple (update metadata fields)'],
+      ['GraphRAG (Local Entity Search)', 'Extracts entities and relationships; expands query neighbors', 'Multi-hop entity questions ("Which suppliers are connected to Vendor X through subsidiary Y?")', 'High (LLM entity extraction across corpus)', 'Moderate (add nodes and edges to graph)'],
+      ['GraphRAG (Global Community Search)', 'Extracts claims, builds hierarchical Leiden communities, generates community summaries', 'Holistic corpus synthesis ("What are the top 5 systemic risks identified across all audit reports?")', 'Very High (LLM extraction + multiple summary layers)', 'High (requires recalculating community summaries)']
+    ],
+    rules: [
+      ['Questions ask for high-level summaries or thematic synthesis across thousands of documents', 'Use GraphRAG Global Search. Vector RAG cannot answer global corpus queries.'],
+      ['Questions require tracing multi-hop relationships across people, organizations, or regulatory entities', 'Use GraphRAG Local Search or an operational graph in [[cosmos]].'],
+      ['Queries are targeted fact lookups ("Where is clause 4.2?") on fast-changing documents', 'Use Standard Vector RAG. GraphRAG build costs and update latency are completely unjustified.'],
+      ['Corpus contains millions of documents and budget is limited', 'Start with Standard Hybrid Vector RAG; test GraphRAG on a focused pilot subset first.']
+    ],
+    redflags: [
+      'Committing to GraphRAG for an entire enterprise data lake without calculating the offline LLM extraction token bill.',
+      'Using GraphRAG on rapidly changing data where graph rebuilds cannot keep up with update velocity.',
+      'Failing to implement entity resolution, resulting in duplicate nodes for synonyms and acronyms.',
+      'Using GraphRAG for simple Q&A where standard vector search already achieves 90%+ recall.'
+    ],
+    ask: [
+      'Do users need answers to broad thematic questions that require synthesizing hundreds of documents?',
+      'What is the estimated token cost to run entity and claim extraction across our entire document corpus?',
+      'How frequently does the underlying document corpus change or receive additions?',
+      'Can a hybrid approach (vector search for local queries, pre-computed executive summaries for global queries) suffice?'
+    ],
+    revisit: 'When global thematic questions fail in vector RAG, when corpus update velocity stabilizes, or when smaller extraction models lower GraphRAG build costs.',
+    related: ['fabric', 'databricks', 'cosmos', 'ai-search', 'foundry-models', 'blob'],
+    em: {
+      call: 'Fund GraphRAG only for named high-value use cases requiring holistic corpus synthesis (e.g. regulatory audits, intelligence discovery, portfolio risk). Use Vector RAG for operational Q&A.',
+      own: ['Budget approval for the high one-off token extraction cost.', 'Defining business value metrics for global synthesis versus targeted retrieval.'],
+      evidence: ['Cost-benefit model comparing one-off build costs against analyst hours saved by automated corpus synthesis.', 'User eval comparing global query satisfaction.']
+    },
+    pe: {
+      call: 'Deploy Microsoft GraphRAG pipelines on [[fabric]] or [[databricks]]; store graph community summaries in [[ai-search]] and graph topology in [[cosmos]]. Keep standard vector search as the fast path.',
+      own: ['Graph extraction architecture, Leiden community hierarchy sizing, and entity resolution algorithms.', 'Designing query classification to route local queries to vector search and global queries to community summaries.'],
+      evidence: [
+        'Graph quality metrics (entity extraction F1, community coherence) and offline extraction cost logs.',
+        'Comparative evaluation testing answers to global corpus-level thematic questions against standard vector baseline.'
+      ]
+    }
+  },
+  {
+    id: 'index-tenancy', theme: 'risk', lead: 'both', title: 'Shared vs isolated search indexes: how to separate enterprise tenants?',
+    question: 'How should multi-tenant RAG data be partitioned across Azure AI Search indexes and services?',
+    door: 'one-way', doorNote: 'Reorganizing data between shared indexes, dedicated indexes and dedicated services requires migrating live data and re-indexing.',
+    why: 'Tenant isolation is both a security guarantee and an economic trade-off. An AI Search service has limits on maximum indexes (e.g. 50 indexes on Standard S1 tier). Creating an index per tenant caps your SaaS product at 50 customers per cluster, driving massive costs. Conversely, a shared index requires flawless security filter enforcement.',
+    cols: ['Isolation model', 'Implementation on Azure', 'Tenant capacity limit', 'Cost per tenant', 'Security posture'],
+    rows: [
+      ['Shared Index + Security Filters', 'Single [[ai-search]] index; documents tagged with `tenantId` and security group ACLs; filter enforced server-side', 'Unlimited (millions of documents per index)', 'Lowest (cost shared across all tenants)', 'Logical isolation; depends on strict API gateway filter injection'],
+      ['Index per Tenant', 'Separate search index per tenant inside a shared [[ai-search]] service', 'Max 50 indexes (S1), 200 (S2), or 1000 (S3)', 'Moderate (service cost split across up to 50-200 tenants)', 'Strong logical isolation; schema can differ per tenant; easy one-click tenant deletion'],
+      ['Dedicated Search Service per Tenant', 'Dedicated [[ai-search]] instance deployed per tenant in dedicated resource group', '1 tenant per service', 'Highest ($250 - $2,000+ per tenant per month)', 'Physical compute and storage isolation; supports tenant-specific customer keys (CMK)'],
+      ['Hybrid Tiered Isolation', 'Shared index for standard B2B tiers; dedicated index or service for enterprise/regulated tiers', 'Scales to thousands of standard tenants plus dedicated enterprise tenants', 'Optimized (premium tenants pay for dedicated infrastructure)', 'Flexible; aligns security cost with customer contract tier']
+    ],
+    rules: [
+      ['Building a standard multi-tenant B2B SaaS platform with hundreds or thousands of customers', 'Use Shared Index with server-side Security Filters. Index-per-tenant will hit service limits.'],
+      ['Enterprise contract requires customer-managed encryption keys (CMK) and guaranteed zero co-mingling of data at rest', 'Deploy a Dedicated Search Service per Tenant (and charge the customer accordingly).'],
+      ['Tenants require custom document schemas, custom metadata fields, or frequent complete data purges upon contract termination', 'Use Index per Tenant on a higher-capacity search tier (S2/S3).'],
+      ['Security filters must be enforced', 'Always inject security filters server-side in [[apim]] or application code. Never trust client-supplied tenant IDs.']
+    ],
+    redflags: [
+      'Relying on frontend code to pass the `tenantId` filter without server-side verification against the authenticated user\'s token.',
+      'Designing an index-per-tenant architecture without checking the Azure AI Search tier index quota (50 on S1).',
+      'Failing to include tenant ID in semantic cache keys, causing Tenant B to receive cached answers generated for Tenant A.',
+      'Lack of automated integration tests that actively attempt cross-tenant retrieval attacks in CI/CD.'
+    ],
+    ask: [
+      'How many tenants do we expect in 6, 12, and 24 months?',
+      'Do customer contracts require physical infrastructure isolation or is logical isolation with RBAC acceptable?',
+      'Where is the tenant filter injected, and how do we prove a caller cannot tamper with it?',
+      'What is our procedure for completely exporting or deleting all data for a single tenant upon contract termination?'
+    ],
+    revisit: 'When tenant count approaches 80% of search tier index limits, when signing a major enterprise client requiring physical isolation, or after any data boundary audit.',
+    related: ['ai-search', 'entra-id', 'apim', 'key-vault', 'azure-policy'],
+    em: {
+      call: 'Adopt a Hybrid Tiered Isolation model: shared index with security filters for standard tiers, dedicated search service for premium enterprise contracts that fund it.',
+      own: ['Contractual security commitments and SLA pricing tiers.', 'Coordinating with legal and compliance on tenant isolation declarations.'],
+      evidence: ['Documented tenant isolation architecture review signed by InfoSec.', 'Pricing model proving enterprise customers cover dedicated infrastructure costs.']
+    },
+    pe: {
+      call: 'Enforce security filters server-side via [[apim]] or backend microservices; validate authenticated Entra ID claims and test cross-tenant query boundaries in CI.',
+      own: ['Search index schema, security filter syntax (`search.in(tenantId, ...)`), and filter injection logic.', 'Automated test suite verifying that cross-tenant queries return zero results.'],
+      evidence: [
+        'Automated CI test run logs verifying that simulated cross-tenant queries return zero documents.',
+        'Performance benchmark measuring search latency overhead with security filters applied at scale.'
+      ]
+    }
+  },
+  {
+    id: 'workflow-vs-agent', theme: 'strategy', lead: 'both', title: 'Deterministic workflow vs autonomous agent: what to choose?',
+    question: 'When should a business process use deterministic application code and workflows versus an autonomous AI agent?',
+    door: 'two-way', doorNote: 'Workflows and agents can be composed together: an agent can invoke a workflow as a tool, or a workflow can invoke an agent for unstructured reasoning.',
+    why: 'An autonomous agent is non-deterministic: it decides which steps to take, which tools to call, and when it is finished. For deterministic business processes (payroll, regulatory compliance, transaction processing), autonomous agents introduce unacceptable variance, cost, and failure modes. Microsoft explicitly advises workflows for predefined execution paths and agents for open-ended problem solving.',
+    cols: ['Dimension', 'Deterministic Workflow ([[logic-apps]], [[durable-functions]])', 'Tool-Calling Single Agent', 'Autonomous Multi-Agent System ([[agent-framework]])'],
+    rows: [
+      ['Execution path', 'Pre-defined, explicit branching, 100% reproducible', 'Dynamic tool selection for a single bounded task', 'Emergent, multi-turn iterative reasoning and collaboration'],
+      ['Failure predictability', 'Known error conditions, explicit retries and fallbacks', 'Model may pick wrong tool or hallucinate parameters', 'Complex failure modes: loops, goal drift, inter-agent confusion'],
+      ['Cost per execution', 'Fraction of a cent; compute only', 'Low to moderate (1-3 model calls)', 'High and variable (5-20+ model calls per task)'],
+      ['Auditability', 'Complete deterministic execution path and state logs', 'Recorded prompt, tool call and output trace', 'Complex distributed conversational traces across agents'],
+      ['Best fit', 'Invoicing, compliance filing, ETL pipelines, order processing', 'Customer support lookup, document extraction, summarization', 'Open-ended research, code generation, creative problem solving']
+    ],
+    rules: [
+      ['The business process follows known, sequential, or rule-based steps', 'Use [[logic-apps|Logic Apps]] or [[durable-functions|Durable Functions]]. Never use an autonomous agent where a flowchart works.'],
+      ['The task requires open-ended troubleshooting, interpreting unstructured user intent, or dynamic tool discovery', 'Use an autonomous agent with [[foundry-agent-service]] or [[agent-framework]].'],
+      ['A step in an otherwise deterministic workflow requires unstructured document reasoning', 'Embed a single LLM call inside a Durable Function activity step. Keep the overall process deterministic.'],
+      ['An autonomous agent must execute a multi-step business transaction', 'Expose the transaction as a single atomic workflow tool. Let the agent decide *when* to call it, not execute each sub-step itself.']
+    ],
+    redflags: [
+      'Replacing a reliable 5-step business workflow with an autonomous agent that forgets step 3 half the time.',
+      'Allowing an autonomous agent to execute individual SQL inserts rather than calling a validated API.',
+      'Using multi-agent group chats for linear workflows that could be written in 20 lines of Python.',
+      'Failing to establish hard stopping criteria and budget limits for autonomous agents.'
+    ],
+    ask: [
+      'Can the sequence of steps for this task be drawn on a whiteboard as a flowchart?',
+      'What is our tolerance for non-deterministic execution paths or skipped steps in this process?',
+      'What is the cost difference between executing this as code versus 10 LLM reasoning turns?',
+      'Can we use a hybrid design: a deterministic workflow engine driving the spine, calling agents only for unstructured tasks?'
+    ],
+    revisit: 'When an agentic system exhibits high failure rates on routine tasks, or when a deterministic workflow requires too many brittle edge-case rules.',
+    related: ['logic-apps', 'durable-functions', 'foundry-agent-service', 'agent-framework', 'functions'],
+    em: {
+      call: 'Default to deterministic workflows for core business operations. Reserve autonomous agents exclusively for open-ended problem-solving where rule-based code fails.',
+      own: ['Business process reliability SLAs and compliance sign-off.', 'Budget oversight ensuring non-deterministic token spend is justified by measurable business value.'],
+      evidence: ['Process failure mode analysis demonstrating why deterministic code is insufficient.', 'Comparative cost model of workflow vs agent execution.']
+    },
+    pe: {
+      call: 'Build the orchestration spine using [[durable-functions|Durable Functions]] or [[logic-apps|Logic Apps]]; encapsulate autonomous agents as discrete steps within the durable workflow.',
+      own: ['System state machines, idempotency guarantees, and exception handling.', 'Designing atomic tool interfaces so agents trigger validated workflows rather than raw database writes.'],
+      evidence: [
+        'Architecture diagram showing the separation of deterministic orchestration from probabilistic agent steps.',
+        'Chaos engineering and failure recovery test reports demonstrating resumption after transient step failures.'
+      ]
+    }
+  },
+  {
+    id: 'model-deployment-capacity', theme: 'architecture', lead: 'em', title: 'Model deployment and Azure capacity decision matrix',
+    question: 'Which Azure model deployment type, throughput tier and capacity strategy fits your workload, latency SLA and budget?',
+    door: 'mixed', doorNote: 'Switching between Standard pay-as-you-go and Provisioned Throughput (PTU) takes minutes in the portal, but PTUs require minimum monthly financial commitments.',
+    why: 'Running out of model capacity or hitting HTTP 429 rate limits is the #1 cause of failed generative AI launches. Azure offers multiple deployment types (Global Standard, Global Provisioned, Global Batch, Data Zone, Regional, and Azure ML Endpoints) with vastly different throughput guarantees, pricing, regional availability and data residency rules.',
+    cols: ['Deployment type', 'Throughput guarantee', 'Data residency', 'Pricing model', 'Best fit'],
+    rows: [
+      ['Global Standard', 'Best-effort shared capacity; subject to TPM rate limits and regional surges', 'Global Azure infrastructure; prompts may process in any geography', 'Pay-as-you-go per 1M tokens', 'Variable traffic, development, non-critical enterprise apps'],
+      ['Global Provisioned (PTU)', 'Guaranteed throughput; zero 429 throttling within purchased Provisioned Throughput Units', 'Global Azure infrastructure with reserved compute', 'Hourly rate per PTU (1-month minimum commitment)', 'High steady-state volume, mission-critical user latency SLAs'],
+      ['Global Batch', 'Asynchronous processing; 24-hour SLA turnaround', 'Global Azure infrastructure', '50% discount on pay-as-you-go token rates', 'Bulk summarization, offline dataset labeling, overnight evaluations'],
+      ['Data Zone Standard', 'Shared capacity constrained within geographic data boundary (US or EU)', 'Processing and data at rest remain inside specified Data Zone', 'Pay-as-you-go per 1M tokens (slight premium on some models)', 'EU/US data sovereignty requirements without dedicated hardware'],
+      ['Data Zone Provisioned', 'Guaranteed throughput within specified geographic data boundary (US or EU)', 'Strict processing and data at rest inside Data Zone', 'Hourly rate per PTU with Data Zone reservation', 'Regulated European enterprise workloads requiring guaranteed latency'],
+      ['Regional Standard / Provisioned', 'Confined to a single specific Azure Region (e.g. Sweden Central)', 'Strict single-region data processing and storage', 'Pay-as-you-go or PTU per Region', 'Strict national data residency or low-latency proximity to on-premises systems'],
+      ['Azure ML Managed Endpoints', 'Dedicated GPU virtual machines running open-weight or fine-tuned models', 'Strictly within your virtual network and chosen Region', 'Per-second VM billing ([[gpu-vms]]) + storage', 'Custom fine-tuned weights, open-source models (vLLM), zero shared tenancy']
+    ],
+    rules: [
+      ['Workload has high, steady traffic (>100M tokens/month) and strict P99 latency SLAs', 'Purchase Global Provisioned Throughput Units (PTU). Standard pay-as-you-go will suffer throttling spikes.'],
+      ['Regulatory compliance mandates European Data Boundary (EUDB) compliance', 'Deploy Data Zone (EU) or Regional (e.g. Sweden Central, France Central) deployments.'],
+      ['Processing offline jobs (re-indexing documents, synthetic data generation, bulk classification)', 'Use Global Batch deployments to cut token costs by 50%.'],
+      ['Traffic is spiky and unpredictable with low baseline volume', 'Start on Global Standard; configure [[apim]] to load-balance across multiple Azure Regions for burst capacity.']
+    ],
+    redflags: [
+      'Launching a mission-critical customer feature on Standard pay-as-you-go without requesting quota increases in advance.',
+      'Committing to expensive PTU reservations during the prototype phase before baseline traffic is measured.',
+      'Failing to implement backoff and retry logic with `Retry-After` header compliance, turning minor throttling into complete outages.',
+      'Ignoring regional model availability differences when designing multi-region architectures.'
+    ],
+    ask: [
+      'What is our estimated peak tokens per minute (TPM) and requests per minute (RPM)?',
+      'Do our contracts mandate single-region data processing, Data Zone residency, or is Global processing acceptable?',
+      'What is our financial breakeven point between pay-as-you-go tokens and reserved PTUs?',
+      'Have we configured an AI gateway in [[apim]] to load-balance across multiple deployment targets?'
+    ],
+    revisit: 'Monthly as traffic grows, whenever a model version upgrade is announced, or before signing enterprise customer contracts with strict residency clauses.',
+    related: ['foundry-models', 'apim', 'quotas', 'cost-management', 'azure-monitor', 'aml-endpoints'],
+    em: {
+      call: 'Start with Global Standard behind an APIM gateway. Transition to Provisioned Throughput (PTU) only when daily token volume justifies the commitment or P99 latency SLAs mandate zero throttling.',
+      own: ['PTU financial commitment sign-off and multi-month budget forecasting.', 'Data residency compliance sign-off with legal and enterprise customers.'],
+      evidence: [
+        'Traffic modeling spreadsheet showing break-even point between PTU reservations and pay-as-you-go consumption.',
+        'Approved quota request confirmations across primary and secondary Regions.'
+      ]
+    },
+    pe: {
+      call: 'Deploy an active-active or active-passive deployment pool in [[apim]] spanning two Azure Regions; implement circuit breakers that gracefully degrade to smaller models on 429 throttling.',
+      own: ['Gateway load-balancing algorithms, health probes, and circuit breaker configuration.', 'Instrumenting token consumption, time-to-first-token (TTFT), and 429 throttling metrics in [[azure-monitor]].'],
+      evidence: [
+        'Load test reports simulating peak traffic with graceful regional failover validation.',
+        'Latency percentiles (P50, P95, P99) and token throughput graphs under simulated burst conditions.'
+      ]
+    }
   }
 ];

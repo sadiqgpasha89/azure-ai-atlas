@@ -370,3 +370,229 @@ window.ATLAS.shaper = {
     return { headline: headline, arch: arch, stack: stack, risks: risks, next: next, phases: phases };
   }
 };
+
+window.ATLAS.engineeringPlaybooks = [
+  {
+    id: 'rag-engineering',
+    title: 'Enterprise RAG Engineering Playbook',
+    badge: 'Core Pattern',
+    tag: 'Document ingestion, layout chunking, hybrid search tuning, Turing reranking and quality metrics.',
+    intro: 'Retrieval-Augmented Generation (RAG) is not a single prompt trick — it is a distributed data retrieval and ranking system. In enterprise deployments, generation quality is overwhelmingly constrained by retrieval recall. This playbook outlines the production engineering practices for building high-precision RAG on Azure.',
+    sections: [
+      {
+        title: '1. Document Cracking and Ingestion',
+        body: 'Never use naive PDF text dumpers on enterprise documents. Real-world documents contain multi-column layouts, tables, headers, embedded diagrams and scanned pages that standard text splitters flatten into useless noise.\n\nUse [[doc-intelligence|Azure AI Document Intelligence]] layout analysis (`prebuilt-layout`). It outputs semantic Markdown preserving document headers (`#`, `##`), reading order across columns, and structured HTML/Markdown tables. For multimodal documents containing charts and photos, integrate [[content-understanding]] to extract visual bounding box descriptions.',
+        tips: [
+          '**Always extract tables as Markdown:** Tables converted to raw text lose cell coordinate meaning; Markdown tables allow embedding models and LLMs to preserve column-row relationships.',
+          '**Capture document metadata during cracking:** Extract author, department, creation date, and Entra ID security group identifiers into metadata tags for downstream security trimming.'
+        ]
+      },
+      {
+        title: '2. Chunking Algorithms and Boundaries',
+        body: 'Chunk size directly governs the trade-off between retrieval specificity and conversational context. Chunks under 200 tokens lack sufficient semantic context; chunks over 1,500 tokens dilute vector embeddings and inflate LLM input costs.\n\nAdopt **Document-Aware Layout Chunking** and **Hierarchical Parent-Child Chunking**:',
+        bullets: [
+          '**Layout-Aware Chunking:** Split at logical Markdown section boundaries (`##`) rather than arbitrary character counts. Prepend the document title and section path to every chunk.',
+          '**Parent-Child Indexing:** In [[ai-search|Azure AI Search]], index small child passages (200-300 tokens) for dense vector search, but retrieve and inject the parent section (1,000-1,500 tokens) into the LLM prompt to give the model complete context.',
+          '**Sliding Window Overlap:** Maintain 10-15% token overlap across sequential chunks to prevent semantic truncation of cross-boundary statements.'
+        ]
+      },
+      {
+        title: '3. Hybrid Search Tuning and Semantic Reranking',
+        body: 'Dense vector search alone fails on alphanumeric strings: product SKUs, invoice numbers, software error codes, and customer identifiers. Pure keyword search fails on synonyms and conceptual phrasing.\n\nProduction enterprise RAG on Azure must configure **Hybrid Search** combining dense vectors and BM25 full-text search, fused via Reciprocal Rank Fusion (RRF), followed by the **Semantic Reranker (Microsoft Turing L2)**.',
+        bullets: [
+          '**Reciprocal Rank Fusion (RRF):** Evaluates ranks from dense vector and BM25 keyword passes, scoring candidates by `1 / (60 + rank)`. This balances keyword precision and semantic intent without manual weight tuning.',
+          '**Semantic Reranker:** Evaluates the top 50 RRF candidates through a deep multilingual cross-encoder model, boosting relevant passages to the top 3-5 positions. This yields a 15-25% lift in NDCG@10 at a modest 100-200ms latency cost.',
+          '**Foundry IQ Knowledge Bases:** Microsoft\'s managed knowledge layer around Azure AI Search automates multi-query decomposition and parallel knowledge source execution.'
+        ]
+      },
+      {
+        title: '4. Measurable RAG Quality Indicators',
+        body: 'Do not judge RAG quality by manual spot-checking or subjective demo reviews. Track formal statistical evaluation metrics separated into retrieval quality and generation quality:',
+        bullets: [
+          '**Recall@K (Target: >85% at K=5):** The fraction of ground-truth relevant passages successfully surfaced in the top K retrieved results.',
+          '**MRR (Mean Reciprocal Rank):** Evaluates how close to the top position the first relevant passage appears.',
+          '**NDCG@K (Normalized Discounted Cumulative Gain):** Measures graded relevance and ranking quality of the retrieved set.',
+          '**Groundedness / Faithfulness (Target: >95%):** The percentage of generated claims in the final answer that can be strictly deduced from retrieved context.',
+          '**Answer Relevance (Target: >90%):** How directly the synthesized response answers the user\'s prompt without extraneous filler.',
+          '**Citation Precision (Target: >98%):** Percentage of inline citations that point to an actual supporting statement in the source passage.'
+        ]
+      }
+    ],
+    see: ['arch:traditional-rag', 'arch:agentic-rag', 'dec:vector-hybrid-search', 'dec:chunking-strategy', 'dec:reranking-tradeoff', 'svc:ai-search', 'svc:doc-intelligence']
+  },
+  {
+    id: 'agent-engineering',
+    title: 'Multi-Agent Engineering & Orchestration Playbook',
+    badge: 'Emerging Standard',
+    tag: 'Orchestration patterns, framework selection, memory persistence, MCP tools and safety gates.',
+    intro: 'Moving from a single chatbot to an autonomous multi-agent system shifts engineering focus from prompt design to distributed systems design: state machines, distributed transactions, memory lifecycles, and tool authorization. This playbook outlines the architectural patterns and production guardrails required to operate multi-agent systems reliably.',
+    sections: [
+      {
+        title: '1. Multi-Agent Orchestration Patterns',
+        body: 'Microsoft Agent Framework documents seven foundational patterns for multi-agent collaboration. Selecting the right pattern bounds non-determinism and simplifies debugging:',
+        bullets: [
+          '**Sequential Pipeline:** Agent A -> Agent B -> Agent C. Fixed execution order; each agent completes a specialized stage (e.g. Extraction -> Calculation -> Formatting).',
+          '**Concurrent Fan-Out / Fan-In:** A central dispatcher invokes multiple specialized agents in parallel (e.g. searching 3 disparate databases), aggregating results for final synthesis.',
+          '**Supervisor Pattern:** A central coordinator agent dynamically inspects incoming goals, delegates sub-tasks to worker agents, inspects output, and decides when the overall goal is met.',
+          '**Handoff Pattern:** State-machine transitions where an agent evaluates intent and explicitly transfers conversation authority to another agent (e.g. Triage Agent hands off to Billing Agent).',
+          '**Group Chat:** Multiple agents participate in a shared conversational thread, moderated by a round-robin or model-selected speaker selection algorithm.',
+          '**Magentic-One Pattern:** A generalist manager directs specialized agents (WebSurfer, FileSurfer, Coder, Terminal) to solve open-ended computer-use and research tasks.',
+          '**Human-in-the-Loop (HITL):** Workflows explicitly pause before high-risk tool actions (writes, payments, external communication) to require human approval.'
+        ]
+      },
+      {
+        title: '2. Framework Comparison: When to Use What',
+        body: 'Avoid building custom agent loops from scratch. Azure supports both managed and code-first agent frameworks:',
+        bullets: [
+          '**Microsoft Foundry Agent Service:** Best for managed enterprise agents. Zero infrastructure to maintain; built-in thread state, file search, code interpreter, and hosted MCP tools.',
+          '**Microsoft Agent Framework:** The premier code-first SDK unifying Semantic Kernel and AutoGen. Best for complex multi-agent workflows, custom memory providers, and deterministic control flow.',
+          '**Azure Durable Functions & Logic Apps:** Best for deterministic business spines. Use workflows for reliable, retryable execution paths, invoking agents only for unstructured sub-tasks.',
+          '**Azure Container Apps & AKS:** Best for self-hosting custom agent runtimes, local Python sandboxes, and dedicated model serving engines (vLLM).'
+        ]
+      },
+      {
+        title: '3. Memory, Session State and Persistence',
+        body: 'Agents require three distinct tiers of memory to operate across long-running business workflows:',
+        bullets: [
+          '**Short-Term Working Memory:** The current context window containing system prompt, immediate tool outputs, and recent message turns. Keep this lean; summarize older turns.',
+          '**Session State & Checkpoints:** Persisted conversational thread state stored in [[cosmos|Azure Cosmos DB]] or [[redis|Redis]]. Checkpoint agent execution after every tool call to allow resuming after container restarts.',
+          '**Long-Term Semantic Memory:** Vector-indexed historical facts, user preferences, and past task solutions stored in [[ai-search|Azure AI Search]] or [[cosmos|Cosmos DB]], retrieved dynamically via semantic similarity.'
+        ]
+      },
+      {
+        title: '4. Tool Authorization, MCP and Safety Budgets',
+        body: 'Unconstrained autonomous agents are an extreme security risk. Bound agent blast radius using enterprise security controls:',
+        bullets: [
+          '**Server-Side Argument Validation:** Tools hosted as [[functions|Azure Functions]] or MCP servers must strictly validate parameters server-side against JSON schemas. Never trust raw LLM inputs.',
+          '**User-Delegated Identity:** Tools must run under the authenticated user\'s [[entra-id|Entra ID]] on-behalf-of token, ensuring the agent cannot access records the user is not permitted to see.',
+          '**Model Context Protocol (MCP):** Expose internal APIs through standardized MCP servers with explicit capability negotiation and audit logging.',
+          '**Hard Iteration and Token Caps:** Enforce strict limits on maximum tool execution turns (e.g. 5 loops) and maximum wall-clock timeout (e.g. 60 seconds) to prevent infinite loops from draining budgets.'
+        ]
+      }
+    ],
+    see: ['arch:multiagent-orchestration', 'dec:workflow-vs-agent', 'dec:agent-runtime', 'dec:autonomy-level', 'svc:foundry-agent-service', 'svc:agent-framework', 'svc:functions']
+  },
+  {
+    id: 'genaiops-mlops',
+    title: 'GenAIOps & Production MLOps Playbook',
+    badge: 'Operations',
+    tag: 'Prompt versioning, MLflow tracking, automated evaluation gates, canary deployments and drift monitoring.',
+    intro: 'Moving generative AI applications from prototype to enterprise production requires the same rigor as traditional software engineering, augmented with probabilistic quality testing. GenAIOps establishes reproducible release pipelines, automated evaluation gates, and continuous production monitoring.',
+    sections: [
+      {
+        title: '1. The 8-Stage GenAIOps Lifecycle',
+        body: 'Every production AI capability follows an end-to-end operational lifecycle on Azure:',
+        bullets: [
+          '**Stage 1: Development:** Prompt engineering, model selection in [[foundry]], local experimentation and initial prompt refinement.',
+          '**Stage 2: Data Preparation:** Curating, cleansing, and versioning golden evaluation datasets and domain documents in [[adls|ADLS Gen2]] with cataloging in [[purview]].',
+          '**Stage 3: RAG Engineering:** Schema design, chunking configuration, index creation, and embedding generation in [[ai-search]].',
+          '**Stage 4: Offline Evaluation:** Running automated evaluation test suites using the Microsoft Foundry evaluation SDK against golden datasets.',
+          '**Stage 5: CI/CD Deployment:** Git-driven promotion pipelines via [[azure-devops|Azure DevOps or GitHub Actions]] deploying infrastructure as code ([[bicep]]) and model configurations.',
+          '**Stage 6: Online Monitoring:** Emitting distributed traces, latency metrics, token consumption, and 429 throttling signals to [[azure-monitor]].',
+          '**Stage 7: Optimization:** Continuous cost optimization: prompt caching, semantic caching in [[redis]], small-model routing, and batch inference.',
+          '**Stage 8: Governance:** Managing model retirement dates, tracking compliance, conducting security audits, and maintaining rollbacks.'
+        ]
+      },
+      {
+        title: '2. Experiment Tracking & Prompt Versioning',
+        body: 'Treat prompts and system instructions as compiled application code. Store prompt templates in Git repositories with semantic versioning tags (`v1.2.0`).\n\nUse **MLflow** integrated into [[aml-workspace|Azure Machine Learning]] and [[foundry|Microsoft Foundry]] to log every evaluation run: capturing the prompt template, temperature, model version, evaluation dataset commit, and resultant quality scores in a single immutable experiment record.',
+        tips: [
+          '**Never edit prompts directly in production:** All changes must originate as pull requests with automated eval runs attached.',
+          '**Version evaluation datasets alongside prompts:** A quality score is meaningless unless pinned to a specific, immutable evaluation dataset version.'
+        ]
+      },
+      {
+        title: '3. Automated Regression Gates in CI/CD',
+        body: 'Integrate automated quality gates into [[azure-devops|GitHub Actions or Azure DevOps]] pipelines. On every pull request touching prompts, tools, or retrieval configuration:',
+        bullets: [
+          '**Smoke Eval Suite (50 cases):** Fast automated test run validating syntax, JSON formatting compliance, tool-calling precision, and basic groundedness (<3 minutes).',
+          '**Full Regression Suite (500+ cases):** Triggered on merge to main; measures Groundedness, Answer Relevance, Recall@K, and Safety metrics.',
+          '**Blocking Gate Criteria:** Automatically block PR merges if Groundedness drops by more than 1.5% or safety filters trigger on known adversarial prompts.'
+        ]
+      },
+      {
+        title: '4. Release Strategies & Drift Monitoring',
+        body: 'Deploy model changes using canary release patterns. Route 10% of live traffic to the candidate prompt or model revision using [[apim|API Management]] backend weight policies.\n\nMonitor production telemetry continuously in [[azure-monitor]]: track **Time to First Token (TTFT)**, model 429 throttle events, tool execution error rates, and user feedback (thumbs up / thumbs down). Significant divergence in user feedback or token usage signals prompt drift or unexpected real-world query distribution changes.'
+      }
+    ],
+    see: ['arch:genaiops-lifecycle', 'arch:training-mlops', 'dec:evaluation', 'dec:improve-model', 'svc:azure-devops', 'svc:foundry', 'svc:aml-workspace']
+  },
+  {
+    id: 'security-hardening',
+    title: 'Enterprise AI Security & Hardening Playbook',
+    badge: 'Security',
+    tag: 'Identity delegation, document security trimming, Prompt Shields and least-privilege tool execution.',
+    intro: 'Generative AI applications introduce novel threat vectors that traditional web application security cannot prevent: prompt injection, indirect document poisoning, ungrounded hallucinations posing as fact, and rogue agent tool actions. This playbook outlines the technical controls required to harden Azure AI workloads.',
+    sections: [
+      {
+        title: '1. Identity, Least Privilege and Keyless Access',
+        body: 'API keys are bearer secrets that leak easily and lack attribution. Production architectures on Azure must disable API key authentication across all AI services in favor of **Microsoft Entra ID Managed Identities** and Workload Identity Federation.',
+        bullets: [
+          '**No API Keys in Configuration:** Disable local authentication (`disableLocalAuth=true`) on Foundry, Azure OpenAI, AI Search, and Storage accounts.',
+          '**Granular RBAC Roles:** Assign least-privilege roles: `Cognitive Services OpenAI User` (caller permissions only, no deployment rights) and `Search Index Data Reader` (query only, no indexing permissions).',
+          '**User Identity Delegation (OBO):** Web applications and agent orchestrators must propagate user Entra ID tokens so tools act on behalf of the user, preventing privilege escalation.'
+        ]
+      },
+      {
+        title: '2. Document-Level Security & Permission Trimming',
+        body: 'Never rely on client-side filtering or system prompt instructions to restrict document access. In [[ai-search|Azure AI Search]], enforce security trimming at the retrieval engine level:\n\n1. During document ingestion, crack user and security group Access Control Lists (ACLs) and write them as collection fields (`permissions/any(g: search.in(g, userGroups))`).\n2. At query time, the backend service extracts user group SIDs from the validated Entra ID token and injects mandatory OData security filters server-side.\n3. The search engine trims unauthorized documents before vector or keyword ranking occurs, ensuring unauthorized passages never reach the LLM context.',
+        tips: [
+          '**Prevent filter injection attacks:** Always construct search filters using strongly typed SDK filter builders rather than raw string concatenation.',
+          '**Scope semantic caches by tenant and user:** If caching is enabled in [[redis]], include user security hashes in cache keys to prevent cross-user data leakage.'
+        ]
+      },
+      {
+        title: '3. Prompt Shields & Indirect Injection Defenses',
+        body: 'Any untrusted text read by a model — customer emails, support tickets, web pages, retrieved documents — can contain malicious instructions intended to hijack the system prompt.\n\nDeploy **Azure AI Content Safety Prompt Shields** on both input prompts and retrieved document passages:',
+        bullets: [
+          '**User Prompt Shields:** Detects direct adversarial jailbreaks and system prompt override attempts.',
+          '**Document Prompt Shields:** Analyzes retrieved external text for indirect prompt injection attacks before injecting the text into the model prompt.',
+          '**System Prompt Hardening:** Structure system instructions with explicit delimiters (`<context>` and `</context>`) and instruct the model that content inside context tags represents passive data, not executable instructions.'
+        ]
+      },
+      {
+        title: '4. Network Isolation & Egress Filtering',
+        body: 'Isolate all AI resources inside Azure Virtual Networks using [[private-link|Private Endpoints]]. Disable public internet access on storage accounts, search instances, key vaults, and model endpoints.\n\nRoute all outbound internet traffic from agent containers and GPU compute through [[azure-firewall|Azure Firewall]] with FQDN application rules: allowing connections only to approved model registries, official package repositories, and verified partner APIs, preventing compromised agents from exfiltrating data to external webhooks.'
+      }
+    ],
+    see: ['arch:secure-multitenant-rag', 'dec:tenancy', 'dec:index-tenancy', 'svc:entra-id', 'svc:content-safety', 'svc:azure-firewall', 'svc:key-vault']
+  },
+  {
+    id: 'performance-reliability',
+    title: 'Performance, Reliability & SRE Playbook',
+    badge: 'Reliability',
+    tag: 'Latency budgets, token economics, streaming architectures and multi-region resilience.',
+    intro: 'AI systems present unique SRE challenges: model endpoints throttle aggressively under load, inference times scale with output token length, and GPU capacity is physically constrained. This playbook provides operational guidance for engineering high-availability, low-latency AI platforms.',
+    sections: [
+      {
+        title: '1. Latency Budgets & Streaming Architecture',
+        body: 'End-to-end response times in LLM applications are dominated by generation time. Decompose latency budgets into discrete measurable phases:',
+        bullets: [
+          '**Gateway & Auth Overhead:** Target <25ms in [[apim|API Management]].',
+          '**Retrieval & Reranking:** Target <150ms in [[ai-search]] (40ms hybrid search + 100ms semantic reranker).',
+          '**Time to First Token (TTFT):** Target <1,200ms. TTFT is the most critical user experience metric; users tolerate 10-second answers if tokens start streaming immediately.',
+          '**Streaming Configuration:** Use Server-Sent Events (SSE). Disable response buffering on API gateways, web application firewalls, and reverse proxies (e.g. `X-Accel-Buffering: no` in NGINX).'
+        ]
+      },
+      {
+        title: '2. Token Economics & Cost Reduction Levers',
+        body: 'Model token consumption is the primary operational cost in GenAI. Implement high-impact cost levers in production:',
+        bullets: [
+          '**Prompt Caching:** Place static context (system instructions, corporate definitions, large reference manuals) at the beginning of the prompt. Azure OpenAI automatically applies a substantial discount on repeated prefixes over 1,024 tokens.',
+          '**Semantic Caching:** Store question embeddings and verified answers in [[redis|Azure Managed Redis]]. When an incoming query has >95% cosine similarity to a cached question, return the cached response immediately, bypassing the model entirely.',
+          '**Model Cascading / Tiered Routing:** Route simple classification and routing prompts to fast, cheap models (e.g. GPT-4o-mini), reserving complex frontier models (e.g. GPT-4o) exclusively for multi-hop synthesis.',
+          '**Global Batch Processing:** Shift asynchronous offline jobs (daily report generation, bulk document indexing, evaluation sweeps) to Global Batch deployments for an immediate 50% discount.'
+        ]
+      },
+      {
+        title: '3. Resilience Against Throttling (HTTP 429)',
+        body: 'Model quota exhaustion is inevitable during traffic spikes unless resilient gateway architectures are deployed:\n\n1. In [[apim|Azure API Management]], configure **circuit breakers** and **backend deployment pools** combining a primary regional deployment with a secondary regional spillover deployment.\n2. When the primary returns HTTP 429, the gateway immediately fails over to the secondary deployment without erroring to the user.\n3. Client SDKs must implement exponential backoff with random jitter, strictly honoring the `Retry-After` header returned by Azure model endpoints.'
+      },
+      {
+        title: '4. Capacity Planning: Pay-as-you-go vs Provisioned (PTU)',
+        body: 'Standard pay-as-you-go deployments share regional infrastructure; latency variance increases during regional load surges. For applications requiring predictable sub-second TTFT and zero 429 rate limiting, evaluate **Provisioned Throughput Units (PTUs)**.\n\nCalculate baseline tokens per minute (TPM) at peak hour. If sustained daily consumption exceeds 100M tokens/month, PTUs often achieve cost parity while providing absolute throughput and latency SLAs.'
+      }
+    ],
+    see: ['dec:model-deployment-capacity', 'dec:capacity-strategy', 'dec:cost-levers', 'svc:apim', 'svc:redis', 'svc:quotas', 'svc:azure-monitor']
+  }
+];

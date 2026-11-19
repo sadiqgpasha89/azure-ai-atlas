@@ -103,3 +103,37 @@ S({
   pairs: ['foundry', 'ai-search', 'blob', 'key-vault', 'aml-workspace', 'azure-policy'],
   cost: 'Private endpoints bill per hour plus per GB processed; VNets are free but firewalls, gateways and peering carry costs. DNS and network design time is the larger hidden cost.'
 });
+
+S({
+  id: 'azure-firewall', cat: 'networking', name: 'Azure Firewall & App Gateway', doc: 'azure/firewall/',
+  tag: 'Cloud-native network security, L7 WAF inspection, and egress filtering for AI landing zones.',
+  what: 'Azure Firewall is a managed, cloud-native firewall that protects Azure Virtual Network resources with high availability and unrestricted cloud scalability. Paired with Application Gateway (providing Layer 7 Web Application Firewall protection), it forms the perimeter defense for enterprise AI landing zones.\n\nIn generative AI architectures, Azure Firewall controls outbound egress: ensuring model serving clusters and agent tool runtimes can only reach approved external APIs, preventing data exfiltration, and enforcing threat intelligence filtering across all AI workloads.',
+  flow: ['Workload subnet', 'Route table (UDR)', 'Azure Firewall & WAF', 'Private DNS resolution', 'Secured AI endpoint', 'Security audit logs'],
+  steps: [
+    [0, 'Network traffic enters or exits the AI workload subnet in a hub-and-spoke topology.'],
+    [1, 'User-defined routes (UDR) force all egress traffic through Azure Firewall as the default gateway (`0.0.0.0/0`).'],
+    [2, 'Azure Firewall evaluates network and application rules: filtering FQDNs to allow only approved model registries and partner APIs.'],
+    [3, 'Application Gateway with WAF v2 inspects inbound HTTP requests for exploits before traffic reaches API endpoints.'],
+    [4, 'Private DNS Resolver routes domain queries for Azure PaaS services to their respective [[private-link|Private Endpoints]].'],
+    [5, 'Connection logs and blocked threat events stream to [[azure-monitor]] for security operations auditing.']
+  ],
+  gotchas: [
+    '**Asymmetric routing breaks connections.** Ensure routing tables return traffic through the same firewall instance that inspected ingress.',
+    '**SNAT port exhaustion under high concurrency.** High-volume API calls from model proxies can exhaust SNAT ports; allocate multiple public IPs or use NAT Gateway.',
+    '**TLS inspection overhead.** Decrypting outbound traffic adds latency; configure bypass rules for latency-sensitive streaming model endpoints.',
+    '**FQDN filtering requires DNS proxy.** Ensure Azure Firewall DNS proxy is enabled to align IP resolution between client and firewall.'
+  ],
+  edges: [
+    'Threat Intelligence mode blocks traffic to and from known malicious IP addresses and domains automatically.',
+    'IDPS (Intrusion Detection and Prevention System) monitors network activity for malicious payloads and zero-day exploits.',
+    'Integration with Azure Virtual WAN simplifies multi-hub transit routing across multi-region deployments.'
+  ],
+  ml: [
+    'Preventing prompt injection attacks from exfiltrating data to arbitrary external webhooks.',
+    'Restricting agent web-browsing tools to an approved whitelist of corporate domains and knowledge sources.',
+    'Protecting training clusters on [[gpu-vms]] and [[aks]] from unauthorized outbound connections.',
+    'Enforcing zero-trust network boundaries mandated by enterprise landing zones.'
+  ],
+  pairs: ['private-link', 'apim', 'aks', 'container-apps', 'azure-monitor', 'defender'],
+  cost: 'Billed per deployment hour plus per-GB data processing charges. Standard and Premium tiers add advanced inspection and IDPS capabilities at higher hourly rates.'
+});

@@ -174,3 +174,71 @@ S({
   pairs: ['gpu-vms', 'blob', 'adf', 'aml-pipelines', 'quotas'],
   cost: 'You pay for the VMs in the pool while they exist; the Batch service itself has no charge. Scale to zero when idle and use Spot for interruptible tasks to cut cost substantially.'
 });
+
+S({
+  id: 'acr', cat: 'compute', name: 'Azure Container Registry (ACR)', doc: 'azure/container-registry/',
+  tag: 'Private OCI container registry for model servers, training images and custom agent runtimes.',
+  what: 'Azure Container Registry (ACR) is an enterprise-grade, managed OCI container registry. It stores container images for [[aks|AKS]], [[container-apps|Container Apps]] and [[aml-training|Azure ML]], along with Helm charts and OCI artifacts (such as model weights or agent bundles). It integrates natively with [[defender|Microsoft Defender for Cloud]] for automated vulnerability scanning and supports private endpoints, geo-replication and automated build tasks.\n\nIn enterprise AI architectures, ACR is the foundation of the **secure AI software supply chain**: ensuring model serving containers and custom agent runtimes run only signed, scanned images pulled securely through [[private-link|private network paths]] without public internet exposure.',
+  flow: ['Container source / Dockerfile', 'ACR build / CI push', 'Vulnerability scan', 'Geo-replication', 'Private Link pull', 'Pod / container runs'],
+  steps: [
+    [0, 'Developers or CI/CD pipelines push container source code and Dockerfiles to the repository.'],
+    [1, 'Images are built and pushed to ACR, tagged with immutable digest hashes for reproducible deployments.'],
+    [2, '[[defender|Microsoft Defender for Cloud]] scans images automatically for OS vulnerabilities, exposed secrets and malware.'],
+    [3, 'Premium tier geo-replicates images across Azure Regions to keep pulls local and reduce cross-region egress latency.'],
+    [4, '[[aks|AKS]] or [[container-apps|Container Apps]] pulls images over [[private-link|Private Link]] using a managed identity without stored admin credentials.'],
+    [5, 'The container boots with verified integrity and begins serving model requests or executing agent tasks.']
+  ],
+  gotchas: [
+    '**Admin user should be disabled.** Never use the admin username and password for production. Use managed identity and Entra ID RBAC (`AcrPull`).',
+    '**Anonymous pull is a security risk.** Ensure anonymous pull is disabled so internal model images and proprietary agent code never leak.',
+    '**Storage limits and untagged manifests accumulate.** Enable retention policies and soft-delete to purge orphaned layers and stale builds.',
+    '**Cross-region pulls cause latency and egress charges.** Use ACR geo-replication so clusters pull from the same Azure Region.'
+  ],
+  edges: [
+    'Artifact cache allows caching public base images (such as NVIDIA CUDA base images or PyTorch) inside your private boundary.',
+    'Content Trust (DCT) and notation-based artifact signing verify image signatures before clusters admit pods.',
+    'Dedicated data endpoints isolate registry data traffic from management plane operations.'
+  ],
+  ml: [
+    'Hosting custom vLLM, TensorRT-LLM, or Triton serving containers with pinned CUDA runtimes for [[aks]].',
+    'Storing custom Python worker environments for distributed training jobs on [[aml-training]].',
+    'Packaging custom agent sandboxes and tool runtimes for [[container-apps]].',
+    'Securing AI container supply chains with automatic CVE vulnerability scanning in [[defender]].'
+  ],
+  pairs: ['aks', 'container-apps', 'aml-training', 'defender', 'private-link', 'gpu-vms'],
+  cost: 'Billed per registry per day across Basic, Standard, and Premium tiers, plus storage consumed beyond the included tier quota and build compute. Premium is required for Private Link, geo-replication, and customer-managed keys.'
+});
+
+S({
+  id: 'app-service', cat: 'compute', name: 'Azure App Service', doc: 'azure/app-service/',
+  tag: 'Managed platform for hosting web applications, AI frontends, and API gateways with built-in auth.',
+  what: 'Azure App Service is a fully managed platform for hosting web applications, REST APIs, and mobile backends. It handles OS patching, TLS certificates, custom domains, autoscaling, and deployment slots. It supports code (Node.js, Python, .NET, Java) or custom Docker containers (Web App for Containers).\n\nIn AI and agentic systems, App Service is often the hosting layer for user-facing chat frontends, internal management portals, and lightweight Python orchestration services that connect users to [[foundry-models]] and [[ai-search]] without the operational overhead of Kubernetes.',
+  flow: ['User browser', 'Custom domain + TLS', 'App Service frontend', 'Entra ID EasyAuth', 'AI backend call', 'Streamed response'],
+  steps: [
+    [0, 'End users connect to the application URL over HTTPS with automated TLS certificate management.'],
+    [1, 'App Service terminates TLS and routes traffic through deployment slots (staging vs production).'],
+    [2, 'The frontend web application (React, Next.js, or Streamlit) renders UI components and receives chat prompts.'],
+    [3, 'Built-in authentication (EasyAuth) validates the user with [[entra-id|Entra ID]] without requiring custom auth code in the application.'],
+    [4, 'The backend executes prompts or agent workflows against [[foundry-models]] or [[ai-search]] using a managed identity.'],
+    [5, 'Tokens stream back over Server-Sent Events (SSE) or WebSockets to the user interface.']
+  ],
+  gotchas: [
+    '**Cold starts on scale-out.** Python applications with heavy ML dependencies can take 30-60 seconds to start. Use Always On and pre-warmed instances.',
+    '**Request timeouts for long inference.** The default Azure frontend timeout is 230 seconds. Long-running agent tasks should be decoupled with WebSockets or background queues.',
+    '**Buffering can break token streaming.** Ensure response buffering is disabled on intermediate reverse proxies and application frameworks.',
+    '**VNet integration required for private backends.** Use regional VNet integration to reach storage and model endpoints over Private Link.'
+  ],
+  edges: [
+    'Deployment slots enable zero-downtime blue/green releases and automated smoke tests before traffic swaps.',
+    'App Service Environment (ASE v3) provides complete physical isolation inside a dedicated subnet for sensitive enterprise workloads.',
+    'Web App for Containers lets you run custom Python environments with specific native packages while retaining PaaS management.'
+  ],
+  ml: [
+    'Hosting enterprise ChatGPT and RAG web portals with Entra ID single sign-on.',
+    'Serving internal agent dashboards and human-in-the-loop review portals.',
+    'Deploying lightweight FastAPI or Flask microservices that expose custom AI tools to agents.',
+    'Pairing with [[apim]] to enforce corporate rate limits and token tracking.'
+  ],
+  pairs: ['entra-id', 'foundry-models', 'ai-search', 'apim', 'private-link', 'azure-monitor'],
+  cost: 'Billed per hour based on the chosen App Service plan tier (Basic, Standard, Premium v3, Isolated v2) regardless of whether apps receive traffic. Scale to zero is only available in consumption alternatives like Container Apps.'
+});

@@ -19,7 +19,11 @@ window.ATLAS.roles = [
       ['The team says quality is "pretty good" from demos', 'Do not approve until a versioned eval set and agreed threshold exist.', 'evaluation'],
       ['The monthly bill jumped, or a forecast is needed', 'Ask for cost per successful task by feature and tenant, then the lever list.', 'cost-levers'],
       ['A large or regulated customer is about to sign', 'Settle the isolation model first. It is a one-way door.', 'tenancy'],
-      ['The team wants to self-host models on GPUs', 'Require a named capacity owner and a cost case against provisioned capacity.', 'where-model-runs']
+      ['The team wants to self-host models on GPUs', 'Require a named capacity owner and a cost case against provisioned capacity.', 'where-model-runs'],
+      ['Evaluating model deployment tier and quota commitments', 'Prototype on Global Standard; commit to PTU only when steady volume or P99 latency demands it.', 'model-deployment-capacity'],
+      ['Deciding whether a business process needs an autonomous agent', 'Default to deterministic workflows; use agents only for open-ended unstructured steps.', 'workflow-vs-agent'],
+      ['Deciding how to separate multi-tenant customer data', 'Use shared index with security filters for standard B2B; charge for dedicated search instances.', 'index-tenancy'],
+      ['Team wants to build GraphRAG for an entire corpus', 'Fund GraphRAG only for high-value global corpus synthesis. Use Vector RAG for operational Q&A.', 'graphrag-vs-vector']
     ],
     rhythm: [
       ['Before kickoff', 'Run the **solution shaper**, then read **Build, buy or customise** and **How autonomous should it be**.'],
@@ -45,7 +49,12 @@ window.ATLAS.roles = [
       ['Long or bursty model calls', 'Stream for people, queue for slow work, batch for anything that can wait.', 'inference-pattern'],
       ['Multi-step or approval-gated work', 'Plain testable code for steps, a thin engine for state and waits.', 'orchestration'],
       ['Throttling at peak', 'Gateway with backoff, spillover and a degraded mode. Assume quota will be short.', 'capacity-strategy'],
-      ['Multi-tenant retrieval', 'Enforce isolation in retrieval and storage, and test cross-tenant leaks in CI.', 'tenancy']
+      ['Multi-tenant retrieval', 'Enforce isolation in retrieval and storage, and test cross-tenant leaks in CI.', 'tenancy'],
+      ['Dense vector search missing exact product codes or part numbers', 'Switch to Hybrid Search (BM25 + vectors) with Reciprocal Rank Fusion.', 'vector-hybrid-search'],
+      ['Deciding between Classic RAG and Agentic RAG', 'Start with Classic RAG; add agentic query decomposition only for verified multi-source synthesis.', 'classic-vs-agentic-rag'],
+      ['Deciding between Azure AI Search and Cosmos DB for embeddings', 'Use AI Search for document RAG (hybrid, reranker, ACLs); Cosmos DB for operational entity vectors.', 'search-vs-cosmos'],
+      ['Chunking complex PDFs with tables and figures', 'Use Document Intelligence layout-aware chunking; never flatten tables with fixed token windows.', 'chunking-strategy'],
+      ['Considering semantic reranking latency vs quality trade-off', 'Turn reranker on for customer-facing Q&A; benchmark Recall@K and P95 latency.', 'reranking-tradeoff']
     ],
     rhythm: [
       ['At design review', 'Open the guide for each decision, read its **red flags** aloud, and ask its **review questions**.'],

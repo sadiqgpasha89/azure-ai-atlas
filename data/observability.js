@@ -138,3 +138,105 @@ S({
   pairs: ['gpu-vms', 'foundry-models', 'aml-training', 'aks', 'apim', 'cost-management'],
   cost: 'Quota itself is free. Capacity reservations, provisioned throughput and unused committed capacity are what cost money, so match them to a measured baseline.'
 });
+
+S({
+  id: 'azure-devops', cat: 'ops', name: 'Azure DevOps & GitHub Actions', doc: 'azure/devops/',
+  tag: 'Enterprise CI/CD automation, model evaluation gates, and infrastructure deployment pipelines.',
+  what: 'Azure DevOps and GitHub Actions provide enterprise CI/CD automation for AI applications. They automate building container images, testing application code, validating infrastructure as code ([[bicep]]), and running automated evaluation suites for prompt changes and model fine-tuning.\n\nIn GenAIOps and MLOps, CI/CD pipelines represent the formal deployment gate: evaluating prompt and model candidates on golden evaluation datasets in [[foundry]], blocking regressions, and promoting verified models to staging and production.',
+  flow: ['Git commit (PR)', 'CI build & lint', 'Automated evals', 'Quality gate review', 'CD promotion', 'Staged deployment'],
+  steps: [
+    [0, 'Engineers commit prompt templates, agent tool definitions, or infrastructure Bicep code to Git.'],
+    [1, 'The pipeline triggers: linting code, running unit tests, and building containers into [[acr]].'],
+    [2, 'An automated evaluation step invokes the [[foundry]] evaluation SDK against golden test sets.'],
+    [3, 'Quality gates evaluate scores: groundedness, relevance, and safety must meet thresholds to pass.'],
+    [4, 'Upon approval, release pipelines deploy infrastructure and endpoints across dev, test, and production environments.'],
+    [5, 'Canary deployment routes 10% traffic to the new model revision while monitoring error rates and latency.']
+  ],
+  gotchas: [
+    '**Pipeline credentials must be secretless.** Use Workload Identity Federation (OIDC) between GitHub/Azure DevOps and Entra ID rather than long-lived service principal client secrets.',
+    '**Evaluation runs can be slow and expensive.** Running large LLM test suites on every micro-commit burns tokens; use small sanity suites on PR and full sweeps on merge.',
+    '**Self-hosted runners needed for private VNet access.** If endpoints or registries are on Private Link, use self-hosted pipeline agents within the VNet.',
+    '**Flaky evals break developer trust.** Stochastic model outputs can fail fixed thresholds; use statistical confidence intervals across repeated runs.'
+  ],
+  edges: [
+    'Environments and deployment protection rules mandate manual approvals from Engineering Managers before production release.',
+    'Automated rollback triggers automatically if canary error rates exceed thresholds in [[azure-monitor]].',
+    'Matrix testing evaluates prompt variations across multiple models (e.g. GPT-4o vs GPT-4o-mini) simultaneously.'
+  ],
+  ml: [
+    'Automating the GenAIOps release lifecycle from prompt commit to production canary.',
+    'Running regression testing on RAG pipelines whenever document chunking or index schemas change.',
+    'Deploying reproducible cloud infrastructure using [[bicep]] and Azure CLI.',
+    'Orchestrating scheduled retraining and model validation pipelines in [[aml-pipelines]].'
+  ],
+  pairs: ['foundry', 'aml-pipelines', 'acr', 'bicep', 'azure-monitor', 'entra-id'],
+  cost: 'Includes free monthly build minutes with pay-as-you-go per-minute rates for additional hosted runner capacity, or per-user monthly licensing for Azure DevOps and GitHub Enterprise.'
+});
+
+S({
+  id: 'app-configuration', cat: 'ops', name: 'Azure App Configuration', doc: 'azure/azure-app-configuration/',
+  tag: 'Centralized dynamic configuration, feature flags, and prompt variant routing.',
+  what: 'Azure App Configuration provides a centrally managed service to store application settings, feature flags, and dynamic parameters. It separates configuration from code, allowing real-time changes without redeploying applications. Paired with [[key-vault]], it securely references secrets while exposing non-sensitive configuration keys.\n\nFor generative AI systems, it acts as the dynamic control plane: managing prompt version flags, switching model deployment endpoints on the fly during outages, toggling agent tool access, and controlling canary rollout percentages.',
+  flow: ['Config change', 'App Config store', 'Event Grid notification', 'App reload (no reboot)', 'Model endpoint / flag updated', 'Audit history'],
+  steps: [
+    [0, 'An Engineering Manager or engineer updates a feature flag, model route, or prompt template in App Configuration.'],
+    [1, 'The store securely records the key-value update with full revision history and audit attribution.'],
+    [2, 'A change event fires through [[event-grid]] or is detected via cache polling by client SDKs.'],
+    [3, 'Running AI applications in [[container-apps]], [[aks]], or [[functions]] refresh configuration dynamically without restarting containers.'],
+    [4, 'The updated route or prompt parameter immediately governs subsequent model inference calls in [[foundry-models]].'],
+    [5, 'Full configuration audit history enables one-click rollback if new settings degrade application metrics.']
+  ],
+  gotchas: [
+    '**Do not store raw secrets.** Store secrets in [[key-vault]] and use App Configuration Key Vault references.',
+    '**SDK cache expiration trade-off.** Short cache TTLs cause high request volume; long TTLs delay critical emergency switch-overs.',
+    '**Throttling on free/standard tiers.** Standard tier supports up to 30,000 requests per minute; use sentinel keys to refresh multiple settings in one call.',
+    '**Keys need hierarchical naming conventions.** Use delimiters like `ai:routing:default-model` and labels (`prod`, `staging`) for tenant and environment scoping.'
+  ],
+  edges: [
+    'Feature filters enable percentage-based rollouts, user group targeting, and time-window activation for new AI features.',
+    'Snapshot management locks a set of configurations for reproducible release testing and compliance verification.',
+    'Private endpoint integration ensures configuration data never traverses the public internet.'
+  ],
+  ml: [
+    'Dynamic model failover: redirecting traffic from a throttling primary region to a backup region in real time.',
+    'Prompt template management and runtime A/B testing across model versions.',
+    'Instant kill-switch: disabling high-risk agent write tools during an active incident without redeploying code.',
+    'Managing tenant-specific feature enablement and quota tiers dynamically.'
+  ],
+  pairs: ['key-vault', 'foundry-models', 'container-apps', 'functions', 'apim', 'azure-monitor'],
+  cost: 'Billed per store per day on Standard tier, plus overage charges for requests exceeding the daily included quota. Negligible cost compared to compute and tokens.'
+});
+
+S({
+  id: 'managed-grafana', cat: 'ops', name: 'Azure Managed Grafana & Prometheus', doc: 'azure/managed-grafana/',
+  tag: 'Rich visualizations, open-source dashboarding, and Prometheus metrics for GPU and AI operations.',
+  what: 'Azure Managed Grafana is a fully managed service for deploying Grafana dashboards integrated natively with Azure Monitor, Azure Managed Prometheus, and Microsoft Entra ID. It brings rich, customizable visualization to operational telemetry, system health, and infrastructure utilization.\n\nIn production AI engineering, Managed Grafana is the operational command center: giving engineering managers and SREs unified dashboards covering GPU cluster utilization (NVIDIA DCGM metrics), token consumption rates, API Gateway latencies, and RAG evaluation trends in one screen.',
+  flow: ['Prometheus / Log metrics', 'Azure Monitor Workspace', 'Managed Grafana query', 'Dashboard visualization', 'Alert trigger', 'On-call action'],
+  steps: [
+    [0, 'GPU nodes, clusters, and gateways emit metrics to Azure Monitor and Azure Managed Prometheus.'],
+    [1, 'Azure Monitor Workspace aggregates time-series metrics, logs, and trace telemetry across subscriptions.'],
+    [2, 'Managed Grafana connects via managed identity with Entra ID role-based dashboard permissions.'],
+    [3, 'Interactive dashboards render P50/P95 latency, GPU memory bandwidth, token burn, and 429 throttle spikes.'],
+    [4, 'Grafana alerting evaluates threshold rules and sends notifications to Slack, Microsoft Teams, or PagerDuty.'],
+    [5, 'On-call engineers inspect high-density visual graphs to isolate whether bottlenecks stem from GPUs, gateway limits, or downstream models.']
+  ],
+  gotchas: [
+    '**Entra ID role assignments required.** Viewing and editing dashboards requires Grafana Admin or Grafana Viewer roles in Entra ID.',
+    '**High-cardinality metrics inflate costs.** Scraping overly granular Prometheus metrics (e.g. per-prompt IDs) increases workspace ingestion fees.',
+    '**Queries must be optimized.** Broad time-range queries across millions of log rows can time out; use downsampled Prometheus metrics for dashboards.',
+    '**Zone redundancy requires Standard tier.** Essential for high-availability production operations.'
+  ],
+  edges: [
+    'Prebuilt dashboard templates exist for Kubernetes clusters, NVIDIA GPU health (DCGM), and Azure OpenAI usage.',
+    'Unified data sources query Azure Monitor, Log Analytics, Azure Data Explorer, and external Prometheus endpoints in single panels.',
+    'Dashboard versioning and Git sync enable GitOps workflows for managing dashboards as code.'
+  ],
+  ml: [
+    'GPU cluster operations: monitoring GPU compute utilization, tensor core activity, and temperature across [[gpu-vms]] and [[aks]].',
+    'AI Engineering Manager executive dashboard: tracking token burn, daily active users, and cost per task.',
+    'Monitoring real-time queue depth and KV-cache saturation on self-hosted vLLM model endpoints.',
+    'Correlating application latency with backend Azure OpenAI throttling events.'
+  ],
+  pairs: ['azure-monitor', 'aks', 'gpu-vms', 'cost-management', 'apim', 'entra-id'],
+  cost: 'Billed per active Grafana instance per hour plus per-active-user monthly licensing fees. Ingestion of Prometheus metrics into Azure Monitor Workspace is billed per GB.'
+});

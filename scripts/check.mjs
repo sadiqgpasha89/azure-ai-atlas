@@ -135,6 +135,57 @@ for (const g of A.readiness) {
 }
 if (typeof A.adrTemplate !== 'string' || A.adrTemplate.length < 200) err('adrTemplate missing');
 
+// engineering playbooks
+if (!Array.isArray(A.engineeringPlaybooks) || A.engineeringPlaybooks.length < 5) err('engineeringPlaybooks: expected at least 5 playbooks');
+for (const p of A.engineeringPlaybooks || []) {
+  const loc = `playbook ${p.id}`;
+  for (const k of ['title', 'badge', 'tag', 'intro']) checkText(`${loc}.${k}`, p[k]);
+  for (const sec of p.sections || []) {
+    checkText(`${loc}.${sec.title}`, sec.title);
+    if (sec.body) checkText(`${loc}.${sec.title}.body`, sec.body);
+    for (const b of sec.bullets || []) checkText(`${loc}.${sec.title}.bullet`, b);
+    for (const tip of sec.tips || []) checkText(`${loc}.${sec.title}.tip`, tip);
+  }
+  (p.see || []).forEach(r => {
+    const [k, id] = r.split(':');
+    if (k === 'svc' && !ids.has(id)) err(`${loc}: see unknown service ${id}`);
+    else if (k === 'dec' && !decIds.has(id)) err(`${loc}: see unknown decision ${id}`);
+    else if (k === 'arch' && !archIds.has(id)) err(`${loc}: see unknown architecture ${id}`);
+  });
+}
+
+// governance
+if (!A.governance || typeof A.governance !== 'object') err('governance: missing A.governance');
+else {
+  const g = A.governance;
+  if (!g.landingZones || !g.securityFramework || !g.tenancyModels || !g.policyInitiatives) err('governance: missing core sections');
+  checkText('governance.landingZones.title', g.landingZones.title);
+  checkText('governance.landingZones.intro', g.landingZones.intro);
+}
+
+// operations
+if (!A.operations || typeof A.operations !== 'object') err('operations: missing A.operations');
+else {
+  if (!A.operations.dashboardTemplate || !Array.isArray(A.operations.dashboardTemplate.widgets) || A.operations.dashboardTemplate.widgets.length < 10) err('operations: dashboardTemplate needs at least 10 widgets');
+  if (!Array.isArray(A.operations.runbooks) || A.operations.runbooks.length < 4) err('operations: expected at least 4 runbooks');
+  if (!A.operations.postmortemTemplate || typeof A.operations.postmortemTemplate.templateMarkdown !== 'string' || A.operations.postmortemTemplate.templateMarkdown.length < 200) err('operations: missing postmortemTemplate');
+}
+
+// toolkit
+if (!A.toolkit || typeof A.toolkit !== 'object') err('toolkit: missing A.toolkit');
+else {
+  for (const k of ['useCaseAssessment', 'projectEstimation', 'raciMatrix', 'raidTracker', 'qualityGates', 'vendorMatrix', 'skillsMatrix']) {
+    if (!A.toolkit[k]) err(`toolkit: missing ${k}`);
+  }
+}
+
+// labs
+if (!A.labs || typeof A.labs !== 'object') err('labs: missing A.labs');
+else {
+  if (!Array.isArray(A.labs.learningPaths) || A.labs.learningPaths.length < 3) err('labs: expected at least 3 learningPaths');
+  if (!Array.isArray(A.labs.exercises) || A.labs.exercises.length < 5) err('labs: expected at least 5 exercises');
+}
+
 // solution shaper: exhaustively run every answer combination
 const Q = A.shaper.questions;
 let combos = 0;
