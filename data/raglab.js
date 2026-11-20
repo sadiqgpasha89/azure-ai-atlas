@@ -15,7 +15,7 @@ window.ATLAS.ragLab = {
       difficulty: 'Beginner',
       useCase: 'Simple knowledge chatbot, single static document collection, basic FAQ lookups.',
       retrievalFlow: 'User Query -> Embedding Generation -> Vector Similarity (Cosine/HNSW) -> Top-K Context Injection -> LLM Completion.',
-      azureImplementation: 'Azure AI Search vector index with text-embedding-3-small + Azure OpenAI GPT-4o-mini.',
+      azureImplementation: 'Azure AI Search vector index with text-embedding-3-small + a small-tier Azure OpenAI chat model.',
       tradeoffs: 'Fastest to implement (<1 day); susceptible to semantic drift, keyword mismatch, and poor handling of structured tables.'
     },
     {
@@ -114,8 +114,8 @@ window.ATLAS.ragLab = {
       name: 'Multimodal RAG (Text, Images & Tables)',
       difficulty: 'Expert',
       useCase: 'Technical architecture diagrams, scanned financial invoices, medical pathology charts, multimodal corporate decks.',
-      retrievalFlow: 'Query (Text/Image) -> Multimodal Embedding -> Azure AI Search retrieves text passages + diagram image crops -> GPT-4o Multimodal synthesis.',
-      azureImplementation: 'Azure Document Intelligence Layout model + Azure AI Vision Multimodal Embeddings + GPT-4o.',
+      retrievalFlow: 'Query (Text/Image) -> Multimodal Embedding -> Azure AI Search retrieves text passages + diagram image crops -> a vision-capable model synthesizes the answer.',
+      azureImplementation: 'Azure Document Intelligence Layout model + Azure AI Vision Multimodal Embeddings + a vision-capable chat model.',
       tradeoffs: 'Full fidelity extraction of non-text assets; requires visual cropping pipelines and multimodal token budgets.'
     },
     {
@@ -145,7 +145,7 @@ window.ATLAS.ragLab = {
       difficulty: 'Advanced',
       useCase: 'Documents where individual chunks lack local context (e.g. "The company grew by 20%" - which company? which year?).',
       retrievalFlow: 'Ingestion: LLM prepends document-level explanatory context to every chunk before embedding -> Enriched embedding & text stored in search.',
-      azureImplementation: 'Custom Azure AI Search ingestion skillset calling Azure OpenAI GPT-4o-mini to contextualize chunks.',
+      azureImplementation: 'Custom Azure AI Search ingestion skillset calling a small-tier Azure OpenAI chat model to contextualize chunks.',
       tradeoffs: 'Reduces retrieval failure rate by 30-40%; adds upfront token cost during the one-time ingestion phase.'
     }
   ],
@@ -318,7 +318,7 @@ window.ATLAS.ragLab = {
     {
       id: 'query-expansion',
       name: 'Query Expansion & Multi-Query Decomposition',
-      mechanism: 'An upstream fast LLM (GPT-4o-mini) decomposes ambiguous user questions into 3-5 distinct sub-queries executed in parallel.',
+      mechanism: 'An upstream fast LLM (small-tier model) decomposes ambiguous user questions into 3-5 distinct sub-queries executed in parallel.',
       recallImpact: '+30% on complex queries',
       precisionImpact: 'Variable (can introduce noise)',
       latencyCost: '+300 – 600ms (LLM call)',

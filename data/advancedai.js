@@ -31,12 +31,12 @@ window.ATLAS.advancedAI = {
       color: '212',
       summary: 'Processing, embedding, and reasoning across text, dense tabular spreadsheets, complex architectural diagrams, audio speech, and streaming video.',
       problemSolved: 'Traditional OCR flattens spatial visual context. Multimodal models preserve spatial geometry, recognizing that a cell belongs to both a table header and a specific column, or analyzing technical CAD diagrams and UI wireframes directly.',
-      azureImplementation: 'Azure AI Document Intelligence (Layout Model) for markdown table extraction + Azure OpenAI GPT-4o Multimodal Vision + Azure AI Speech sub-second streaming WebSockets.',
+      azureImplementation: 'Azure AI Document Intelligence (Layout Model) for markdown table extraction + a multimodal vision-capable model deployed in Foundry + Azure AI Speech sub-second streaming WebSockets.',
       architecture: [
         'Document / Image Ingestion -> Azure Document Intelligence Layout Model extracts structured Markdown and table bounding boxes',
         'Image vectorization via Azure AI Vision Multimodal Embeddings (co-embedded in 1024-dim shared space with text)',
         'Hybrid query engine searches both text chunks and visual diagram embeddings in Azure AI Search',
-        'GPT-4o synthesizes answer referencing both text citations and image crop URLs'
+        'A vision-capable frontier-tier model synthesizes an answer referencing both text citations and image crop URLs'
       ],
       keyMetrics: 'Table structure extraction accuracy (>98%), Visual grounding precision, Sub-second audio latency.'
     },
@@ -62,13 +62,13 @@ window.ATLAS.advancedAI = {
       tag: 'High-Efficiency Edge AI',
       color: '42',
       summary: 'Deploying highly capable 1B–14B parameter models (Phi-4, Phi-3.5) directly to local devices, edge industrial PCs, and cost-constrained cloud microservices.',
-      problemSolved: 'Frontier LLMs (GPT-4o) are overkill and too expensive for routine tasks like PII redaction, intent classification, entity extraction, or air-gapped industrial manufacturing lines.',
+      problemSolved: 'Frontier-tier LLMs are overkill and too expensive for routine tasks like PII redaction, intent classification, entity extraction, or air-gapped industrial manufacturing lines.',
       azureImplementation: 'Microsoft Phi-4 compiled via ONNX Runtime and Olive optimization toolkit, running on Azure IoT Edge or local embedded hardware with NPU acceleration.',
       architecture: [
         'Base SLM (Phi-4 14B) exported to ONNX format with graph optimization',
         'Quantized to INT4 precision using Microsoft Olive for NPU/CPU execution',
         'Deployed to edge runtime with local SQLite vector cache for zero-cloud-egress compliance',
-        'Hybrid fallback: Edge SLM handles 85% of standard requests; routes complex queries to cloud GPT-4o'
+        'Hybrid fallback: Edge SLM handles 85% of standard requests; routes complex queries to a cloud frontier-tier model'
       ],
       keyMetrics: 'Inference latency (<25ms per token on edge hardware), Zero cloud network dependency, $0 token marginal cost.'
     },
@@ -78,13 +78,13 @@ window.ATLAS.advancedAI = {
       tag: 'Cost & Latency Optimization',
       color: '185',
       summary: 'Dynamically inspecting incoming user queries to route simple tasks to fast, low-cost models and complex reasoning tasks to frontier reasoning engines.',
-      problemSolved: 'Treating all queries uniformly results in 10x higher cloud bills (e.g. paying $10/M tokens on GPT-4o for a simple "Summarize this email in 2 sentences" prompt).',
+      problemSolved: 'Treating all queries uniformly results in 10x higher cloud bills (e.g. paying frontier-tier token prices for a simple "Summarize this email in 2 sentences" prompt).',
       azureImplementation: 'Lightweight classifier running in Azure Container Apps (or Azure Functions) using semantic embedding similarity or Phi-4 to classify query complexity.',
       architecture: [
         'Incoming User Prompt -> Intent & Complexity Classifier (Phi-4 / Cosine distance to complexity benchmarks)',
-        'Tier 1 (Simple / Formatting / Classification): Routed to Phi-4 or GPT-4o-mini ($0.15/1M tokens)',
-        'Tier 2 (Enterprise RAG & Synthesis): Routed to standard GPT-4o ($2.50/1M tokens)',
-        'Tier 3 (Multi-step Reasoning / Deep Logic): Routed to o3-mini or o1 ($15.00/1M tokens)',
+        'Tier 1 (Simple / Formatting / Classification): Routed to Phi-4 or another small-tier model',
+        'Tier 2 (Enterprise RAG & Synthesis): Routed to a frontier-tier model',
+        'Tier 3 (Multi-step Reasoning / Deep Logic): Routed to a reasoning-tier model',
         'Fallback Circuit Breaker: Automatically upgrades model tier if initial output fails quality or JSON schema validation'
       ],
       keyMetrics: 'Average blended token cost reduction (50–70%), P95 latency improvement (40%), Route accuracy (>96%).'
@@ -114,9 +114,9 @@ window.ATLAS.advancedAI = {
       problemSolved: 'Real enterprise customer interaction data is sparse, contains sensitive PII, or lacks ground-truth labeling. Synthetic data generation bootstraps evaluation suites before system launch.',
       azureImplementation: 'Azure Foundry Evaluation SDK coupled with batch generation pipelines running on Azure Container Apps, generating synthetic Q&A pairs directly from enterprise PDF source chunks.',
       architecture: [
-        'Source Chunks in ADLS Gen2 -> Frontier Model (GPT-4o) extracts core factual assertions',
+        'Source Chunks in ADLS Gen2 -> a frontier-tier model extracts core factual assertions',
         'Style & Adversarial Prompting: Generates diverse queries (keyword queries, misspelled queries, adversarial injection attempts, ambiguous requests)',
-        'Automated Labeling: High-reasoning model (o1) generates reference ground-truth answers and citations',
+        'Automated Labeling: a reasoning-tier model generates reference ground-truth answers and citations',
         'Quality Filtering: Filter out low-entropy or hallucinated synthetic samples using automated ROUGE and BERTScore thresholds'
       ],
       keyMetrics: 'Synthetic dataset diversity score, Labeling agreement with human SMEs (>92%), Zero PII risk.'

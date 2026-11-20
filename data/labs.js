@@ -55,7 +55,7 @@ window.ATLAS.labs = {
         'Create an Azure AI Search index configured with BM25 text fields, vector fields, and a Semantic Configuration.',
         'Execute a hybrid query combining vector similarity and keyword search; inspect Reciprocal Rank Fusion (RRF) scores.',
         'Enable the Semantic Reranker and verify that top-ranked passages contain verified table data.',
-        'Send retrieved passages with citation instructions to GPT-4o; verify answer groundedness and footnote citations.'
+        'Send retrieved passages with citation instructions to your chat model deployment; verify answer groundedness and footnote citations.'
       ]
     },
     {

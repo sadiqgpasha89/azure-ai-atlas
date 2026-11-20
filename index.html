@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Azure AI Engineering OS — Enterprise AI/ML, Agents & RAG</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="The Azure AI Engineering Management Operating System: Architecture Advisor, Agent Patterns, RAG Engineering Lab, Security & Governance, AI FinOps, Evaluation Center, and Operations.">
 <meta name="theme-color" content="#eaf1f9">
 <meta property="og:title" content="Azure AI Engineering OS — Enterprise AI/ML, Agents & RAG">
@@ -11,13 +12,7 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3l11 6.3v1.4L16 17 5 10.7V9.3z' fill='%236cb8ff'/%3E%3Cpath d='M5 10.7L16 17v12L5 22.7z' fill='%230b5cc4'/%3E%3Cpath d='M27 10.7L16 17v12l11-6.3z' fill='%23083e85'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/style.css">
-<script>
-  try {
-    var t = localStorage.getItem('atlas-theme');
-    if (!t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
-    if (t) document.documentElement.setAttribute('data-theme', t);
-  } catch (e) {}
-</script>
+<script src="assets/theme.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -72,6 +67,8 @@
 <div class="overlay" id="overlay" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-label="Search services">
     <input id="q" type="search" placeholder="Search services, patterns, runbooks, gotchas…" autocomplete="off" spellcheck="false">
+    <div id="searchFilters" class="sfilters" role="group" aria-label="Filter results by type"></div>
+    <p id="searchStatus" class="sr-only" role="status" aria-live="polite"></p>
     <ul id="results" role="listbox"></ul>
   </div>
 </div>
@@ -102,6 +99,7 @@
 <script src="data/securitycenter.js"></script>
 <script src="data/evaluationcenter.js"></script>
 <script src="data/finops.js"></script>
+<script src="data/verification.js"></script>
 <script src="data/troubleshooting.js"></script>
 <script src="data/mltraditional.js"></script>
 <script src="data/emworkspace.js"></script>
@@ -109,6 +107,7 @@
 <script src="data/foundation.js"></script>
 <script src="data/foundry.js"></script>
 <script src="data/advancedai.js"></script>
+<script src="assets/search.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

@@ -152,7 +152,7 @@ window.ATLAS.operations = {
       name: '4. AI FinOps & Capacity Dashboard',
       audience: 'Engineering Managers, Finance Directors, FinOps Leads',
       metrics: [
-        'Spend per foundation model (GPT-4o vs mini vs o3-mini vs Phi-4)',
+        'Spend per foundation model (frontier vs small vs reasoning vs Phi-family models)',
         'Spend per deployment and application environment (Dev / Stage / Prod)',
         'Prompt caching cost savings percentage',
         'Cost per request, cost per user, and cost per successful business task',
@@ -262,7 +262,7 @@ window.ATLAS.operations = {
       trigger: 'Microsoft announces retirement date for an active model version (e.g. GPT-4-0613 retirement or Content Safety groundedness retirement April 30, 2027).',
       steps: [
         '**Step 1: Inventory Active Deployments:** Identify every subscription, region, and application currently pinned to the retiring model version.',
-        '**Step 2: Deploy Candidate Successor in Staging:** Deploy the recommended successor model (e.g. GPT-4o) alongside the retiring version in a staging environment.',
+        '**Step 2: Deploy Candidate Successor in Staging:** Deploy the recommended successor model named in the Microsoft retirement table alongside the retiring version in a staging environment.',
         '**Step 3: Execute Full Regression Eval Suite:** Run the 500+ case golden evaluation dataset against both models simultaneously. Compare Groundedness, Relevance, Latency, and Token Consumption side by side.',
         '**Step 4: Fine-Tune System Prompts:** Successor models often follow instructions differently (e.g. more concise, stricter safety); adjust system prompts to re-align output formatting.',
         '**Step 5: Canary Rollout:** Route 10% production traffic to the new model via [[apim]]; monitor error rates for 1 week before completing the 100% cutover.'

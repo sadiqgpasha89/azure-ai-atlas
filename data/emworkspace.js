@@ -205,6 +205,6 @@ window.ATLAS.emWorkspace = {
     { name: 'Automated Invoice Reconciliation Agent', value: 4.6, feasibility: 4.0, category: 'Strategic Initiative', action: 'Plan 8-week delivery with SAP OData connector and HITL approval.' },
     { name: 'Predictive Customer Churn Pipeline', value: 4.2, feasibility: 4.4, category: 'Quick Win', action: 'Train LightGBM model on Databricks/Azure ML and deploy to Managed Endpoint.' },
     { name: 'Unbounded Autonomous Code Refactoring Swarm', value: 3.2, feasibility: 2.1, category: 'Research / Timebox', action: 'Run 2-week timeboxed exploratory spike before committing production budget.' },
-    { name: 'Customer Service Sub-Second Voice Agent', value: 4.7, feasibility: 3.8, category: 'Strategic Initiative', action: 'Deploy Azure AI Speech streaming WebSockets with GPT-4o Realtime.' }
+    { name: 'Customer Service Sub-Second Voice Agent', value: 4.7, feasibility: 3.8, category: 'Strategic Initiative', action: 'Deploy Azure AI Speech streaming WebSockets with a realtime speech-capable model.' }
   ]
 };

@@ -90,7 +90,7 @@ window.ATLAS.troubleshooting = {
           rootCauses: 'Tool descriptions in OpenAPI / JSON schema are vague or overlapping; model is an SLM not fine-tuned for tool calling.',
           diagnostics: 'Review tool JSON Schema definitions against OpenAI function calling guidelines.',
           azureTools: 'Foundry Agent Service tool playground, JSON Schema validator.',
-          resolution: '1. Rewrite tool descriptions with explicit "Use this tool WHEN..." guidance and examples. 2. Enforce strict JSON schema types with `additionalProperties: false`. 3. Upgrade agent model to GPT-4o or o3-mini.',
+          resolution: '1. Rewrite tool descriptions with explicit "Use this tool WHEN..." guidance and examples. 2. Enforce strict JSON schema types with `additionalProperties: false`. 3. Upgrade the agent to a more capable frontier-tier or reasoning-tier model.',
           prevention: 'Evaluate Tool Selection Accuracy (>98%) across 100 sample user intents during PR review.',
           kql: 'traces\n| where customDimensions["tool.status"] == "schema_validation_failed"\n| summarize Failures = count() by tostring(customDimensions["tool.name"])'
         },
@@ -109,10 +109,10 @@ window.ATLAS.troubleshooting = {
           id: 'agent-high-cost',
           title: 'Agent Cost Runaway ($10+ per Task)',
           symptom: 'Single customer sessions consume 150,000+ tokens, driving average task cost beyond business ROI viability.',
-          rootCauses: 'Agent carries entire multi-turn tool history into every prompt without pruning; excessive parallel sub-agent spawning; using GPT-4o for simple JSON parsing.',
+          rootCauses: 'Agent carries entire multi-turn tool history into every prompt without pruning; excessive parallel sub-agent spawning; using frontier-tier model for simple JSON parsing.',
           diagnostics: 'Check Token Usage breakdown per turn in Foundry Tracing.',
           azureTools: 'Azure Cost Management, Azure AI Foundry Usage & Quotas.',
-          resolution: '1. Implement context pruning: retain only the last 3 tool observations in prompt. 2. Enforce hard session budget ($0.75 max). 3. Route formatting and extraction sub-tasks to GPT-4o-mini ($0.15/1M).',
+          resolution: '1. Implement context pruning: retain only the last 3 tool observations in prompt. 2. Enforce hard session budget ($0.75 max). 3. Route formatting and extraction sub-tasks to small-tier model ($0.15/1M).',
           prevention: 'Configure daily cost alerts in Azure Cost Management per agent application.',
           kql: 'traces\n| extend tokens = toint(customDimensions["genai.usage.total_tokens"])\n| summarize TotalTokens = sum(tokens), TotalCost = sum(tokens) * 0.000005 by tostring(customDimensions["session_id"])\n| where TotalCost > 5.0'
         }
@@ -159,7 +159,7 @@ window.ATLAS.troubleshooting = {
           id: 'azure-regional-stockout',
           title: 'Regional Model Deployment Capacity Unavailable',
           symptom: 'Foundry deployment fails with `The model deployment cannot be provisioned due to insufficient capacity in this region`.',
-          rootCauses: 'Global high demand for newest frontier model SKU (e.g. GPT-4o, o1) in a specific target region.',
+          rootCauses: 'Global high demand for newest frontier or reasoning model SKU in a specific target region.',
           diagnostics: 'Check Azure Service Health and Foundry Model Catalog availability map.',
           azureTools: 'Azure Service Health, Azure AI Foundry portal deployment wizard.',
           resolution: '1. Deploy the model to an alternate paired region (e.g. Sweden Central, West Europe, Australia East). 2. Use Global Standard deployment type which pools cross-region capacity automatically. 3. Contact Microsoft account team for quota reservation.',

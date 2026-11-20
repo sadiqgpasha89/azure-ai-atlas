@@ -47,7 +47,7 @@ window.ATLAS.traditionalML = {
     },
     {
       decision: 'Custom Model Training vs Pretrained Catalog Models',
-      whenTraditional: 'Pretrained models from Microsoft Foundry (GPT-4o, Phi-4, Llama 3.3) provide immediate time-to-value for natural language tasks.',
+      whenTraditional: 'Pretrained models from Microsoft Foundry (frontier OpenAI models, Phi, Llama) provide immediate time-to-value for natural language tasks.',
       whenGenAI: 'Custom model training is strictly required for proprietary tabular datasets, internal sensor signals, or proprietary drug discovery models.',
       managerVerdict: 'Use off-the-shelf foundation models for language; train custom algorithms on proprietary enterprise tabular data.'
     },

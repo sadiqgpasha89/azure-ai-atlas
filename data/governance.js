@@ -171,7 +171,7 @@ window.ATLAS.governance = {
     policies: [
       { name: 'Deny Public Network Access on Cognitive Services', effect: 'Deny', purpose: 'Ensures no developer can create an Azure OpenAI or Foundry resource with public internet endpoints.' },
       { name: 'Require Customer-Managed Keys (CMK) on AI Storage', effect: 'Deny', purpose: 'Guarantees that all document storage accounts and search indexes are encrypted using Key Vault keys.' },
-      { name: 'Restrict Approved Model Deployments', effect: 'Audit / Deny', purpose: 'Restricts model deployments in Foundry to an approved corporate catalog (e.g. GPT-4o, GPT-4o-mini, text-embedding-3).' },
+      { name: 'Restrict Approved Model Deployments', effect: 'Audit / Deny', purpose: 'Restricts model deployments in Foundry to an approved corporate catalog (e.g. your approved frontier, small and embedding models).' },
       { name: 'Enforce Mandatory Cost Center & Owner Tags', effect: 'Deny', purpose: 'Blocks resource creation if mandatory resource attribution tags (`costCenter`, `owner`, `environment`) are missing.' },
       { name: 'Enforce Diagnostic Logging to Central Workspace', effect: 'DeployIfNotExists', purpose: 'Automatically configures diagnostic settings to stream all audit, request, and security logs to the central Log Analytics workspace.' }
     ]

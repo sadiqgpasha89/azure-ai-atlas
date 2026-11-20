@@ -4,6 +4,8 @@ A static, zero-dependency, client-side web application designed for **AI Enginee
 
 **Live Application:** [https://sadiqgpasha89.github.io/azure-ai-atlas/](https://sadiqgpasha89.github.io/azure-ai-atlas/)
 
+**Status:** a broad reference and decision-support site with a stable core. Content accuracy is tracked openly: [`#/freshness`](https://sadiqgpasha89.github.io/azure-ai-atlas/#/freshness) shows what has been checked against Microsoft documentation and what has not (most pages have not yet). Work remaining against the delivery plan is in [`plan.md`](plan.md) and [`docs/roadmap.md`](docs/roadmap.md).
+
 ---
 
 ## Executive Overview
@@ -80,11 +82,12 @@ Rigorous, scientific quality assurance framework for stochastic AI systems:
 - **Interactive Release Quality Gate Calculator**: Input measured test scores against release thresholds with configurable presets (Tier 1 Mission-Critical, Tier 2 Internal Enterprise, Tier 3 Experimental/Internal POC) yielding an automated Pass/Warn/Fail deployment decision.
 
 ### 7. AI FinOps & Cost Engineering Center (`#/finops`)
-Unit economics, financial modeling, and capacity management:
-- **Multi-Model Token Pricing Reference**: Up-to-date input and output token rates, cached token discounts, and batch pricing across GPT-4o, GPT-4o-mini, o1, o3-mini, text-embedding-3-large, and Semantic Ranker.
-- **Interactive Monthly Enterprise TCO Calculator**: Computes full stack infrastructure costs including LLM tokens, Azure AI Search storage units, Container Apps compute, Cosmos DB RU/s, Content Safety calls, and APIM gateway fees.
-- **4 Scale Profiles**: Instant baselines for Startup / Innovation POC, Growth / Production Team, Enterprise Core, and Global Mission-Critical workloads.
-- **Corporate ROI & Payback Horizon Model**: Projects annual financial savings, net operating ROI percentage, and months to capital payback based on employee efficiency gains and error reduction.
+Unit economics and cost modeling. All numbers are estimates, not Azure quotes.
+- **Model price reference**: illustrative input, cached-input and output rates per million tokens, with a lifecycle chip per model taken from Microsoft's retirement table. Prices are labelled unsourced; overwrite them with your own.
+- **Azure AI Search tier limits**: per-partition storage and partition and replica limits for Basic, S1, S2 and S3, from Microsoft Learn (verified 2026-11-20).
+- **Monthly TCO calculator**: users, queries, days, tokens, cache hit rate, token prices, and search, hosting, state and telemetry costs are all editable. Zero is accepted, invalid input shows an inline error, Reset restores defaults, and the formulas are shown.
+- **Scale profiles**: four illustrative baselines.
+- **Year-1 ROI model**: benefit from hours saved and direct savings with a realization discount, cost including the one-time build, ROI, payback and break-even hours.
 
 ### 8. Production Troubleshooting & Failure Catalog (`#/troubleshooting` & `#/ops`)
 Diagnostic playbooks and actionable SRE runbooks for production incidents:
@@ -142,33 +145,37 @@ Rigorous side-by-side technical evaluation:
 
 ## Local Development & Verification
 
-The project is built entirely with vanilla JavaScript, HTML5, and CSS3. It requires zero compilation, zero bundlers, and zero npm runtime dependencies.
+The site is vanilla JavaScript, HTML and CSS. There is no build step and no runtime dependency. Node 20 or newer is needed only for the scripts.
 
 ```sh
-# Clone repository
 git clone https://github.com/sadiqgpasha89/azure-ai-atlas.git
 cd azure-ai-atlas
 
-# Run local development server
-python3 -m http.server 8000
-# Open http://localhost:8000 in your browser
+npm run serve        # http://127.0.0.1:8765/  (or: python3 -m http.server 8000)
 
-# Run the schema and data integrity test suite
-node scripts/check.mjs
+npm run check        # data, cross-links and content-governance rules, plus syntax checks
+npm test             # 36 unit and site tests (node:test, no dependencies)
+npm run smoke        # browser test over every route at 1280 px and 375 px (needs Playwright)
+npm run verify       # all three
 ```
 
-### Schema & Verification Test Output
-The automated test runner (`scripts/check.mjs`) validates:
-- All 59 services across 11 categories
-- All 20 reference architectures and flow steps
-- All 23 decision guides, role tabs, and cross-links
-- All 10 capability centers (Advisor, RAG Lab, Agents, Security, Evaluation, FinOps, Troubleshooting, Traditional ML, EM Workspace, Service Matrix)
-- Balanced backticks, Markdown syntax, and valid URL hashes
+`npm run smoke` needs Playwright, which is deliberately not a project dependency: `npm i --no-save playwright && npx playwright install chromium`. To use an installed Chrome instead, set `CHROME_PATH` (and `PLAYWRIGHT_DIR` to a `node_modules` folder that contains `playwright`).
 
-```text
-11 categories, 59 services, 20 architectures, 23 decision guides (+ em/pe role tabs), 38 readiness items, 5832 shaper combinations checked, ~23602 words in services
-data OK
-```
+What the checks cover, and what they do not, is written down in [`docs/quality-and-acceptance.md`](docs/quality-and-acceptance.md). In short: data shape and links, calculator maths, search, the verification registry, CSP rules, and a browser pass for console errors, overflow, `undefined` text and broken in-page links. Not yet covered: an accessibility scanner, external link checking, Lighthouse.
+
+## Content Accuracy and Contributing Content
+
+Azure AI changes monthly, so time-sensitive facts are never presented as settled unless they were checked:
+
+- `data/verification.js` records only facts that were read on a Microsoft page, with the URL and the date. Everything not listed is shown as **unverified** (service pages show a box saying so).
+- Pages describe model **tiers** (frontier, small, reasoning) rather than model names, and link to the retirement table.
+- Prices are never hard-coded as fact.
+
+To add or refresh a fact, follow [`docs/content-governance.md`](docs/content-governance.md): read the source, add the record with today's date, run `npm run verify`, add a CHANGELOG line. To add a service, copy an existing entry in the matching `data/*.js` file; `check.mjs` tells you what is missing. To report something stale, open a "Revalidate time-sensitive content" issue.
+
+## Deployment
+
+Pushing to `main` runs `.github/workflows/pages.yml`: `npm run check`, `npm test`, then it publishes `index.html`, `assets/` and `data/` to GitHub Pages. Pull requests and other branches run `.github/workflows/ci.yml`, which adds the browser smoke test. Routes are hash-based, so deep links and refresh work on Pages without server rules. To roll back, revert the merge commit on `main`. Post-deploy checks are listed in [`docs/quality-and-acceptance.md`](docs/quality-and-acceptance.md). Architecture notes, including the Content-Security-Policy and storage behaviour, are in [`docs/architecture.md`](docs/architecture.md).
 
 ---
 
@@ -178,7 +185,9 @@ data OK
 azure-ai-atlas/
 ├── index.html                   # HTML5 application shell & responsive navigation
 ├── assets/
-│   ├── app.js                   # Client-side router, search engine, interactive calculators
+│   ├── app.js                   # Router, page renderers, calculator UI, search UI
+│   ├── search.js                # Search index and query logic (pure, unit-tested)
+│   ├── theme.js                 # Applies saved theme before first paint (CSP: no inline scripts)
 │   └── style.css                # CSS variables, dark/light theme, responsive cards, heatmaps
 ├── data/
 │   ├── core.js                  # Global namespace ATLAS, categories, and tags
@@ -206,13 +215,21 @@ azure-ai-atlas/
 │   ├── agentpatterns.js         # 18 agent design patterns & 6-framework decision matrix
 │   ├── securitycenter.js        # OWASP Top 10 for LLMs threat catalog & 10-Gate checklist
 │   ├── evaluationcenter.js      # 7-level testing pyramid, 14 dimensions, quality gate calculator
-│   ├── finops.js                # Multi-model pricing, TCO calculator, ROI model
+│   ├── finops.js                # Illustrative pricing, search tier limits, tested TCO and ROI functions
+│   ├── verification.js          # Content-governance registry: verified facts, sources, dates, model lifecycle
 │   ├── troubleshooting.js       # Production failure catalog, root-cause analyses, KQL queries
 │   ├── mltraditional.js         # 10-phase ML lifecycle, platform comparison, ERP connectors
 │   ├── emworkspace.js           # 14-question project intake, complexity estimator, skills matrix
 │   └── servicematrix.js         # 14-field comparison matrix & 7 platform decision guides
-└── scripts/
-    └── check.mjs                # Node.js data validator & test suite
+├── scripts/
+│   ├── check.mjs                # Data and governance validator
+│   ├── serve.mjs                # Static server for local use and smoke test
+│   └── smoke.mjs                # Browser smoke test (Playwright)
+├── tests/                       # node:test unit and site tests
+├── docs/                        # audit, architecture, content governance, quality, roadmap, archive
+├── .github/workflows/           # pages.yml (deploy, gated), ci.yml
+├── CHANGELOG.md
+└── plan.md                      # Master delivery plan with an honest status ledger
 ```
 
 ---

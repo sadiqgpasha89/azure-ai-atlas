@@ -79,7 +79,7 @@ window.ATLAS.toolkit = {
 - Target user personas, expected concurrent users, and peak query volume (requests per second).
 
 ## 2. Model & Hosting Strategy
-- **Selected Models:** (e.g. GPT-4o, GPT-4o-mini, text-embedding-3-large).
+- **Selected Models:** (e.g. your approved frontier, small and embedding models-large).
 - **Deployment Type:** [Global Standard / Global Provisioned (PTU) / Data Zone / Regional / Self-hosted on AKS].
 - **Residency & Sovereignty:** Does this workload process data outside the primary region?
 - **Quota & Capacity:** Are approved tokens per minute (TPM) sufficient for 3x anticipated launch peak?
@@ -183,13 +183,13 @@ window.ATLAS.toolkit = {
     intro: 'Comparing foundation model options and deployment paths available on Azure.',
     models: [
       {
-        family: 'OpenAI Frontier Models (e.g. GPT-4o)',
+        family: 'OpenAI frontier models',
         strengths: 'Industry-leading reasoning, complex multimodal analysis, excellent tool-calling compliance.',
         tradeoffs: 'Higher cost per token, subject to regional quota allocations.',
         bestFit: 'Multi-agent supervisor agents, complex contract analysis, multimodal diagrams.'
       },
       {
-        family: 'OpenAI Small Models (e.g. GPT-4o-mini)',
+        family: 'OpenAI small models',
         strengths: 'Extremely fast, fraction of the cost, excellent at classification and structured extraction.',
         tradeoffs: 'Lower multi-step reasoning depth; prone to drift on complex open-ended instructions.',
         bestFit: 'Query routing, text summarization, data extraction, high-volume chatbot triage.'

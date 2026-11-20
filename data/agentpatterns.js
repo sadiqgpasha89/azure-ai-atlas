@@ -84,8 +84,8 @@ window.ATLAS.agentPatterns = {
       name: 'Planner and Executor',
       flowType: 'Two-Stage Decoupling',
       summary: 'Separates planning from execution: a high-reasoning planner generates a verified step-by-step agenda executed by a fast execution model.',
-      execution: 'User Request -> Planner (o3-mini / o1) creates execution plan -> Executor (GPT-4o-mini) executes each step sequentially -> Verification.',
-      azureImplementation: 'Multi-model deployment in Microsoft Foundry: o1 for upfront planning + GPT-4o-mini for cost-effective execution.',
+      execution: 'User Request -> Planner (reasoning-tier model) creates execution plan -> Executor (small-tier model) executes each step sequentially -> Verification.',
+      azureImplementation: 'Multi-model deployment in Microsoft Foundry: a reasoning-tier model for upfront planning + small-tier model for cost-effective execution.',
       tradeoffs: 'Much lower execution cost and deterministic audit trail; less dynamic adaptability if initial plan was flawed.',
       bestFit: 'Automated data migration pipelines, multi-step financial compliance audits, code refactoring.'
     },
@@ -117,7 +117,7 @@ window.ATLAS.agentPatterns = {
       name: 'Router / Triage Agent',
       flowType: 'Dynamic Dispatch',
       summary: 'A fast classification agent inspects incoming user queries and routes them to the single best specialist agent or deterministic workflow.',
-      execution: 'User query -> Router (Phi-4 / GPT-4o-mini) classifies intent -> Dispatches directly to Billing Agent, Tech Support Agent, or Sales Agent.',
+      execution: 'User query -> Router (Phi-4 / a small-tier model) classifies intent -> Dispatches directly to Billing Agent, Tech Support Agent, or Sales Agent.',
       azureImplementation: 'Semantic Kernel / Agent Framework router endpoint deployed in front of specialized agent workers.',
       tradeoffs: 'Keeps specialist agent prompts small and highly focused; router misclassification sends users down the wrong path.',
       bestFit: 'Enterprise service desks, multi-department customer contact centers, unified enterprise portals.'
@@ -162,7 +162,7 @@ window.ATLAS.agentPatterns = {
       flowType: 'Iterative Refinement',
       summary: 'A generator agent creates an artifact (code, report, SQL) and an independent critic agent evaluates it against a strict rubric before acceptance.',
       execution: 'Task -> Generator produces Draft 1 -> Critic reviews against rubric -> Emits specific feedback -> Generator produces Draft 2 -> Critic approves.',
-      azureImplementation: 'Two distinct Foundry model deployments: GPT-4o generator + o3-mini critic with temperature 0.0.',
+      azureImplementation: 'Two distinct Foundry model deployments: frontier-tier generator + reasoning-tier critic with temperature 0.0.',
       tradeoffs: 'Consistently higher code quality, fewer syntax bugs, and higher compliance; requires 2-3 iterations per output.',
       bestFit: 'Production code generation, regulatory filing drafting, automated SQL query authoring.'
     },

@@ -12,7 +12,7 @@ window.ATLAS.serviceMatrix = {
       id: 'foundry-models',
       name: 'Microsoft Foundry Models / Azure OpenAI',
       category: 'Foundation Models',
-      what: 'Managed enterprise API gateway providing access to OpenAI frontier models (GPT-4o, o1, o3-mini) and curated open-weight catalog models (Meta Llama 3.3, Mistral Large, Phi-4).',
+      what: 'Managed enterprise API gateway providing access to OpenAI frontier and reasoning models and curated open-weight catalog models (Meta Llama 3.3, Mistral Large, Phi-4).',
       why: 'Delivers frontier generative intelligence wrapped in enterprise security guarantees: Zero Customer Data Retention (ZCDR), Private Link network isolation, data residency compliance, and contractual SLAs.',
       whenUse: 'Natural language reasoning, code generation, summarization, conversational agents, multimodal analysis, and structured extraction without managing GPU infrastructure.',
       whenNot: 'Predictive modeling on tabular numerical databases, sub-5ms ultra-low-latency real-time scoring, or air-gapped hardware with zero internet access.',
@@ -86,6 +86,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'azure-ml',
+      atlasId: 'aml-workspace', /* id of the matching page in ATLAS.services */
       name: 'Azure Machine Learning',
       category: 'ML & MLOps Platform',
       what: 'End-to-end enterprise platform for training, fine-tuning, evaluating, registering, and deploying classical machine learning and deep learning models at scale.',
@@ -105,6 +106,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'azure-databricks',
+      atlasId: 'databricks', /* id of the matching page in ATLAS.services */
       name: 'Azure Databricks',
       category: 'Data & Analytics',
       what: 'Managed Apache Spark, Delta Lake, and Lakehouse analytics platform optimized for massive-scale big data engineering, feature generation, and distributed ML.',
@@ -124,6 +126,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'microsoft-fabric',
+      atlasId: 'fabric', /* id of the matching page in ATLAS.services */
       name: 'Microsoft Fabric',
       category: 'Unified Data Platform',
       what: 'All-in-one SaaS data and analytics platform uniting OneLake, Data Factory pipelines, Synapse Data Engineering, and Power BI under unified governance.',
@@ -162,6 +165,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'document-intelligence',
+      atlasId: 'doc-intelligence', /* id of the matching page in ATLAS.services */
       name: 'Azure AI Document Intelligence',
       category: 'Document AI & OCR',
       what: 'AI service applying advanced machine learning and layout-aware OCR to extract text, tables, key-value pairs, barcodes, and document structure from PDFs and forms.',
@@ -181,6 +185,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'cosmos-db',
+      atlasId: 'cosmos', /* id of the matching page in ATLAS.services */
       name: 'Azure Cosmos DB',
       category: 'Databases & State Store',
       what: 'Globally distributed, multi-model NoSQL and vector database offering single-digit millisecond response times and SLA-backed 99.999% availability.',
@@ -219,6 +224,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'azure-functions',
+      atlasId: 'functions', /* id of the matching page in ATLAS.services */
       name: 'Azure Functions',
       category: 'Serverless Compute',
       what: 'Event-driven serverless compute platform executing lightweight code snippets in response to triggers from Azure events, HTTP requests, and timers.',
@@ -238,6 +244,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'blob-storage',
+      atlasId: 'blob', /* id of the matching page in ATLAS.services */
       name: 'Azure Blob Storage & ADLS Gen2',
       category: 'Storage',
       what: 'Massively scalable, durable object storage service with optional Hierarchical Namespace (ADLS Gen2) for high-performance enterprise data lakes.',
@@ -257,6 +264,7 @@ window.ATLAS.serviceMatrix = {
     },
     {
       id: 'api-management',
+      atlasId: 'apim', /* id of the matching page in ATLAS.services */
       name: 'Azure API Management (APIM)',
       category: 'API Gateway & Management',
       what: 'Enterprise hybrid multi-cloud API gateway providing authentication, rate limiting, traffic routing, token metering, and security for all AI services.',

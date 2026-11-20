@@ -253,8 +253,17 @@ if (!A.finops || typeof A.finops !== 'object') err('finops: missing A.finops');
 else {
   if (!Array.isArray(A.finops.modelPricing) || A.finops.modelPricing.length < 6) err('finops: expected at least 6 modelPricing items');
   if (!Array.isArray(A.finops.scaleProfiles) || A.finops.scaleProfiles.length < 4) err('finops: expected at least 4 scaleProfiles');
-  const roi = A.finops.calculateROI({ employees: 100, hourlyWage: 50 });
-  if (typeof roi.roiPercentage !== 'number') err('finops: calculateROI failed');
+  const roi = A.finops.calculateROI(A.finops.roiDefaults);
+  if (typeof roi.roiPercentage !== 'number' || !Number.isFinite(roi.netYear1)) err('finops: calculateROI failed on defaults');
+  const tco = A.finops.calculateTCO(A.finops.tcoDefaults);
+  if (!Number.isFinite(tco.total) || tco.total <= 0) err('finops: calculateTCO failed on defaults');
+  // zero is a valid input and must never produce NaN or Infinity
+  for (const z of ['users', 'queriesPerUserDay', 'cacheHitPct', 'inputTokens', 'outputTokens', 'searchMonthly'])
+    for (const v of Object.values(A.finops.calculateTCO({ ...A.finops.tcoDefaults, [z]: 0 })))
+      if (typeof v === 'number' && !Number.isFinite(v)) err(`finops: calculateTCO non-finite result with ${z}=0`);
+  for (const v of Object.values(A.finops.calculateROI(Object.fromEntries(Object.keys(A.finops.roiDefaults).map(k => [k, 0])))))
+    if (typeof v === 'number' && !Number.isFinite(v)) err('finops: calculateROI non-finite result with all inputs 0');
+  for (const m of A.finops.modelPricing) if (m.lifecycleKey && !A.verification.modelLifecycle.some(x => x.key === m.lifecycleKey)) err(`finops: ${m.id} lifecycleKey ${m.lifecycleKey} not in the verification registry`);
 }
 
 // troubleshooting
@@ -310,6 +319,51 @@ const walk = (i, a) => {
 };
 walk(0, {});
 for (const [k, v] of Object.entries(A.shaper.defaults)) if (!Q.find(q => q.id === k)?.options.some(o => o[0] === v)) err(`shaper default ${k}=${v} is not an option`);
+
+// service matrix links must resolve to a real service page
+for (const m of A.serviceMatrix.comparisonMatrix) {
+  const target = m.atlasId || m.id;
+  if (!ids.has(target)) err(`serviceMatrix ${m.id}: no service page "${target}" (add atlasId)`);
+}
+
+// verification registry (content governance): every record needs a date, a source that exists, and at least one claim
+const V = A.verification;
+if (!V) err('verification: missing A.verification');
+else {
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  const srcUrl = (u) => /^https:\/\/(learn\.microsoft\.com|devblogs\.microsoft\.com|azure\.microsoft\.com)\//.test(u);
+  if (!dateRe.test(V.asOf)) err('verification: asOf must be YYYY-MM-DD');
+  for (const [k, src] of Object.entries(V.sources)) { if (!srcUrl(src.url)) err(`verification source ${k}: url must be a first-party Microsoft https URL`); if (!src.title) err(`verification source ${k}: missing title`); }
+  const seenRec = new Set();
+  for (const r of V.records) {
+    if (seenRec.has(r.id)) err(`verification record ${r.id}: duplicate`); seenRec.add(r.id);
+    if (!ids.has(r.id)) err(`verification record ${r.id}: no such service page`);
+    if (!dateRe.test(r.lastVerified)) err(`verification record ${r.id}: lastVerified must be YYYY-MM-DD`);
+    if (r.lastVerified > V.asOf) err(`verification record ${r.id}: lastVerified is after asOf`);
+    if (!r.claims || !r.claims.length) err(`verification record ${r.id}: no claims`);
+    if (!r.sources || !r.sources.length) err(`verification record ${r.id}: no sources`);
+    for (const sid of r.sources || []) if (!V.sources[sid]) err(`verification record ${r.id}: unknown source ${sid}`);
+  }
+  if (!V.sources[V.modelLifecycleSource]) err('verification: modelLifecycleSource not in sources');
+  if (!dateRe.test(V.modelLifecycleVerified)) err('verification: modelLifecycleVerified must be YYYY-MM-DD');
+  const keys = new Set();
+  for (const m of V.modelLifecycle) { if (keys.has(m.key)) err(`modelLifecycle ${m.key}: duplicate`); keys.add(m.key); for (const f of ['label', 'lifecycle', 'retirement']) if (!m[f]) err(`modelLifecycle ${m.key}: missing ${f}`); }
+  const routeOk = new Set(['finops','foundry','agents','rag-lab','advisor','foundation','services-matrix','security-center','evaluation','ops','troubleshooting','traditional-ml','advanced-ai','em-workspace','toolkit','labs','gov']);
+  for (const m of V.modules) {
+    if (!routeOk.has(m.id)) err(`verification module ${m.id}: unknown route`);
+    if (m.verified && (!dateRe.test(m.verified) || !m.scope)) err(`verification module ${m.id}: a verified date needs a scope`);
+    if (!m.remaining) err(`verification module ${m.id}: say what remains unverified`);
+  }
+  if (typeof V.state !== 'function' || V.state(null, 'service') !== 'unverified' || V.state('2026-01-01', 'service', new Date('2026-01-10')) !== 'verified' || V.state('2025-01-01', 'service', new Date('2026-01-10')) !== 'due') err('verification: state() misbehaves');
+}
+
+// stale model names must not creep back into page text (the lifecycle table lists them on purpose)
+for (const f of fs.readdirSync(path.join(root, 'data'))) {
+  if (['verification.js', 'finops.js'].includes(f)) continue;
+  const t = fs.readFileSync(path.join(root, 'data', f), 'utf8');
+  const m = t.match(/\bgpt-4o(-mini)?\b|\bo1-(preview|mini)\b|\bo3-mini\b/i);
+  if (m) err(`data/${f}: names retired/legacy model "${m[0]}"; use a tier description or verify via the registry`);
+}
 
 for (const c of A.categories) {
   if (!A.services.some(s => s.cat === c.id)) err(`category ${c.id}: has no services`);
