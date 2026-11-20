@@ -197,9 +197,31 @@ else {
   advTest.next.forEach(n => { if (!decIds.has(n.id)) err(`advisor next unknown decision ${n.id}`); });
 }
 
+// foundation
+if (!A.foundation || typeof A.foundation !== 'object') err('foundation: missing A.foundation');
+else {
+  if (!Array.isArray(A.foundation.pillars) || A.foundation.pillars.length < 4) err('foundation: expected at least 4 pillars');
+  if (!Array.isArray(A.foundation.decisions) || A.foundation.decisions.length < 7) err('foundation: expected at least 7 platform decisions');
+  if (!Array.isArray(A.foundation.solutionReviewPillars) || A.foundation.solutionReviewPillars.length < 4) err('foundation: expected at least 4 solutionReviewPillars');
+}
+
+// foundry
+if (!A.foundry || typeof A.foundry !== 'object') err('foundry: missing A.foundry');
+else {
+  if (!Array.isArray(A.foundry.sections) || A.foundry.sections.length < 5) err('foundry: expected at least 5 sections');
+  if (!Array.isArray(A.foundry.codeExamples) || A.foundry.codeExamples.length < 2) err('foundry: expected at least 2 codeExamples');
+}
+
+// advancedAI
+if (!A.advancedAI || typeof A.advancedAI !== 'object') err('advancedAI: missing A.advancedAI');
+else {
+  if (!Array.isArray(A.advancedAI.topics) || A.advancedAI.topics.length < 8) err('advancedAI: expected at least 8 topics');
+}
+
 // ragLab
 if (!A.ragLab || typeof A.ragLab !== 'object') err('ragLab: missing A.ragLab');
 else {
+  if (!Array.isArray(A.ragLab.patterns) || A.ragLab.patterns.length < 14) err('ragLab: expected at least 14 patterns');
   if (!Array.isArray(A.ragLab.chunkingStrategies) || A.ragLab.chunkingStrategies.length < 5) err('ragLab: expected at least 5 chunkingStrategies');
   if (!Array.isArray(A.ragLab.retrievalStrategies) || A.ragLab.retrievalStrategies.length < 5) err('ragLab: expected at least 5 retrievalStrategies');
   if (!Array.isArray(A.ragLab.benchmarkExperiments) || A.ragLab.benchmarkExperiments.length < 4) err('ragLab: expected at least 4 benchmarkExperiments');
@@ -208,7 +230,7 @@ else {
 // agentPatterns
 if (!A.agentPatterns || typeof A.agentPatterns !== 'object') err('agentPatterns: missing A.agentPatterns');
 else {
-  if (!Array.isArray(A.agentPatterns.patterns) || A.agentPatterns.patterns.length < 15) err('agentPatterns: expected at least 15 patterns');
+  if (!Array.isArray(A.agentPatterns.patterns) || A.agentPatterns.patterns.length < 18) err('agentPatterns: expected at least 18 patterns');
   if (!Array.isArray(A.agentPatterns.frameworks) || A.agentPatterns.frameworks.length < 5) err('agentPatterns: expected at least 5 frameworks');
 }
 
@@ -257,7 +279,14 @@ else {
 // serviceMatrix
 if (!A.serviceMatrix || typeof A.serviceMatrix !== 'object') err('serviceMatrix: missing A.serviceMatrix');
 else {
-  if (!Array.isArray(A.serviceMatrix.comparisonMatrix) || A.serviceMatrix.comparisonMatrix.length < 5) err('serviceMatrix: expected at least 5 comparisonMatrix items');
+  if (!Array.isArray(A.serviceMatrix.comparisonMatrix) || A.serviceMatrix.comparisonMatrix.length < 10) err('serviceMatrix: expected at least 10 comparisonMatrix items');
+  const mandatoryFields = ['what', 'why', 'whenUse', 'whenNot', 'alternatives', 'integrationPoints', 'patterns', 'security', 'limitations', 'pricing', 'sla', 'regions', 'quotas', 'useCases'];
+  (A.serviceMatrix.comparisonMatrix || []).forEach(item => {
+    mandatoryFields.forEach(field => {
+      if (!item[field] || typeof item[field] !== 'string') err(`serviceMatrix comparison item ${item.id || item.name}: missing mandatory field ${field}`);
+    });
+  });
+  if (!Array.isArray(A.serviceMatrix.platformDecisions) || A.serviceMatrix.platformDecisions.length < 5) err('serviceMatrix: expected at least 5 platformDecisions');
 }
 
 // solution shaper: exhaustively run every answer combination

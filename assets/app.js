@@ -153,38 +153,45 @@
   function pageHome() {
     var n = A.services.length;
     var h = '<div class="wide"><section class="hero"><div>' +
-      '<div class="eyebrow">The Azure AI Engineering Operating System · ' + n + ' services · ' + A.architectures.length + ' architectures · ' + A.decisions.length + ' decisions</div>' +
+      '<div class="eyebrow">The Azure AI Engineering Operating System · ' + n + ' services · 23 domains · ' + A.architectures.length + ' architectures · ' + A.decisions.length + ' decisions</div>' +
       '<h1>Azure AI Engineering Operating System</h1>' +
       '<p class="lede">From cloud catalog to engineering management operating system: what to build, how to architect end to end, why to choose each technology over alternatives, how to evaluate and operate in production, and how to estimate cost and complexity.</p>' +
       '<div class="btns">' +
         '<a class="btn primary" href="#/advisor">Architecture Advisor →</a>' +
-        '<a class="btn" href="#/a">Architectures (' + A.architectures.length + ')</a>' +
-        '<a class="btn" href="#/rag-lab">RAG Lab</a>' +
+        '<a class="btn" href="#/foundation">Cloud Foundation</a>' +
+        '<a class="btn" href="#/services-matrix">Services Matrix</a>' +
+        '<a class="btn" href="#/foundry">Microsoft Foundry</a>' +
+        '<a class="btn" href="#/rag-lab">RAG Lab (14)</a>' +
         '<a class="btn" href="#/agents">Agent Patterns (18)</a>' +
+        '<a class="btn" href="#/a">Architectures (' + A.architectures.length + ')</a>' +
         '<a class="btn" href="#/finops">FinOps Calculator</a>' +
         '<a class="btn" href="#/em-workspace">EM Workspace</a>' +
+        '<a class="btn" href="#/advanced-ai">Advanced AI</a>' +
       '</div>' +
       '</div>' + heroSVG() + '</section>';
 
     h += '<h2>Core Operating System Capability Centers</h2>' +
-      '<p style="max-width:68ch">An integrated decision-support platform designed for AI Engineering Managers, Principal Architects, and Staff Engineers delivering enterprise AI on Microsoft Azure.</p>' +
+      '<p style="max-width:68ch">An integrated decision-support platform designed for AI Engineering Managers, Principal Architects, and Staff Engineers delivering enterprise AI on Microsoft Azure across 23 capability domains.</p>' +
       '<div class="grid">' +
       '<a class="card" style="--h:212" href="#/advisor"><div class="mini">Decision Engine</div><h3>1. Architecture Advisor</h3><p>Guided intake translating business requirements into tailored Azure architectures, service stacks, security designs, and 15-section ADRs.</p></a>' +
-      '<a class="card" style="--h:268" href="#/a"><div class="mini">Blueprints</div><h3>2. Reference Architectures</h3><p>' + A.architectures.length + ' production blueprints: Traditional RAG, Agentic RAG, GraphRAG, Multimodal RAG, Multi-Agent Swarms, Voice AI, Batch, and Predictive ML.</p></a>' +
-      '<a class="card" style="--h:150" href="#/rag-lab"><div class="mini">Engineering Lab</div><h3>3. RAG Engineering Lab</h3><p>Chunking trade-offs, hybrid search (BM25 + vectors with RRF), semantic reranking, interactive quality calculator, and golden benchmarks.</p></a>' +
-      '<a class="card" style="--h:280" href="#/agents"><div class="mini">Agentic AI</div><h3>4. Agent Pattern Explorer</h3><p>18 design patterns (Supervisor, Planner, Parallel, Swarm, HITL), framework matrices (Microsoft Agent Framework vs Foundry Agent Service), and memory.</p></a>' +
-      '<a class="card" style="--h:190" href="#/d"><div class="mini">Decisions</div><h3>5. Architecture Decision Centre</h3><p>' + A.decisions.length + ' architectural decision guides with dedicated EM and PE lenses, reversibility markers, red flags, and review questions.</p></a>' +
-      '<a class="card" style="--h:6" href="#/security-center"><div class="mini">Zero-Trust & Risk</div><h3>6. AI Security & Governance</h3><p>12 AI threat catalog cards (OWASP Top 10 for LLMs), interactive 10-Gate AI Governance checklist, Private Link, and identity delegation.</p></a>' +
-      '<a class="card" style="--h:42" href="#/evaluation"><div class="mini">Quality Evals</div><h3>7. Evaluation & Quality Center</h3><p>7-level AI testing pyramid, 14 quality dimensions, agent metrics, and interactive release quality gate calculator with risk tier presets.</p></a>' +
-      '<a class="card" style="--h:120" href="#/finops"><div class="mini">FinOps & Budget</div><h3>8. AI FinOps & ROI Calculator</h3><p>Multi-model token pricing reference, monthly enterprise TCO calculator, scale profiles, and corporate ROI calculator with payback horizon.</p></a>' +
-      '<a class="card" style="--h:185" href="#/ops"><div class="mini">SRE & Telemetry</div><h3>9. Production Operations Centre</h3><p>Mandatory 10-widget live operations dashboard with KQL queries, 4 SRE runbooks, and AI postmortem template.</p></a>' +
-      '<a class="card" style="--h:340" href="#/troubleshooting"><div class="mini">Diagnostics</div><h3>10. Failure Troubleshooting Catalog</h3><p>Actionable root-cause procedures, diagnostics, and ready-to-run KQL queries for RAG, agent loops, and Azure 429 throttling.</p></a>' +
-      '<a class="card" style="--h:300" href="#/traditional-ml"><div class="mini">Predictive AI</div><h3>11. Traditional ML & MLOps</h3><p>10-phase classical ML lifecycle, Azure ML matrix, tabular vs LLM decision scenarios, enterprise lakehouses, and ERP/CRM integrations.</p></a>' +
-      '<a class="card" style="--h:40" href="#/em-workspace"><div class="mini">Leadership</div><h3>12. EM Workspace & Staffing</h3><p>Guided 14-question project assessment, solution review checklist, complexity & staffing estimator, and team competency heatmap.</p></a>' +
-      '<a class="card" style="--h:200" href="#/services-matrix"><div class="mini">Service Matrix</div><h3>13. Services Decision Matrix</h3><p>Exhaustive 14-field comparison matrix across Azure AI services and core platform trade-off guides (Container Apps vs AKS, etc.).</p></a>' +
-      '<a class="card" style="--h:212" href="#/p"><div class="mini">Playbooks</div><h3>14. AI Engineering Playbooks</h3><p>5 in-depth playbooks: RAG Engineering, Multi-Agent Orchestration, GenAIOps Lifecycle, Security Hardening, and SRE/Reliability.</p></a>' +
-      '<a class="card" style="--h:305" href="#/labs"><div class="mini">Curriculum</div><h3>15. Hands-on Labs & Roadmaps</h3><p>3 role-based progressive roadmaps (EM, PE, Engineer), 5 practical production labs, and official Microsoft Learn links.</p></a>' +
-      '<a class="card" style="--h:25" href="#/gov"><div class="mini">Governance</div><h3>16. Landing Zones & Tenancy</h3><p>Cloud Adoption Framework (CAF) AI landing zones, management group hierarchy, Virtual WAN hub-and-spoke, and tenancy models.</p></a>' +
+      '<a class="card" style="--h:195" href="#/foundation"><div class="mini">Infrastructure</div><h3>2. Azure Cloud Foundation</h3><p>Networking (VNet, Private Endpoints), Entra identity, storage tiers, compute options, and the 7 critical Azure platform decision matrices.</p></a>' +
+      '<a class="card" style="--h:200" href="#/services-matrix"><div class="mini">Service Matrix</div><h3>3. Services Decision Matrix</h3><p>Exhaustive 14-field comparison matrix across 14 Azure AI services and core platform trade-off guides (Container Apps vs AKS, etc.).</p></a>' +
+      '<a class="card" style="--h:268" href="#/foundry"><div class="mini">Unified Platform</div><h3>4. Microsoft Foundry Deep Dive</h3><p>Hub/project hierarchy, multi-model catalog, PTU vs Pay-As-You-Go economics, hosted code agents, toolboxes, and App Insights tracing.</p></a>' +
+      '<a class="card" style="--h:150" href="#/rag-lab"><div class="mini">Engineering Lab</div><h3>5. RAG Engineering Lab</h3><p>14 RAG architecture patterns, ingestion pipeline engineering, chunking trade-offs, hybrid search (HNSW + BM25), and quality calculator.</p></a>' +
+      '<a class="card" style="--h:280" href="#/agents"><div class="mini">Agentic AI</div><h3>6. Agent Pattern Explorer</h3><p>18 design patterns (Supervisor, Swarm, HITL), agent fundamentals, 8 frameworks matrix (Agent Framework vs Semantic Kernel), and primitives.</p></a>' +
+      '<a class="card" style="--h:268" href="#/a"><div class="mini">Blueprints</div><h3>7. Reference Architectures</h3><p>' + A.architectures.length + ' production blueprints: Traditional RAG, Agentic RAG, GraphRAG, Multimodal RAG, Multi-Agent Swarms, Voice AI, and Batch.</p></a>' +
+      '<a class="card" style="--h:300" href="#/traditional-ml"><div class="mini">Predictive AI</div><h3>8. Traditional ML & MLOps</h3><p>10-phase classical ML lifecycle, Azure ML matrix, tabular vs LLM decision scenarios, 7 storage archetypes, and ERP/CRM integrations.</p></a>' +
+      '<a class="card" style="--h:6" href="#/security-center"><div class="mini">Zero-Trust & Risk</div><h3>9. AI Security & Governance</h3><p>12 AI threat catalog cards (OWASP Top 10 for LLMs), interactive 10-Gate AI Governance checklist, Private Link, and identity delegation.</p></a>' +
+      '<a class="card" style="--h:42" href="#/evaluation"><div class="mini">Quality Evals</div><h3>10. Evaluation & Quality Center</h3><p>7-level AI testing pyramid, 14 quality dimensions, agent metrics, and interactive release quality gate calculator with risk tier presets.</p></a>' +
+      '<a class="card" style="--h:185" href="#/ops"><div class="mini">SRE & Telemetry</div><h3>11. Production Operations Centre</h3><p>4 specialized dashboard blueprints (App, Agent, RAG, FinOps) with KQL queries, GenAIOps CI/CD, 10 live widgets, and SRE runbooks.</p></a>' +
+      '<a class="card" style="--h:120" href="#/finops"><div class="mini">FinOps & Budget</div><h3>12. AI FinOps & ROI Calculator</h3><p>Multi-model token pricing reference, monthly enterprise TCO calculator, scale profiles, and corporate ROI calculator with payback horizon.</p></a>' +
+      '<a class="card" style="--h:40" href="#/em-workspace"><div class="mini">Leadership</div><h3>13. EM Workspace & Staffing</h3><p>Guided 14-question project assessment, 6-pillar solution review checklist, complexity & staffing estimator, and team competency heatmap.</p></a>' +
+      '<a class="card" style="--h:340" href="#/troubleshooting"><div class="mini">Diagnostics</div><h3>14. Failure Troubleshooting Catalog</h3><p>Actionable root-cause procedures, diagnostics, and ready-to-run KQL queries for RAG, agent loops, and Azure 429 throttling.</p></a>' +
+      '<a class="card" style="--h:320" href="#/advanced-ai"><div class="mini">Frontier AI</div><h3>15. Advanced AI Engineering</h3><p>Graph RAG, Multimodal AI, LoRA fine-tuning, Edge SLMs (Phi-4 ONNX), Dynamic Model Routing, Hierarchical Memory, and PyRIT Red Teaming.</p></a>' +
+      '<a class="card" style="--h:190" href="#/d"><div class="mini">Decisions</div><h3>16. Architecture Decision Centre</h3><p>' + A.decisions.length + ' architectural decision guides with dedicated EM and PE lenses, reversibility markers, red flags, and review questions.</p></a>' +
+      '<a class="card" style="--h:212" href="#/p"><div class="mini">Playbooks</div><h3>17. AI Engineering Playbooks</h3><p>5 in-depth playbooks: RAG Engineering, Multi-Agent Orchestration, GenAIOps Lifecycle, Security Hardening, and SRE/Reliability.</p></a>' +
+      '<a class="card" style="--h:305" href="#/labs"><div class="mini">Curriculum</div><h3>18. Hands-on Labs & Roadmaps</h3><p>3 role-based progressive roadmaps (EM, PE, Engineer), 5 practical production labs, and official Microsoft Learn links.</p></a>' +
+      '<a class="card" style="--h:25" href="#/gov"><div class="mini">Governance</div><h3>19. Landing Zones & Tenancy</h3><p>Cloud Adoption Framework (CAF) AI landing zones, management group hierarchy, Virtual WAN hub-and-spoke, and tenancy models.</p></a>' +
       '</div>';
 
     h += '<h2>Service Catalogue by Category (' + n + ' Services)</h2><p style="max-width:62ch">Services are grouped by the job they do in an enterprise AI system. Each page details step-by-step technical execution, production gotchas, edge cases, and architecture pairings.</p><div class="grid">';
@@ -750,12 +757,74 @@
   /* ---------- operations ---------- */
   function pageOperations() {
     var op = A.operations;
-    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Operations</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Production Operations</div>' +
       '<h1>' + esc(op.title) + '</h1>' +
-      '<p class="lede">' + fmt(op.lede) + '</p>';
+      '<p class="lede">' + fmt(op.lede) + '</p>' +
+      '<div class="callout"><b>AI SRE & Observability Command Center</b>Real-time telemetry, specialized dashboards, continuous CI/CD evaluation gates, and actionable incident runbooks for production AI and agent workloads.</div>';
 
-    // Dashboard Template
-    h += '<h2>' + esc(op.dashboardTemplate.title) + '</h2>' +
+    // 1. Specialized Dashboard Blueprints
+    if (op.dashboardBlueprints && op.dashboardBlueprints.length) {
+      h += '<h2>1. Specialized Production Dashboard Blueprints</h2>' +
+        '<p style="max-width:68ch">Four purpose-built monitoring dashboards covering application availability, agent execution loops, RAG retrieval quality, and FinOps unit economics.</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin:20px 0">';
+      op.dashboardBlueprints.forEach(function (db) {
+        h += '<div class="dash-card">' +
+          '<div class="dash-top">' +
+            '<h4>' + esc(db.name) + '</h4>' +
+            '<span class="chip" style="--h:212">' + esc(db.audience) + '</span>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin:4px 0"><b>Monitored Telemetry:</b></div>' +
+          '<ul style="margin:0;padding-left:16px;font-size:12px;line-height:1.5">' +
+            db.metrics.map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('') +
+          '</ul>' +
+          '<div style="margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center">' +
+            '<button class="btn-sm" type="button" data-toggle-kql="' + db.id + '">View KQL Query ⤢</button>' +
+            '<button class="btn-sm" type="button" data-copy="' + esc(db.kql) + '">Copy KQL</button>' +
+          '</div>' +
+          '<div class="kql-box" id="kql-' + db.id + '" hidden>' + esc(db.kql) + '</div>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
+
+    // 2. GenAIOps CI/CD Lifecycle & Artifacts
+    if (op.devopsLifecycle) {
+      var dlc = op.devopsLifecycle;
+      h += '<h2>2. ' + esc(dlc.title) + '</h2>' +
+        '<p style="max-width:68ch">Continuous integration, automated quality evaluation gates, infrastructure as code, and progressive deployment.</p>' +
+        '<div class="box" style="margin:16px 0">' +
+          '<div style="font-weight:700;font-size:13px;font-family:var(--mono);text-transform:uppercase;color:var(--muted);margin-bottom:8px">Automated Deployment Pipeline Flow:</div>' +
+          '<ol style="margin:0;padding-left:20px;font-size:13px;line-height:1.6">' +
+            dlc.flow.map(function (st) { return '<li>' + esc(st) + '</li>'; }).join('') +
+          '</ol>' +
+        '</div>';
+
+      h += '<h3>The 13 Versioned AI Engineering Artifacts</h3>' +
+        '<p style="max-width:68ch">Production repeatability requires explicit versioning across all 13 AI artifacts in Git, registries, and configuration stores.</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:16px 0">';
+      dlc.artifactsToVersion.forEach(function (art) {
+        h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px">' +
+          '<div style="font-weight:700;font-size:13px;color:var(--accent)">' + esc(art.artifact) + '</div>' +
+          '<div style="font-size:12px;margin:3px 0"><code>' + esc(art.storage) + '</code></div>' +
+          '<div style="font-size:11px;color:var(--muted)">' + esc(art.practice) + '</div>' +
+        '</div>';
+      });
+      h += '</div>';
+
+      h += '<h3>Multi-Tier Environment & Promotion Strategy</h3>' +
+        '<div class="tablewrap"><table class="matrix-table">' +
+        '<thead><tr><th>Environment</th><th>Scope & Configuration</th><th>Data & Model Boundary</th><th>Gate to Next Tier</th></tr></thead><tbody>';
+      dlc.environmentStrategy.forEach(function (env) {
+        h += '<tr><td><b>' + esc(env.tier) + '</b></td>' +
+          '<td>' + esc(env.purpose) + '</td>' +
+          '<td>' + esc(env.isolation) + '</td>' +
+          '<td><b>' + esc(env.promotionGate) + '</b></td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+
+    // 3. Live 10-Widget Operations Dashboard
+    h += '<h2>3. ' + esc(op.dashboardTemplate.title) + '</h2>' +
       '<p class="fine">' + esc(op.dashboardTemplate.subtitle) + '</p>' +
       '<div class="dash-grid">';
 
@@ -777,9 +846,9 @@
     });
     h += '</div>';
 
-    // Runbooks
-    h += '<h2>Production SRE Incident Runbooks</h2>' +
-      '<p style="max-width:62ch">Step-by-step remediation procedures for on-call engineers when stochastic or capacity anomalies trigger high-severity alerts.</p>';
+    // 4. Runbooks
+    h += '<h2>4. Production SRE Incident Runbooks</h2>' +
+      '<p style="max-width:68ch">Step-by-step remediation procedures for on-call engineers when stochastic or capacity anomalies trigger high-severity alerts.</p>';
 
     op.runbooks.forEach(function (rb) {
       var sevColor = rb.severity.indexOf('P1') > -1 ? 'var(--warn)' : 'var(--accent)';
@@ -796,9 +865,9 @@
       '</div>';
     });
 
-    // Postmortem Template
+    // 5. Postmortem Template
     var pm = op.postmortemTemplate;
-    h += '<h2>' + esc(pm.title) + '</h2>' +
+    h += '<h2>5. ' + esc(pm.title) + '</h2>' +
       '<p>' + fmt(pm.intro) + '</p>' +
       '<div style="margin:12px 0 8px;display:flex;justify-content:flex-end">' +
         '<button class="btn" type="button" id="copyPostmortem">Copy Postmortem Template</button>' +
@@ -829,7 +898,7 @@
       }
     };
 
-    return h;
+    return '<div class="wide">' + h + '</div>';
   }
 
   /* ---------- toolkit ---------- */
@@ -1086,10 +1155,72 @@
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Engineering Lab</div>' +
       '<h1>' + esc(lab.title) + '</h1>' +
       '<p class="lede">' + esc(lab.lede) + '</p>' +
-      '<div class="callout"><b>Production Grounding Playbook</b>RAG systems succeed or fail at the ingestion and retrieval layers. Compare chunking trade-offs, evaluate retrieval scoring algorithms, benchmark experiments, and calculate retrieval quality metrics.</div>';
+      '<div class="callout"><b>Production Grounding Playbook</b>RAG systems succeed or fail at the ingestion and retrieval layers. Compare 14 RAG architecture patterns, build robust ingestion pipelines, master chunking trade-offs, evaluate retrieval scoring algorithms, and calculate retrieval quality metrics.</div>';
 
-    // Chunking Strategies Matrix
-    h += '<h2>1. Document Chunking Strategies Comparison</h2>' +
+    // 1. The 14 RAG Architecture Patterns Catalog
+    if (lab.patterns && lab.patterns.length) {
+      h += '<h2>1. The 14 RAG Architecture Patterns</h2>' +
+        '<p style="max-width:68ch">From basic naive RAG to advanced Graph RAG, Agentic RAG, and Speculative RAG: patterns classified by difficulty, flow, and Azure implementation.</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin:20px 0">';
+      lab.patterns.forEach(function (p) {
+        var diffHue = p.difficulty === 'Beginner' ? 150 : (p.difficulty === 'Intermediate' ? 212 : (p.difficulty === 'Advanced' ? 280 : 0));
+        h += '<div class="pattern-card">' +
+          '<div class="pattern-top">' +
+            '<span class="pattern-num">' + esc(p.num) + '</span>' +
+            '<span class="chip" style="--h:' + diffHue + '">' + esc(p.difficulty) + '</span>' +
+          '</div>' +
+          '<h3>' + esc(p.name) + '</h3>' +
+          '<p style="font-size:13px;color:var(--muted);margin:0 0 8px"><b>Use Case:</b> ' + esc(p.useCase) + '</p>' +
+          '<div class="pattern-exec" style="font-size:12px;margin:6px 0"><b>Retrieval Flow:</b> ' + esc(p.retrievalFlow) + '</div>' +
+          '<div style="font-size:12px;margin:6px 0"><b>Azure Implementation:</b> <code>' + esc(p.azureImplementation) + '</code></div>' +
+          '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:6px;padding:8px 10px;font-size:12px;margin-top:auto">' +
+            '<b>Trade-offs:</b> ' + esc(p.tradeoffs) +
+          '</div>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
+
+    // 2. Enterprise Ingestion Pipeline & Production Engineering
+    if (lab.ingestionPipeline) {
+      var ing = lab.ingestionPipeline;
+      h += '<h2>2. ' + esc(ing.title) + '</h2>' +
+        '<p style="max-width:68ch">Production RAG requires robust ingestion capable of handling diverse document formats, schema drift, index rebuilding without downtime, and deduplication.</p>' +
+        '<div class="box" style="margin:16px 0">' +
+          '<div style="font-weight:700;font-size:12px;font-family:var(--mono);text-transform:uppercase;color:var(--muted);margin-bottom:8px">Ingestion Pipeline Stages:</div>' +
+          '<ol style="margin:0;padding-left:20px;font-size:13px;line-height:1.6">' +
+            ing.stages.map(function (st) { return '<li>' + esc(st) + '</li>'; }).join('') +
+          '</ol>' +
+        '</div>';
+
+      h += '<h3>Production Ingestion Engineering Topics</h3>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:16px 0">';
+      ing.productionTopics.forEach(function (pt) {
+        h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:10px;padding:12px 14px">' +
+          '<h4 style="margin:0 0 6px;font-size:14px;font-weight:700;color:var(--accent)">' + esc(pt.topic) + '</h4>' +
+          '<p style="margin:0;font-size:12px;line-height:1.55;color:var(--ink)">' + esc(pt.guidance) + '</p>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
+
+    // 3. Search Engineering Reference
+    if (lab.searchReference) {
+      h += '<h2>3. ' + esc(lab.searchReference.title) + '</h2>' +
+        '<p style="max-width:68ch">Azure AI Search index tuning, vector algorithms, scoring profiles, and security trimming architecture.</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:16px 0">';
+      lab.searchReference.topics.forEach(function (tp) {
+        h += '<div class="card" style="--h:212">' +
+          '<div class="mini">Search Engine</div>' +
+          '<h3>' + esc(tp.concept) + '</h3>' +
+          '<p style="font-size:13px;color:var(--ink);line-height:1.55">' + esc(tp.guidance) + '</p>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
+
+    // 4. Chunking Strategies Matrix
+    h += '<h2>4. Document Chunking Strategies Comparison</h2>' +
       '<p style="max-width:68ch">Selecting the optimal chunking strategy balances semantic context against vector retrieval precision and storage cost.</p>' +
       '<div class="tablewrap"><table class="matrix-table">' +
       '<thead><tr><th>Strategy</th><th>Complexity</th><th>Token Range</th><th>Strengths</th><th>Weaknesses</th><th>Azure Implementation</th></tr></thead><tbody>';
@@ -1104,8 +1235,8 @@
     });
     h += '</tbody></table></div>';
 
-    // Retrieval Strategies
-    h += '<h2>2. Retrieval Scoring & Reranking Comparison</h2>' +
+    // 5. Retrieval Strategies
+    h += '<h2>5. Retrieval Scoring & Reranking Comparison</h2>' +
       '<p style="max-width:68ch">Production retrieval combines lexical search, dense vector similarity, and cross-encoder semantic reranking.</p>' +
       '<div class="tablewrap"><table class="matrix-table">' +
       '<thead><tr><th>Retrieval Strategy</th><th>Scoring Mechanism</th><th>Recall Impact</th><th>Latency Cost</th><th>Best Fit</th></tr></thead><tbody>';
@@ -1119,8 +1250,23 @@
     });
     h += '</tbody></table></div>';
 
-    // Interactive RAG Evaluation Calculator
-    h += '<h2>3. Interactive RAG Quality Calculator</h2>' +
+    // 6. Evaluation Metrics Reference
+    if (lab.evaluationMetrics && lab.evaluationMetrics.length) {
+      h += '<h2>6. RAG Evaluation Metrics Reference</h2>' +
+        '<p style="max-width:68ch">The 11 core metrics used to evaluate and gate production RAG systems.</p>' +
+        '<div class="tablewrap"><table class="matrix-table">' +
+        '<thead><tr><th>Metric</th><th>Target Threshold</th><th>What It Measures</th><th>Failure Mode / Cause</th></tr></thead><tbody>';
+      lab.evaluationMetrics.forEach(function (em) {
+        h += '<tr><td><b>' + esc(em.metric) + '</b></td>' +
+          '<td><span class="chip" style="--h:150">' + esc(em.target) + '</span></td>' +
+          '<td>' + esc(em.description) + '</td>' +
+          '<td style="color:var(--warn)">' + esc(em.failureMode) + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+
+    // 7. Interactive RAG Evaluation Calculator
+    h += '<h2>7. Interactive RAG Quality Calculator</h2>' +
       '<p style="max-width:68ch">Enter test dataset metrics to compute Groundedness, Answer Relevance, Context Recall, and Ranking MRR.</p>' +
       '<div class="wide"><div class="calc">' +
         '<form id="ragCalcForm" class="calcform" onsubmit="return false">' +
@@ -1136,8 +1282,8 @@
         '<div id="ragCalcOut" class="calcout" aria-live="polite"></div>' +
       '</div></div>';
 
-    // Golden Benchmark Experiments
-    h += '<h2>4. Reference Golden Benchmark Experiments</h2>' +
+    // 8. Golden Benchmark Experiments
+    h += '<h2>8. Reference Golden Benchmark Experiments</h2>' +
       '<p style="max-width:68ch">Comparative results on an enterprise corpus of 5,000 PDF policy documents across five retrieval configurations.</p>' +
       '<div class="tablewrap"><table class="matrix-table">' +
       '<thead><tr><th>Configuration</th><th>Chunking Setup</th><th>Retrieval Pipeline</th><th>Groundedness</th><th>Recall@5</th><th>Latency (P95)</th><th>Cost / 1k</th></tr></thead><tbody>';
@@ -1203,8 +1349,24 @@
       '<p class="lede">' + esc(ap.lede) + '</p>' +
       '<div class="callout"><b>Agent Design Catalog</b>A comprehensive catalog of 18 architectural patterns for autonomous agents and multi-agent systems, complete with execution flows, Azure implementations, trade-offs, and framework selection matrices.</div>';
 
-    // 18 Patterns Grid
-    h += '<h2>1. The 18 Agent Architecture Patterns</h2>' +
+    // 1. Agent Fundamentals & Distinctions
+    if (ap.fundamentals) {
+      h += '<h2>1. ' + esc(ap.fundamentals.title) + '</h2>' +
+        '<p style="max-width:68ch">Distinguishing between raw foundation models, conversational chatbots, deterministic workflows, and true autonomous agent systems.</p>' +
+        '<div class="tablewrap"><table class="matrix-table">' +
+        '<thead><tr><th>Architecture Paradigm</th><th>Autonomy Level</th><th>Decision Making</th><th>Execution Flow</th><th>Best Suited For</th></tr></thead><tbody>';
+      ap.fundamentals.concepts.forEach(function (cp) {
+        h += '<tr><td><b>' + esc(cp.name) + '</b></td>' +
+          '<td><span class="chip" style="--h:212">' + esc(cp.autonomy) + '</span></td>' +
+          '<td>' + esc(cp.decisionMaking) + '</td>' +
+          '<td><code>' + esc(cp.executionFlow) + '</code></td>' +
+          '<td>' + esc(cp.bestFor) + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+
+    // 2. The 18 Agent Patterns Grid
+    h += '<h2>2. The 18 Agent Architecture Patterns</h2>' +
       '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;margin:20px 0">';
 
     ap.patterns.forEach(function (p) {
@@ -1225,8 +1387,8 @@
     });
     h += '</div>';
 
-    // Framework Decision Matrix
-    h += '<h2>2. Agent Frameworks & Runtimes Comparison</h2>' +
+    // 3. Framework Decision Matrix
+    h += '<h2>3. Agent Frameworks & Runtimes Comparison</h2>' +
       '<div class="tablewrap"><table class="matrix-table">' +
       '<thead><tr><th>Framework</th><th>Type & Architecture</th><th>Maturity</th><th>Key Strengths</th><th>Weaknesses & Trade-offs</th><th>Best Use Case</th></tr></thead><tbody>';
 
@@ -1240,8 +1402,24 @@
     });
     h += '</tbody></table></div>';
 
-    // Orchestration Comparison
-    h += '<h2>3. Multi-Agent Orchestration Patterns Trade-offs</h2>' +
+    // 4. Orchestration Primitives
+    if (ap.orchestrationPrimitives) {
+      h += '<h2>4. ' + esc(ap.orchestrationPrimitives.title) + '</h2>' +
+        '<p style="max-width:68ch">The foundational structural building blocks used to orchestrate multi-agent workflows.</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0">';
+      ap.orchestrationPrimitives.primitives.forEach(function (op) {
+        h += '<div class="card" style="--h:280">' +
+          '<div class="mini">Primitive</div>' +
+          '<h3>' + esc(op.name) + '</h3>' +
+          '<p style="font-size:13px;color:var(--ink);margin:4px 0">' + esc(op.description) + '</p>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:6px"><b>Trade-off:</b> ' + esc(op.tradeoffs) + '</div>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
+
+    // 5. Orchestration Comparison Table
+    h += '<h2>5. Multi-Agent Orchestration Patterns Trade-offs</h2>' +
       '<div class="tablewrap"><table class="matrix-table">' +
       '<thead><tr><th>Pattern</th><th>Determinism</th><th>Latency</th><th>Token Cost</th><th>Debuggability</th><th>Recommended Workload</th></tr></thead><tbody>';
 
@@ -1519,11 +1697,11 @@
       '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:18px 0">';
     fo.scaleProfiles.forEach(function (sp) {
       h += '<div class="card" style="--h:212">' +
-        '<div class="mini">' + esc(sp.id.toUpperCase()) + '</div>' +
+        '<div class="mini">Scale Profile</div>' +
         '<h3>' + esc(sp.name) + '</h3>' +
-        '<div style="font:700 22px var(--serif);color:var(--accent);margin:4px 0">' + esc(sp.monthlyEst) + '</div>' +
-        '<p style="font-size:13px;color:var(--muted)"><b>' + sp.users.toLocaleString() + ' users</b> · ' + sp.queriesPerUserDay + ' queries/day<br><b>Model:</b> ' + esc(sp.model) + '</p>' +
-        '<p style="font-size:12px;color:var(--ink);margin-top:8px"><i>Primary Driver:</i> ' + esc(sp.primaryDriver) + '</p>' +
+        '<div style="font:700 22px var(--serif);color:var(--accent);margin:4px 0">' + esc(sp.estimatedMonthlyTCO) + '</div>' +
+        '<p style="font-size:13px;color:var(--muted)"><b>' + sp.users.toLocaleString() + ' users</b> · ' + sp.dailyQueries + ' queries/day<br><b>Tokens:</b> ' + esc(sp.monthlyTokens) + '<br><b>Cost/Task:</b> ' + esc(sp.costPerTask) + '</p>' +
+        '<p style="font-size:12px;color:var(--ink);margin-top:8px"><i>Assumptions:</i> ' + esc(sp.assumptions) + '</p>' +
       '</div>';
     });
     h += '</div>';
@@ -1727,39 +1905,46 @@
     });
     h += '</tbody></table></div>';
 
-    // Decision Scenarios
-    h += '<h2>3. Manager Decision Scenarios</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0">';
-    ml.decisionScenarios.forEach(function (ds) {
-      h += '<div class="card" style="--h:212"><div class="mini">Decision Scenario</div><h3>' + esc(ds.question) + '</h3><p>' + esc(ds.guidance) + '</p></div>';
-    });
-    h += '</div>';
+    // Manager Decision Scenarios
+    if (ml.managerDecisions) {
+      h += '<h2>3. Manager Decision Scenarios</h2>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin:16px 0">';
+      ml.managerDecisions.forEach(function (ds) {
+        h += '<div class="card" style="--h:212">' +
+          '<div class="mini">Decision Scenario</div>' +
+          '<h3>' + esc(ds.scenario) + '</h3>' +
+          '<p style="font-size:13px;line-height:1.55;color:var(--ink)">' + esc(ds.guidance) + '</p>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
 
-    // Enterprise Data Ecosystem
-    h += '<h2>4. Enterprise AI Data Architecture Ecosystem</h2>' +
-      '<div class="tablewrap"><table class="matrix-table">' +
-      '<thead><tr><th>Data Architecture Layer</th><th>Azure Technologies</th><th>Key Operational Characteristics</th></tr></thead><tbody>';
-    ml.dataEcosystem.forEach(function (de) {
-      h += '<tr><td><b>' + esc(de.category) + '</b></td><td><code>' + esc(de.tech) + '</code></td><td>' + esc(de.characteristics) + '</td></tr>';
-    });
-    h += '</tbody></table></div>';
+    // Enterprise Data Storage Archetypes
+    if (ml.dataStorageArchetypes) {
+      h += '<h2>4. Enterprise AI Data Storage Archetypes</h2>' +
+        '<div class="tablewrap"><table class="matrix-table">' +
+        '<thead><tr><th>Archetype</th><th>Azure Service</th><th>Access Pattern</th><th>Target Workload</th></tr></thead><tbody>';
+      ml.dataStorageArchetypes.forEach(function (da) {
+        h += '<tr><td><b>' + esc(da.archetype) + '</b></td>' +
+          '<td><code>' + esc(da.service) + '</code></td>' +
+          '<td>' + esc(da.accessPattern) + '</td>' +
+          '<td>' + esc(da.useCase) + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
 
-    // Resilience Engineering
-    h += '<h2>5. Performance & Resilience Engineering Patterns</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0">';
-    ml.resilienceEngineering.forEach(function (re) {
-      h += '<div class="card" style="--h:150"><div class="mini">Resilience Pattern</div><h3>' + esc(re.pattern) + '</h3><p>' + esc(re.desc) + '</p></div>';
-    });
-    h += '</div>';
-
-    // Enterprise Integrations
-    h += '<h2>6. Line-of-Business Enterprise Integrations</h2>' +
-      '<div class="tablewrap"><table class="matrix-table">' +
-      '<thead><tr><th>Target Enterprise System</th><th>Integration Pattern</th><th>Typical AI / Agent Use Case</th></tr></thead><tbody>';
-    ml.enterpriseIntegrations.forEach(function (ei) {
-      h += '<tr><td><b>' + esc(ei.system) + '</b></td><td><code>' + esc(ei.pattern) + '</code></td><td>' + esc(ei.useCase) + '</td></tr>';
-    });
-    h += '</tbody></table></div>';
+    // Enterprise Line-of-Business Connectors
+    if (ml.enterpriseConnectors) {
+      h += '<h2>5. Enterprise Line-of-Business Connectors</h2>' +
+        '<div class="tablewrap"><table class="matrix-table">' +
+        '<thead><tr><th>Target Enterprise System</th><th>Integration Pattern</th><th>Typical AI / Agent Use Case</th></tr></thead><tbody>';
+      ml.enterpriseConnectors.forEach(function (ec) {
+        h += '<tr><td><b>' + esc(ec.system) + '</b></td>' +
+          '<td><code>' + esc(ec.pattern) + '</code></td>' +
+          '<td>' + esc(ec.useCase) + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
 
     return '<div class="wide">' + h + '</div>';
   }
@@ -1772,19 +1957,39 @@
       '<p class="lede">' + esc(em.lede) + '</p>' +
       '<div class="callout"><b>Engineering Leadership Command Center</b>Evaluate AI use cases, estimate team headcount and sprint timelines, review solution designs, and assess team competency across the AI engineering lifecycle.</div>';
 
-    // 14-Question Guided Assessment
+    // 1. 14-Question Guided Assessment
     h += '<h2>1. Guided AI Project Assessment Questionnaire</h2>' +
       '<p style="max-width:68ch">Evaluate incoming business proposals across 14 critical feasibility and governance criteria.</p>' +
       '<div class="wide"><div class="box" style="margin:16px 0">' +
         '<ol style="padding-left:20px;margin:12px 0">' +
           em.assessmentQuestions.map(function (q) {
-            return '<li style="margin:10px 0;font-size:14px"><b>' + esc(q.text) + '</b></li>';
+            return '<li style="margin:10px 0;font-size:14px">' +
+              '<span class="chip" style="--h:212;margin-right:8px">' + esc(q.category) + '</span>' +
+              '<b>' + esc(q.text) + '</b>' +
+            '</li>';
           }).join('') +
         '</ol>' +
       '</div></div>';
 
-    // Interactive Complexity & Effort Estimator
-    h += '<h2>2. Interactive AI Project Complexity & Staffing Estimator</h2>' +
+    // 2. 6-Pillar Solution Review Checklist
+    if (em.reviewChecklist) {
+      h += '<h2>2. Architecture Solution Review Checklist</h2>' +
+        '<p style="max-width:68ch">Six engineering pillars to audit during AI design reviews before committing budget or engineering sprints.</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin:16px 0">';
+      em.reviewChecklist.forEach(function (rc) {
+        h += '<div class="card" style="--h:150">' +
+          '<div class="mini">Review Pillar</div>' +
+          '<h3>' + esc(rc.category) + '</h3>' +
+          '<ul style="margin:8px 0;padding-left:18px;font-size:13px;line-height:1.5">' +
+            rc.items.map(function (it) { return '<li style="margin:6px 0">' + esc(it) + '</li>'; }).join('') +
+          '</ul>' +
+        '</div>';
+      });
+      h += '</div>';
+    }
+
+    // 3. Interactive Complexity & Effort Estimator
+    h += '<h2>3. Interactive AI Project Complexity & Staffing Estimator</h2>' +
       '<p style="max-width:68ch">Score your initiative across 8 engineering dimensions to generate complexity tiers, timeline estimates, and team composition.</p>' +
       '<div class="wide"><div class="calc">' +
         '<form id="compForm" class="calcform" onsubmit="return false">' +
@@ -1799,8 +2004,22 @@
         '<div id="compOut" class="calcout" aria-live="polite"></div>' +
       '</div></div>';
 
-    // Skills Matrix & Heatmap
-    h += '<h2>3. AI Engineering Team Skills & Competency Matrix</h2>' +
+    // 4. Delivery Lifecycle
+    if (em.deliveryLifecycle) {
+      h += '<h2>4. End-to-End AI Delivery Lifecycle</h2>' +
+        '<p style="max-width:68ch">The 6 chronological phases from discovery to scaled production operations.</p>' +
+        '<div class="tablewrap"><table class="matrix-table">' +
+        '<thead><tr><th>Phase</th><th>Estimated Duration</th><th>Key Engineering Deliverables</th></tr></thead><tbody>';
+      em.deliveryLifecycle.forEach(function (dl) {
+        h += '<tr><td><b>' + esc(dl.phase) + '</b></td>' +
+          '<td><span class="chip" style="--h:212">' + esc(dl.duration) + '</span></td>' +
+          '<td>' + esc(dl.deliverables) + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+
+    // 5. Skills Matrix & Heatmap
+    h += '<h2>5. AI Engineering Team Skills & Competency Matrix</h2>' +
       '<p style="max-width:68ch">Core competencies required across 8 engineering roles from Level 1 (Awareness) to Level 5 (Subject Matter Expert).</p>' +
       '<div class="tablewrap"><table class="heat-table">' +
       '<thead><tr><th>Role</th><th>Primary Capabilities & Skills</th><th>Target Competency Level</th></tr></thead><tbody>';
@@ -1812,8 +2031,8 @@
     });
     h += '</tbody></table></div>';
 
-    // AI Use-Case Portfolio Prioritization
-    h += '<h2>4. AI Portfolio Prioritization (Value vs Feasibility)</h2>' +
+    // 6. AI Use-Case Portfolio Prioritization
+    h += '<h2>6. AI Portfolio Prioritization (Value vs Feasibility)</h2>' +
       '<div class="tablewrap"><table class="matrix-table">' +
       '<thead><tr><th>Candidate Initiative</th><th>Business Value</th><th>Feasibility</th><th>Category</th><th>Recommended Action</th></tr></thead><tbody>';
 
@@ -1868,21 +2087,39 @@
       '<p class="lede">' + esc(sm.lede) + '</p>' +
       '<div class="callout"><b>Defensible Service Selection</b>Make rigorous, defensible technology decisions during architecture design reviews using our 14-field service breakdown and core Azure platform trade-off guides.</div>';
 
-    // 14-Field Comparison Matrix
-    h += '<h2>1. Comprehensive 14-Field Azure AI Comparison Matrix</h2>' +
-      '<div class="tablewrap"><table class="matrix-table" style="font-size:12px">' +
-      '<thead><tr><th>Service</th><th>What & Why It Exists</th><th>When to Use It</th><th>When NOT to Use It</th><th>Key Alternatives</th><th>Security & Quotas</th><th>Pricing & SLA</th></tr></thead><tbody>';
+    // 14-Field Comparison Matrix Cards
+    h += '<h2>1. Comprehensive 14-Field Azure AI Services Matrix</h2>' +
+      '<p style="max-width:68ch">Every service evaluated across all 14 mandatory architectural criteria to guide defensible selection in design reviews.</p>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px;margin:20px 0">';
 
     sm.comparisonMatrix.forEach(function (sv) {
-      h += '<tr><td><a href="#/s/' + sv.id + '"><b>' + esc(sv.name) + '</b></a><br><small class="chip" style="--h:212">' + esc(sv.category) + '</small></td>' +
-        '<td><b>What:</b> ' + esc(sv.what) + '<br><br><b>Why:</b> ' + esc(sv.why) + '</td>' +
-        '<td style="color:var(--ok)">' + esc(sv.whenUse) + '</td>' +
-        '<td style="color:var(--warn)">' + esc(sv.whenNot) + '</td>' +
-        '<td>' + esc(sv.alternatives) + '</td>' +
-        '<td><b>Security:</b> ' + esc(sv.security) + '<br><br><b>Quotas:</b> ' + esc(sv.quotas) + '</td>' +
-        '<td><b>Pricing:</b> ' + esc(sv.pricing) + '<br><br><b>SLA:</b> ' + esc(sv.sla) + '</td></tr>';
+      h += '<div class="pattern-card">' +
+        '<div class="pattern-top">' +
+          '<a href="#/s/' + sv.id + '" style="font-size:18px;font-weight:700;color:var(--ink);text-decoration:none"><b>' + esc(sv.name) + '</b></a>' +
+          '<span class="chip" style="--h:212">' + esc(sv.category) + '</span>' +
+        '</div>' +
+        '<p style="font-size:13px;color:var(--muted);margin:0"><b>What:</b> ' + esc(sv.what) + '</p>' +
+        '<p style="font-size:13px;color:var(--ink);margin:0"><b>Why it exists:</b> ' + esc(sv.why) + '</p>' +
+        '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px;font-size:12px;margin:4px 0">' +
+          '<div style="color:var(--ok);font-weight:700;margin-bottom:2px">When to use it:</div>' + esc(sv.whenUse) +
+        '</div>' +
+        '<div style="background:color-mix(in srgb,var(--warn) 8%,transparent);border:1px solid var(--warn);border-radius:8px;padding:10px;font-size:12px;margin:4px 0">' +
+          '<div style="color:var(--warn);font-weight:700;margin-bottom:2px">When NOT to use it:</div>' + esc(sv.whenNot) +
+        '</div>' +
+        '<div style="font-size:12px;line-height:1.55;display:flex;flex-direction:column;gap:4px;margin-top:4px">' +
+          '<div><b>Alternatives:</b> ' + esc(sv.alternatives) + '</div>' +
+          '<div><b>Integration Points:</b> ' + esc(sv.integrationPoints) + '</div>' +
+          '<div><b>Architecture Patterns:</b> ' + esc(sv.patterns) + '</div>' +
+          '<div><b>Security:</b> ' + esc(sv.security) + '</div>' +
+          '<div><b>Limitations:</b> ' + esc(sv.limitations) + '</div>' +
+          '<div><b>Pricing:</b> ' + esc(sv.pricing) + '</div>' +
+          '<div><b>SLA:</b> ' + esc(sv.sla) + ' | <b>Regions:</b> ' + esc(sv.regions) + '</div>' +
+          '<div><b>Quotas:</b> ' + esc(sv.quotas) + '</div>' +
+          '<div><b>Production Use Cases:</b> ' + esc(sv.useCases) + '</div>' +
+        '</div>' +
+      '</div>';
     });
-    h += '</tbody></table></div>';
+    h += '</div>';
 
     // Platform Decisions
     h += '<h2>2. Critical Azure Platform Architectural Decisions</h2>' +
@@ -1893,6 +2130,171 @@
         '<div class="mini">' + esc(pd.lens) + '</div>' +
         '<h3>' + esc(pd.decision) + '</h3>' +
         '<p style="font-size:14px;color:var(--ink);line-height:1.55;margin-top:6px">' + esc(pd.summary) + '</p>' +
+      '</div>';
+    });
+    h += '</div>';
+
+    return '<div class="wide">' + h + '</div>';
+  }
+
+  /* ---------- Azure Cloud Foundation ---------- */
+  function pageFoundation() {
+    var fd = A.foundation;
+    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Cloud Foundation</div>' +
+      '<h1>' + esc(fd.title) + '</h1>' +
+      '<p class="lede">' + esc(fd.lede) + '</p>' +
+      '<div class="callout"><b>Enterprise Infrastructure Grounding</b>' +
+      'Enterprise AI workloads inherit the network topologies, identity models, storage layers, and compute constraints of the underlying Azure cloud platform. Engineering managers and principal architects must master these four pillars to design resilient, secure, and cost-effective AI systems.</div>';
+
+    // 1. The 4 Foundation Pillars
+    h += '<h2>1. The Four Azure Infrastructure Pillars</h2>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin:20px 0">';
+    fd.pillars.forEach(function (pil) {
+      h += '<div class="card" style="--h:' + (pil.color || 212) + '">' +
+        '<div class="mini">Pillar · ' + pil.topics.length + ' Core Topics</div>' +
+        '<h3>' + esc(pil.name) + '</h3>' +
+        '<p style="font-size:14px;color:var(--muted);margin-bottom:12px">' + esc(pil.summary) + '</p>' +
+        '<div style="display:flex;flex-direction:column;gap:10px">';
+      pil.topics.forEach(function (tp) {
+        h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px">' +
+          '<div style="font-weight:700;font-size:13px;display:flex;justify-content:space-between"><span>' + esc(tp.concept) + '</span><code style="font-size:11px">' + esc(tp.azureService) + '</code></div>' +
+          '<p style="font-size:12px;margin:4px 0 0;color:var(--ink);line-height:1.5">' + esc(tp.guidance) + '</p>' +
+        '</div>';
+      });
+      h += '</div></div>';
+    });
+    h += '</div>';
+
+    // 2. The 7 Platform Decision Cards
+    h += '<h2>2. The 7 Critical Azure Platform Decisions</h2>' +
+      '<p style="max-width:68ch">Fundamental infrastructure trade-offs that dictate operational complexity, scalability, and security posture across every AI workload.</p>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin:20px 0">';
+    fd.decisions.forEach(function (dec) {
+      h += '<div class="pattern-card">' +
+        '<div class="pattern-top">' +
+          '<span class="chip" style="--h:212">' + esc(dec.category) + '</span>' +
+        '</div>' +
+        '<h3>' + esc(dec.title) + '</h3>' +
+        '<p style="font-size:13px;font-style:italic;color:var(--muted);margin:0">' + esc(dec.question) + '</p>' +
+        '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px;margin:8px 0;font-size:13px">' +
+          '<div style="font-weight:700;color:var(--ok);margin-bottom:4px">Engineering Recommendation:</div>' +
+          esc(dec.recommendation) +
+        '</div>' +
+        '<div class="tablewrap" style="margin:8px 0"><table class="matrix-table" style="font-size:11px;margin:0">' +
+          '<thead><tr><th>Dimension</th><th>Option A</th><th>Option B</th></tr></thead><tbody>' +
+          dec.comparison.map(function (rw) {
+            return '<tr><td><b>' + esc(rw[0]) + '</b></td><td>' + esc(rw[1]) + '</td><td>' + esc(rw[2]) + '</td></tr>';
+          }).join('') +
+        '</tbody></table></div>' +
+        '<div style="background:color-mix(in srgb,var(--warn) 10%,transparent);border-left:3px solid var(--warn);padding:8px 10px;font-size:12px;border-radius:4px">' +
+          '<b>Red Flags / Anti-Patterns:</b> ' + esc(dec.redFlags) +
+        '</div>' +
+      '</div>';
+    });
+    h += '</div>';
+
+    // 3. Solution Review Checklist (Manager Level Outcome)
+    h += '<h2>3. Infrastructure Solution Review Pillars</h2>' +
+      '<p style="max-width:68ch">When reviewing AI solution diagrams, engineering leaders should evaluate these four risk pillars to identify architectural defects early.</p>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0">';
+    fd.solutionReviewPillars.forEach(function (srp) {
+      h += '<div class="card" style="--h:150">' +
+        '<div class="mini">Review Pillar</div>' +
+        '<h3>' + esc(srp.pillar) + '</h3>' +
+        '<ul style="margin:8px 0;padding-left:18px;font-size:13px">' +
+          srp.questions.map(function (q) { return '<li style="margin:6px 0">' + esc(q) + '</li>'; }).join('') +
+        '</ul>' +
+      '</div>';
+    });
+    h += '</div>';
+
+    return '<div class="wide">' + h + '</div>';
+  }
+
+  /* ---------- Microsoft Foundry Deep Dive ---------- */
+  function pageFoundry() {
+    var fd = A.foundry;
+    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Microsoft Foundry</div>' +
+      '<h1>' + esc(fd.title) + '</h1>' +
+      '<p class="lede">' + esc(fd.lede) + '</p>' +
+      '<div class="callout"><b>Unified AI Platform Engineering</b>' +
+      'Microsoft Foundry serves as Azure’s consolidated platform for foundation models, autonomous agents, prompt evaluation, security guardrails, and enterprise observability. This guide details the platform architecture, quota optimization, agent runtime, and evaluation pipelines.</div>';
+
+    // 5 Foundry Sections
+    h += '<h2>Foundry Platform Architecture & Capabilities</h2>';
+    fd.sections.forEach(function (sec, idx) {
+      h += '<div class="box" style="margin:20px 0;border-left:4px solid var(--accent)">' +
+        '<h3>' + (idx + 1) + '. ' + esc(sec.name) + '</h3>' +
+        '<p style="color:var(--muted);font-size:14px;margin:4px 0 14px">' + esc(sec.desc) + '</p>' +
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">';
+      (sec.subsections || []).forEach(function (sub) {
+        h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:10px;padding:12px 14px">' +
+          '<h4 style="margin:0 0 6px;font-size:14px;font-weight:700">' + esc(sub.title) + '</h4>' +
+          '<p style="margin:0;font-size:13px;line-height:1.55;color:var(--ink)">' + esc(sub.content) + '</p>' +
+        '</div>';
+      });
+      h += '</div></div>';
+    });
+
+    // Code Examples
+    if (fd.codeExamples && fd.codeExamples.length) {
+      h += '<h2>Production Python SDK Implementation Blueprints</h2>' +
+        '<p style="max-width:68ch">Official azure-ai-projects and azure-ai-evaluation SDK examples for code-first deployment and evaluation.</p>';
+      fd.codeExamples.forEach(function (ce, idx) {
+        h += '<div style="margin:16px 0">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper);border:1px solid var(--line2);border-bottom:none;border-radius:10px 10px 0 0;padding:10px 14px">' +
+            '<span style="font-weight:700;font-size:13px">' + esc(ce.title) + '</span>' +
+            '<button class="btn-sm" type="button" data-copy-code="' + idx + '">Copy Python</button>' +
+          '</div>' +
+          '<pre class="adr" id="fcode-' + idx + '" style="border-radius:0 0 10px 10px;margin-top:0">' + esc(ce.code) + '</pre>' +
+        '</div>';
+      });
+    }
+
+    afterRender = function () {
+      $$('button[data-copy-code]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = this.getAttribute('data-copy-code');
+          var target = $('#fcode-' + idx);
+          if (target) copyText(target.textContent, this);
+        });
+      });
+    };
+
+    return '<div class="wide">' + h + '</div>';
+  }
+
+  /* ---------- Advanced AI Engineering ---------- */
+  function pageAdvancedAI() {
+    var adv = A.advancedAI;
+    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Advanced AI Engineering</div>' +
+      '<h1>' + esc(adv.title) + '</h1>' +
+      '<p class="lede">' + esc(adv.lede) + '</p>' +
+      '<div class="callout"><b>Frontier AI Architectures & Hardening</b>' +
+      'Beyond basic RAG and single-prompt agents, production AI systems require advanced engineering: graph grounding, multimodal fusion, parameter-efficient fine-tuning (LoRA), edge SLM inference, dynamic model routing, hierarchical memory, synthetic data pipelines, and automated adversarial red teaming.</div>';
+
+    h += '<h2>Advanced AI Engineering Topics (' + adv.topics.length + ')</h2>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px;margin:20px 0">';
+    adv.topics.forEach(function (tp) {
+      h += '<div class="pattern-card">' +
+        '<div class="pattern-top">' +
+          '<span class="chip" style="--h:' + (tp.color || 212) + '">' + esc(tp.tag) + '</span>' +
+        '</div>' +
+        '<h3>' + esc(tp.name) + '</h3>' +
+        '<p style="font-size:14px;color:var(--muted);margin:2px 0 8px">' + esc(tp.summary) + '</p>' +
+        '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px;font-size:13px;margin:6px 0">' +
+          '<b>Problem Solved:</b> ' + esc(tp.problemSolved) +
+        '</div>' +
+        '<div style="font-size:13px;margin:6px 0"><b>Azure Implementation:</b> <code>' + esc(tp.azureImplementation) + '</code></div>' +
+        '<div style="margin:10px 0">' +
+          '<div style="font-weight:700;font-size:12px;font-family:var(--mono);text-transform:uppercase;color:var(--muted);margin-bottom:4px">Architectural Execution Flow:</div>' +
+          '<ol style="margin:0;padding-left:18px;font-size:13px">' +
+            tp.architecture.map(function (step) { return '<li style="margin:4px 0">' + esc(step) + '</li>'; }).join('') +
+          '</ol>' +
+        '</div>' +
+        '<div style="background:color-mix(in srgb,var(--accent) 8%,transparent);border-left:3px solid var(--accent);border-radius:4px;padding:8px 10px;font-size:12px;margin-top:auto">' +
+          '<b>Key Engineering Metrics:</b> ' + esc(tp.keyMetrics) +
+        '</div>' +
       '</div>';
     });
     h += '</div>';
@@ -1915,14 +2317,17 @@
       nl('#/toolkit', 'Leadership Toolkit & RACI', kind === 'toolkit');
 
     h += '<h3>Engineering Centers</h3>' +
+      nl('#/foundation', 'Cloud Foundation & Networking', kind === 'foundation') +
+      nl('#/services-matrix', 'Services Decision Matrix', kind === 'services-matrix') +
+      nl('#/foundry', 'Microsoft Foundry Deep Dive', kind === 'foundry') +
       nl('#/rag-lab', 'RAG Engineering Lab', kind === 'rag-lab') +
       nl('#/agents', 'Agent Patterns (18)', kind === 'agents') +
+      nl('#/traditional-ml', 'Traditional ML & MLOps', kind === 'traditional-ml') +
       nl('#/security-center', 'Security & Threat Catalog', kind === 'security-center') +
       nl('#/evaluation', 'Evaluation & Quality Gates', kind === 'evaluation') +
       nl('#/ops', 'Production Operations', kind === 'ops') +
       nl('#/troubleshooting', 'Troubleshooting & KQL', kind === 'troubleshooting') +
-      nl('#/traditional-ml', 'Traditional ML & MLOps', kind === 'traditional-ml') +
-      nl('#/services-matrix', 'Services Decision Matrix', kind === 'services-matrix') +
+      nl('#/advanced-ai', 'Advanced AI Topics', kind === 'advanced-ai') +
       nl('#/gov', 'Landing Zones & Governance', kind === 'gov') +
       nl('#/labs', 'Labs & Roadmaps', kind === 'labs');
 
@@ -1977,6 +2382,9 @@
     else if (kind === 'traditional-ml') { html = pageTraditionalML(); title = 'Traditional ML, Data Architecture & Enterprise Integration — Azure AI Engineering OS'; }
     else if (kind === 'em-workspace') { html = pageEMWorkspace(); title = 'AI Engineering Manager Workspace — Azure AI Engineering OS'; }
     else if (kind === 'services-matrix') { html = pageServiceMatrix(); title = 'Azure Services Decision Matrix — Azure AI Engineering OS'; }
+    else if (kind === 'foundation') { html = pageFoundation(); title = 'Azure Cloud Foundation — Azure AI Engineering OS'; }
+    else if (kind === 'foundry') { html = pageFoundry(); title = 'Microsoft Foundry Deep Dive — Azure AI Engineering OS'; }
+    else if (kind === 'advanced-ai') { html = pageAdvancedAI(); title = 'Advanced AI Engineering — Azure AI Engineering OS'; }
     else if (kind === 'd') {
       var TOOLS = { shaper: ['Solution shaper', pageShaper], checklists: ['Readiness checklists', pageChecklists], calculator: ['Cost per task', pageCalculator] };
       if (!id || id === 'em' || id === 'pe' || id === 'all') { html = pageDecisionHub(id); title = (id === 'em' ? 'Decisions for engineering managers' : id === 'pe' ? 'Decisions for principal engineers' : 'Decision guides') + ' — Azure AI Engineering OS'; }
@@ -2067,7 +2475,17 @@
     { type: 'Machine Learning', href: '#/traditional-ml', name: 'Traditional ML & Enterprise Integrations', id: 'traditional-ml', tag: '10-phase ML lifecycle, Azure ML comparison, resilience patterns, and ERP/CRM connectors', cat: 'Machine Learning', hay: 'traditional ml mlops lifecycle training azure ml fabric databricks sap salesforce dynamics resilience circuit breaker fallback' },
     { type: 'Leadership', href: '#/em-workspace', name: 'Engineering Manager Workspace', id: 'em-workspace', tag: '14-point project intake, solution review, complexity estimator, and 8-role skills matrix', cat: 'Leadership', hay: 'em workspace manager project review staffing estimator skills matrix competency portfolio prioritization 3x3 delivery' },
     { type: 'Architecture', href: '#/services-matrix', name: 'Azure Service Decision Matrix', id: 'services-matrix', tag: '14-field comparison table across Azure AI services and 7 platform trade-off guides', cat: 'Architecture', hay: 'service matrix comparison aca aks functions blob adls managed identity private endpoints consumption ptu trade-offs' }
-  ]).concat(A.agentPatterns && A.agentPatterns.patterns ? A.agentPatterns.patterns.map(function (p) {
+  ]).concat(A.foundation && A.foundation.pillars ? A.foundation.pillars.map(function (p) {
+    return { type: 'Foundation', href: '#/foundation', name: p.name, id: p.id, tag: p.summary, cat: 'Cloud Foundation', hay: (p.name + ' ' + p.summary + ' ' + (p.topics || []).map(function (t) { return t.concept + ' ' + t.azureService + ' ' + t.guidance; }).join(' ')).toLowerCase() };
+  }) : []).concat(A.foundation && A.foundation.decisions ? A.foundation.decisions.map(function (d) {
+    return { type: 'Platform Decision', href: '#/foundation', name: d.title, id: d.title, tag: d.recommendation, cat: 'Cloud Foundation', hay: (d.title + ' ' + d.category + ' ' + d.question + ' ' + d.recommendation + ' ' + d.redFlags).toLowerCase() };
+  }) : []).concat(A.foundry && A.foundry.sections ? A.foundry.sections.map(function (s) {
+    return { type: 'Foundry', href: '#/foundry', name: s.name, id: s.id, tag: s.desc, cat: 'Microsoft Foundry', hay: (s.name + ' ' + s.desc + ' ' + (s.subsections || []).map(function (sub) { return sub.title + ' ' + sub.content; }).join(' ')).toLowerCase() };
+  }) : []).concat(A.advancedAI && A.advancedAI.topics ? A.advancedAI.topics.map(function (t) {
+    return { type: 'Advanced AI', href: '#/advanced-ai', name: t.name, id: t.id, tag: t.summary, cat: 'Advanced AI', hay: (t.name + ' ' + t.tag + ' ' + t.summary + ' ' + t.problemSolved + ' ' + t.azureImplementation).toLowerCase() };
+  }) : []).concat(A.ragLab && A.ragLab.patterns ? A.ragLab.patterns.map(function (p) {
+    return { type: 'RAG Pattern', href: '#/rag-lab', name: p.name, id: p.id, tag: p.useCase, cat: 'RAG Pattern', hay: (p.name + ' ' + p.difficulty + ' ' + p.useCase + ' ' + p.retrievalFlow + ' ' + p.tradeoffs).toLowerCase() };
+  }) : []).concat(A.agentPatterns && A.agentPatterns.patterns ? A.agentPatterns.patterns.map(function (p) {
     return { type: 'Agent Pattern', href: '#/agents', name: p.name, id: p.id, tag: p.bestFor, cat: 'Agent Pattern', hay: (p.name + ' ' + p.category + ' ' + p.bestFor + ' ' + p.description).toLowerCase() };
   }) : []).concat(A.securityCenter && A.securityCenter.threatCatalog ? A.securityCenter.threatCatalog.map(function (t) {
     return { type: 'Security Threat', href: '#/security-center', name: t.id + ': ' + t.name, id: t.id, tag: t.impact, cat: 'Security Threat', hay: (t.id + ' ' + t.name + ' ' + t.summary + ' ' + t.impact + ' ' + (t.mitigations || []).join(' ')).toLowerCase() };

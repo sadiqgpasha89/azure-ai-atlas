@@ -1,7 +1,10 @@
-/* Production AI Operations Centre: Operational Dashboard, SRE Runbooks & Postmortems */
+/* Domain 11, 12 & 13: Production AI Operations, Observability & Platform Engineering
+   Operational dashboards, 4 specialized dashboard blueprints, SRE runbooks,
+   AI DevOps CI/CD pipeline, 13 versioned artifacts, and postmortem templates. */
+window.ATLAS = window.ATLAS || {};
 window.ATLAS.operations = {
-  title: 'Production AI Operations Centre',
-  lede: 'Operating generative AI and agentic systems requires moving from traditional server health monitoring to stochastic system reliability: tracking token economics, prompt drift, retrieval quality, tool error rates, and 429 throttling spikes.',
+  title: 'Production AI Operations & Platform Engineering Centre',
+  lede: 'Operating generative AI and agentic systems requires moving from traditional server health monitoring to stochastic system reliability: tracking token economics, prompt drift, retrieval quality, tool error rates, 429 throttling spikes, and automated CI/CD quality gates.',
 
   dashboardTemplate: {
     title: 'Mandatory Production AI Operations Dashboard Template',
@@ -96,6 +99,118 @@ window.ATLAS.operations = {
         status: 'ok',
         target: 'Target: >99.95% multi-region composite dependency availability',
         kusto: 'dependencies | where target in ("Azure OpenAI", "Azure AI Search", "CosmosDB") | summarize Availability = (countif(success == true) * 100.0) / count() by bin(timestamp, 1h)'
+      }
+    ]
+  },
+
+  dashboardBlueprints: [
+    {
+      id: 'db-app',
+      name: '1. AI Application Health Dashboard',
+      audience: 'Product Engineers, SREs, App Owners',
+      metrics: [
+        'Requests per minute (RPM) and concurrency',
+        'Overall request success rate & HTTP error distribution (4xx, 5xx)',
+        'P50, P95, P99 end-to-end response latency',
+        'Model inference latency vs upstream gateway latency',
+        'Search retrieval latency and candidate chunk count',
+        'Token usage per minute (Prompt vs Completion vs Cached)'
+      ],
+      kql: 'requests\n| summarize Total=count(), Succeeded=countif(success==true), P95Latency=percentile(duration, 95) by bin(timestamp, 5m)\n| extend SuccessRate=(Succeeded*100.0)/Total'
+    },
+    {
+      id: 'db-agent',
+      name: '2. Agent Workflow & Execution Dashboard',
+      audience: 'AI Engineers, Agent Architects',
+      metrics: [
+        'Total tasks initiated vs successfully completed',
+        'Task completion percentage (%)',
+        'Average reasoning steps / loop turns per task',
+        'Tool call distribution and tool invocation count',
+        'Tool execution failure rate & schema validation errors',
+        'Agent retries, fallback activations, and human escalations',
+        'Average token cost per completed agent task'
+      ],
+      kql: 'customEvents\n| where name == "AgentTaskCompleted"\n| summarize AvgTurns=avg(todouble(customDimensions["step_count"])), CompletionRate=avg(todouble(customDimensions["success"]))*100.0, CostPerTask=avg(todouble(customDimensions["cost_usd"])) by bin(timestamp, 1h)'
+    },
+    {
+      id: 'db-rag',
+      name: '3. RAG Search & Grounding Dashboard',
+      audience: 'Data Engineers, Search Specialists, Domain SMEs',
+      metrics: [
+        'Search query latency P50, P95 (BM25 vs Vector vs Semantic Ranker)',
+        'Search success rate and empty result percentage (ResultCount == 0)',
+        'Top-K score distribution and cosine similarity threshold hits',
+        'Retrieval Precision@5 and Recall@5 on production sampled traffic',
+        'Groundedness and Faithfulness score trend over time',
+        'Citation verification accuracy and missing citation rate'
+      ],
+      kql: 'AzureDiagnostics\n| where Category == "SearchQueries"\n| summarize TotalQueries=count(), ZeroHits=countif(ResultCount_d==0), P95Duration=percentile(Duration_s, 95) by bin(TimeGenerated, 15m)'
+    },
+    {
+      id: 'db-finops',
+      name: '4. AI FinOps & Capacity Dashboard',
+      audience: 'Engineering Managers, Finance Directors, FinOps Leads',
+      metrics: [
+        'Spend per foundation model (GPT-4o vs mini vs o3-mini vs Phi-4)',
+        'Spend per deployment and application environment (Dev / Stage / Prod)',
+        'Prompt caching cost savings percentage',
+        'Cost per request, cost per user, and cost per successful business task',
+        'PTU reservation utilization percentage vs burst overage fees',
+        'Forecasted monthly cloud expenditure vs budget threshold'
+      ],
+      kql: 'customMetrics\n| where name in ("ModelCostUSD", "SearchCostUSD", "ComputeCostUSD")\n| summarize TotalSpend=sum(value) by name, tostring(customDimensions["Environment"]), bin(timestamp, 1d)'
+    }
+  ],
+
+  devopsLifecycle: {
+    title: 'GenAIOps CI/CD Pipeline & Promotion Lifecycle',
+    flow: [
+      '1. Code / Prompt / Agent Change committed to feature branch in Git',
+      '2. Pull Request triggers automated GitHub Actions / Azure DevOps pipeline',
+      '3. Static Analysis & Linting (Python Black, flake8, ESLint, Bicep linting)',
+      '4. Deterministic Unit Tests (JSON schema parsers, regex filters, tool functions)',
+      '5. Security & Secret Scan (Gitleaks, Checkov, Trivy container scanning)',
+      '6. Automated AI Evaluation (Runs 200+ case golden benchmark dataset via Azure AI Evaluation SDK)',
+      '7. Quality Gate Enforcement (Blocks PR if Groundedness <95% or Relevance <90%)',
+      '8. Deploy to Development Environment (Automated Bicep / Terraform IaC execution)',
+      '9. Component Integration Tests in private VNet',
+      '10. Deploy to Staging Environment with sanitized production data mirroring',
+      '11. Security Red-Team Scan (PyRIT automated adversarial jailbreak suite)',
+      '12. Production Release Approval (EM sign-off on cost, quality, and security)',
+      '13. Canary Deployment (Route 10% traffic via APIM; monitor for 429 and latency regressions)',
+      '14. 100% General Availability with Continuous Telemetry and Automated Rollback'
+    ],
+    artifactsToVersion: [
+      { artifact: 'Application Code', tool: 'Git (GitHub / Azure Repos)', format: 'Python, TypeScript, C#' },
+      { artifact: 'Prompts & System Messages', tool: 'Prompt Registry / Git', format: 'Jinja2, Mustache, Markdown' },
+      { artifact: 'Agent Instructions & Tools', tool: 'Foundry Agent Registry', format: 'JSON Schema, YAML specs' },
+      { artifact: 'Workflow Graphs & Logic', tool: 'Git / State Machines', format: 'LangGraph, Agent Framework DAGs' },
+      { artifact: 'Model Deployment Configs', tool: 'Bicep / Terraform IaC', format: 'Model name, version, TPM/RPM, PTU' },
+      { artifact: 'Embedding Model Versions', tool: 'Search Index Schema', format: 'text-embedding-3-large v1 (1536 dims)' },
+      { artifact: 'Chunking Configurations', tool: 'Ingestion Pipeline Config', format: 'Strategy, token size, overlap %' },
+      { artifact: 'Retrieval Configurations', tool: 'Search Index Definition', format: 'HNSW params, BM25 weights, RRF k' },
+      { artifact: 'Evaluation Datasets', tool: 'Azure ML Data Assets', format: 'Golden Q&A JSONL, ground-truth citations' },
+      { artifact: 'Evaluation Run Results', tool: 'MLflow / Foundry Run History', format: 'Historical metrics, score trends' },
+      { artifact: 'Search Index Schemas', tool: 'Bicep / Azure AI Search API', format: 'Fields, vector profiles, scoring profiles' },
+      { artifact: 'Infrastructure as Code', tool: 'Bicep / Azure Verified Modules', format: 'VNets, Private Endpoints, IAM roles' },
+      { artifact: 'Content Safety Blocklists', tool: 'Content Safety Studio', format: 'Custom regex, restricted words lists' }
+    ],
+    environmentStrategy: [
+      {
+        env: 'Development',
+        purpose: 'Rapid experimentation, prompt prototyping, individual testing.',
+        configuration: 'Single-region, Pay-as-you-go models, synthetic mock datasets, relaxed rate limits, shared search index.'
+      },
+      {
+        env: 'Staging / Pre-Prod',
+        purpose: 'Integration testing, automated golden evaluation benchmark runs, load testing, security scans.',
+        configuration: 'Exact mirror of production private VNet, isolated staging search index, full Private Link isolation, automated quality gate execution.'
+      },
+      {
+        env: 'Production',
+        purpose: 'Live customer-facing workloads, mission-critical business transactions.',
+        configuration: 'Multi-region APIM pool, PTU reservations or high-quota pools, automated Canary deployments, 24/7 SRE monitoring and alerting.'
       }
     ]
   },

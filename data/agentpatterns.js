@@ -1,11 +1,48 @@
-/* Agentic AI Architecture Patterns, Frameworks & Orchestration
-   Comprehensive reference covering 18 agent architecture patterns,
-   framework comparisons (Agent Framework, Foundry Agent Service, Semantic Kernel, LangGraph),
-   memory lifecycles, and tool authorization. */
+/* Domain 5: Agentic AI & Multi-Agent Engineering
+   Agent fundamentals, 18 architectural patterns, framework decision matrix,
+   and workflow orchestration primitives on Microsoft Azure. */
 window.ATLAS = window.ATLAS || {};
 window.ATLAS.agentPatterns = {
-  title: 'Agentic AI Architecture Patterns',
+  title: 'Agentic AI Architecture Patterns & Orchestration',
   lede: 'Production design patterns, framework trade-offs, and state orchestration for autonomous single- and multi-agent systems on Microsoft Azure.',
+
+  fundamentals: {
+    title: 'Agentic AI Core Fundamentals & Distinctions',
+    concepts: [
+      {
+        concept: 'Agent vs Chatbot vs Workflow vs Raw LLM',
+        desc: '• Raw LLM: Pure stateless next-token predictor with no memory, tools, or agency.\n• Chatbot: Stateful conversational interface with prompt history, but no dynamic tool execution.\n• Workflow: Deterministic DAG with fixed branching logic and pre-programmed API steps.\n• Autonomous Agent: Goal-directed system that dynamically reasons, plans multi-step actions, calls tools, observes environment feedback, reflects, and replans to accomplish an objective.'
+      },
+      {
+        concept: 'Autonomy, Goals & Planning',
+        desc: 'Agents operate with bounded autonomy defined by system instructions. Planning strategies include ReAct (Reason + Act interleaving), Plan-and-Solve (generating an explicit step-by-step agenda upfront), and Tree of Thoughts (exploring multiple reasoning trajectories before selecting the optimal branch).'
+      },
+      {
+        concept: 'State, Context & Memory Tiers',
+        desc: '• Working Memory: In-memory runtime state tracking active tool arguments and intermediate observations.\n• Short-Term Memory: Sliding window buffer of recent dialogue turns with automated summarization.\n• Long-Term Memory: Vectorized semantic recall of past sessions and user preferences persisted in Azure Cosmos DB or Azure AI Search.'
+      },
+      {
+        concept: 'Tools, Tool Calling & Observation',
+        desc: 'Tools expose enterprise capabilities as JSON Schema contracts. The LLM emits structured tool invocation parameters; the runtime executes the tool in a secure sandbox and feeds the observation string back into the prompt for subsequent reasoning.'
+      },
+      {
+        concept: 'Reflection, Replanning & Self-Correction',
+        desc: 'Upon encountering a tool execution error (e.g. database schema mismatch or API 404), an agent reflects on the error observation, adjusts its parameters, reformulates its query, and replans the next action rather than failing immediately.'
+      },
+      {
+        concept: 'Delegation & Swarm Coordination',
+        desc: 'In multi-agent systems, tasks exceed individual model context limits. A supervisor agent decomposes high-level goals and delegates sub-tasks to specialized domain worker agents (e.g. SQL researcher, code executor, compliance auditor).'
+      },
+      {
+        concept: 'Human Approval (Human-in-the-Loop)',
+        desc: 'Enforces authorization gates before high-stakes irreversible actions (e.g. writing to production databases, issuing customer refunds, sending emails). The agent pauses execution, emits a human approval request, and resumes only after explicit sign-off.'
+      },
+      {
+        concept: 'Termination Conditions & Loop Safeguards',
+        desc: 'To prevent infinite loops and runaway token costs, agents enforce deterministic termination criteria: goal attainment, explicit maximum step count (e.g. max 10 iterations), budget limit ($1.00 per task), or timeout threshold.'
+      }
+    ]
+  },
 
   patterns: [
     {
@@ -34,166 +71,166 @@ window.ATLAS.agentPatterns = {
       id: 'supervisor-worker',
       num: '03',
       name: 'Supervisor & Worker Agents',
-      flowType: 'Centralized Orchestration',
-      summary: 'A central supervisor agent evaluates incoming goals, breaks them into sub-tasks, delegates to specialized domain workers, and compiles the final result.',
-      execution: 'Goal -> Supervisor Agent -> Dispatches Sub-task 1 to Worker A, Sub-task 2 to Worker B -> Workers execute tools -> Supervisor synthesizes outputs.',
-      azureImplementation: 'Microsoft Agent Framework `Workflow` or Foundry Agent Service multi-agent group with Cosmos DB session state.',
-      tradeoffs: 'High specialization and modularity; supervisor represents a single point of failure and bottleneck.',
-      bestFit: 'Enterprise research reports, multi-system IT support triage, financial portfolio analysis across asset classes.'
+      flowType: 'Hierarchical Delegation',
+      summary: 'A central supervisor agent decomposes complex goals into sub-tasks and delegates them to specialized domain worker agents.',
+      execution: 'Goal -> Supervisor creates plan -> Dispatches Task A to Worker 1 & Task B to Worker 2 -> Synthesizes aggregated findings -> Output.',
+      azureImplementation: 'Microsoft Agent Framework orchestrator running on Azure Container Apps with Cosmos DB state store.',
+      tradeoffs: 'Excellent task separation and clean prompt scopes; supervisor can become a single point of failure or latency bottleneck.',
+      bestFit: 'Comprehensive market research, multi-domain incident troubleshooting, enterprise intelligence reporting.'
     },
     {
       id: 'planner-executor',
       num: '04',
       name: 'Planner and Executor',
-      flowType: 'Two-Stage Separation',
-      summary: 'Separates planning from execution: a high-reasoning model produces an immutable step-by-step plan, and an execution engine runs each step.',
-      execution: 'User Goal -> Planner LLM -> Structured JSON Plan -> Executor Worker iterates through steps -> Replanning triggered only on hard failure.',
-      azureImplementation: 'o1/o3-mini or GPT-4o planner model orchestrating Azure Functions microservices in Container Apps.',
-      tradeoffs: 'Drastically reduces hallucinations and unbounded loops; less flexible when initial environment assumptions are invalid.',
-      bestFit: 'Data migration pipelines, code refactoring agents, automated infrastructure provisioning.'
+      flowType: 'Two-Stage Decoupling',
+      summary: 'Separates planning from execution: a high-reasoning planner generates a verified step-by-step agenda executed by a fast execution model.',
+      execution: 'User Request -> Planner (o3-mini / o1) creates execution plan -> Executor (GPT-4o-mini) executes each step sequentially -> Verification.',
+      azureImplementation: 'Multi-model deployment in Microsoft Foundry: o1 for upfront planning + GPT-4o-mini for cost-effective execution.',
+      tradeoffs: 'Much lower execution cost and deterministic audit trail; less dynamic adaptability if initial plan was flawed.',
+      bestFit: 'Automated data migration pipelines, multi-step financial compliance audits, code refactoring.'
     },
     {
       id: 'sequential-pipeline',
       num: '05',
       name: 'Sequential Agent Pipeline (Chaining)',
-      flowType: 'Linear Assembly',
-      summary: 'Output of Agent N becomes the direct input of Agent N+1 in a deterministic assembly line.',
-      execution: 'Raw input -> Extraction Agent -> Normalization Agent -> Verification Agent -> Polishing Agent -> Final Output.',
-      azureImplementation: 'Azure Durable Functions orchestrator calling Microsoft Agent Framework workers with durable checkpoints.',
-      tradeoffs: 'Predictable execution cost and latency, easy unit testing; errors in early stages compound down the chain.',
-      bestFit: 'Multi-lingual content publishing, document summarization into standardized regulatory forms, automated resume parsing.'
+      flowType: 'Linear Stage Flow',
+      summary: 'A linear series of specialized agents where each agent transforms the previous agent\'s output.',
+      execution: 'Raw input -> Extraction Agent -> Normalization Agent -> Enrichment Agent -> Summarization Agent -> Clean Output.',
+      azureImplementation: 'Azure Logic Apps or Azure Durable Functions orchestrating sequential calls to Azure OpenAI model deployments.',
+      tradeoffs: '100% predictable execution flow and easy unit testing; rigid and cannot handle branching or self-correction.',
+      bestFit: 'Document processing workflows, structured contract ingestion, automated email triage.'
     },
     {
       id: 'parallel-agents',
       num: '06',
       name: 'Parallel Agents (Fan-Out / Fan-In)',
-      flowType: 'Concurrent Workers',
-      summary: 'Independent tasks dispatched concurrently across multiple worker agents, with outputs aggregated by a reducer agent.',
-      execution: 'Input Query -> Router fan-out -> Worker 1 (Risk), Worker 2 (Legal), Worker 3 (Finance) execute simultaneously -> Aggregator fan-in.',
-      azureImplementation: 'Azure Container Apps / Service Bus parallel workers aggregated by a Foundry orchestrator.',
-      tradeoffs: 'Lowest wall-clock latency for multi-faceted tasks; multiplies token consumption and requires parallel model quotas.',
-      bestFit: 'Vendor risk assessment, contract multi-clause analysis, parallel web search across diverse news sources.'
+      flowType: 'Concurrent Fan-Out',
+      summary: 'Spawns multiple agents concurrently to perform independent research or analysis across different data sources, then aggregates.',
+      execution: 'Query -> Fan-out to Agent A (Search), Agent B (SQL Database), Agent C (CRM API) concurrently -> Fan-in aggregator -> Consolidated report.',
+      azureImplementation: 'Python `asyncio` in Azure Container Apps invoking multiple parallel Azure OpenAI completions.',
+      tradeoffs: 'Dramatically cuts total clock-time latency; increases peak token throughput (TPM) consumption.',
+      bestFit: 'Competitive intelligence analysis, multi-database customer 360 lookup, multi-document cross-comparison.'
     },
     {
       id: 'router-agent',
       num: '07',
       name: 'Router / Triage Agent',
-      flowType: 'Classification Gate',
-      summary: 'A fast, inexpensive classifier agent inspects the user input and routes it to the single best specialist agent or deterministic workflow.',
-      execution: 'Inbound message -> Fast Router (GPT-4o-mini / Phi-4) -> Classifies intent -> Routes to Billing Agent, Technical Agent, or FAQ.',
-      azureImplementation: 'Azure API Management or lightweight Azure Function hosting the router prompt with direct HTTP dispatch.',
-      tradeoffs: 'Cost-efficient and fast; misclassifications in the router route users to the wrong specialist.',
-      bestFit: 'Customer service desk front doors, multi-department enterprise copilots, omnichannel ticketing.'
+      flowType: 'Dynamic Dispatch',
+      summary: 'A fast classification agent inspects incoming user queries and routes them to the single best specialist agent or deterministic workflow.',
+      execution: 'User query -> Router (Phi-4 / GPT-4o-mini) classifies intent -> Dispatches directly to Billing Agent, Tech Support Agent, or Sales Agent.',
+      azureImplementation: 'Semantic Kernel / Agent Framework router endpoint deployed in front of specialized agent workers.',
+      tradeoffs: 'Keeps specialist agent prompts small and highly focused; router misclassification sends users down the wrong path.',
+      bestFit: 'Enterprise service desks, multi-department customer contact centers, unified enterprise portals.'
     },
     {
       id: 'hierarchical-agents',
       num: '08',
       name: 'Hierarchical Multi-Tier Agents',
-      flowType: 'Multi-Level Management',
-      summary: 'Nested management hierarchy where executive agents supervise team-lead agents who in turn manage specialized worker agents.',
-      execution: 'Corporate Objective -> Executive Agent -> Department Leads (Eng, Marketing) -> Task Workers -> Results bubble back up.',
-      azureImplementation: 'Microsoft Agent Framework with recursive sub-workflows and Cosmos DB state isolation per team.',
-      tradeoffs: 'Capable of handling massive enterprise complexity; high latency and token cost, difficult to trace root causes.',
-      bestFit: 'Enterprise autonomous product planning, software development teams (Product Manager -> Architect -> Developer -> QA).'
+      flowType: 'Multi-Level Tree',
+      summary: 'Multi-tiered management structure where executive agents delegate to departmental managers, who delegate to individual worker agents.',
+      execution: 'Executive Agent -> Technical Lead Agent -> Backend Worker + Frontend Worker -> Aggregated review up the tree -> Final Deliverable.',
+      azureImplementation: 'Microsoft Agent Framework hierarchical agent group running on Azure Container Apps with Cosmos DB thread state.',
+      tradeoffs: 'Enables massive-scale automated initiatives; high orchestration overhead and compounded token latency.',
+      bestFit: 'Software engineering automation, corporate strategic planning simulations, complex supply chain rebalancing.'
     },
     {
       id: 'agent-handoff',
       num: '09',
       name: 'Agent Handoff (Swarm / Peer Routing)',
-      flowType: 'Stateful Peer Transfer',
-      summary: 'Agents hand off conversational control directly to peer agents without returning to a central supervisor, passing active context.',
-      execution: 'User speaks with Triage Agent -> Handoff to Sales Agent -> Sales determines technical question -> Handoff to Solutions Architect Agent.',
-      azureImplementation: 'Microsoft Agent Framework / OpenAI Swarm primitives with thread state preservation in Cosmos DB.',
-      tradeoffs: 'Natural conversational flow without supervisor bottleneck; risk of circular handoffs between confused peers.',
-      bestFit: 'Complex consultative sales, collaborative customer onboarding, multi-specialist medical intake.'
+      flowType: 'Peer-to-Peer Transfer',
+      summary: 'Agents hand off conversation control directly to peer agents based on conversational context without returning to a central supervisor.',
+      execution: 'User chatting with Triage Agent -> Agent detects refund intent -> Transfers thread state to Refund Agent -> Refund Agent finishes.',
+      azureImplementation: 'Microsoft Foundry Agent Service thread handoff or OpenAI Swarm pattern with shared Cosmos DB thread ID.',
+      tradeoffs: 'Natural conversational flow and low latency; risks circular handoff loops if peer routing criteria overlap.',
+      bestFit: 'Consultative e-commerce sales, insurance policy selection with claims handoff.'
     },
     {
       id: 'debate-agents',
       num: '10',
       name: 'Debate / Multi-Perspective Agents',
-      flowType: 'Adversarial Dialectic',
-      summary: 'Two or more agents argue opposing viewpoints or approaches, evaluated by an impartial judge agent to surface blind spots.',
-      execution: 'Proposal -> Pro-Agent argues benefits -> Con-Agent attacks assumptions -> Round 2 rebuttal -> Judge Agent issues verdict.',
-      azureImplementation: 'Container Apps running automated debate rounds with MLflow metric logging for consensus tracking.',
-      tradeoffs: 'Exceptional error detection and bias mitigation; 3-5x token cost overhead compared to single prompt.',
-      bestFit: 'Investment committee decision support, architectural design reviews, high-stakes medical diagnosis review.'
+      flowType: 'Adversarial Collaboration',
+      summary: 'Two or more agents take opposing perspectives (e.g. Bull vs Bear) and debate a proposition, supervised by an impartial judge agent.',
+      execution: 'Proposition -> Agent A argues Pro -> Agent B argues Con -> Multi-turn cross-examination -> Judge Agent synthesizes balanced verdict.',
+      azureImplementation: 'Microsoft Agent Framework executing multi-turn debate rounds with system prompts enforcing divergent personas.',
+      tradeoffs: 'Substantially reduces individual model biases and uncovers blind spots; 3x higher token consumption and latency.',
+      bestFit: 'Investment committee decision support, regulatory legal risk assessment, architectural design reviews.'
     },
     {
-      id: 'critic-evaluator',
+      id: 'generator-critic',
       num: '11',
       name: 'Generator-Critic / Evaluator Agent',
-      flowType: 'Dual-Agent Refinement',
-      summary: 'Generator agent drafts an artifact; a separate Critic agent evaluates it against a strict rubric and returns actionable feedback.',
-      execution: 'Prompt -> Generator produces Draft 1 -> Critic evaluates against rubric -> If score < threshold, returns feedback -> Generator refines.',
-      azureImplementation: 'Foundry Evaluation SDK paired with Microsoft Agent Framework with iteration loop counters.',
-      tradeoffs: 'Substantially elevates artifact quality; requires well-defined, objective evaluation rubrics to prevent cycling.',
-      bestFit: 'Automated code generation with unit-test verification, marketing copy compliance, legal clause drafting.'
+      flowType: 'Iterative Refinement',
+      summary: 'A generator agent creates an artifact (code, report, SQL) and an independent critic agent evaluates it against a strict rubric before acceptance.',
+      execution: 'Task -> Generator produces Draft 1 -> Critic reviews against rubric -> Emits specific feedback -> Generator produces Draft 2 -> Critic approves.',
+      azureImplementation: 'Two distinct Foundry model deployments: GPT-4o generator + o3-mini critic with temperature 0.0.',
+      tradeoffs: 'Consistently higher code quality, fewer syntax bugs, and higher compliance; requires 2-3 iterations per output.',
+      bestFit: 'Production code generation, regulatory filing drafting, automated SQL query authoring.'
     },
     {
       id: 'reflection-agent',
       num: '12',
       name: 'Self-Reflection / Self-Correction Agent',
-      flowType: 'Single-Agent Introspection',
-      summary: 'A single agent inspects its own tool output or generated response, critiques errors, and self-corrects before returning to the user.',
-      execution: 'Draft response -> Self-reflection prompt ("Check citations and code execution") -> Identified mistakes -> Corrected response.',
-      azureImplementation: 'Prompt engineering chaining in Microsoft Foundry with internal scratchpad reasoning.',
-      tradeoffs: 'No multi-agent coordination overhead; model may double down on hallucinations if underlying knowledge is absent.',
-      bestFit: 'SQL query generation with syntax error recovery, mathematical reasoning, structured JSON extraction.'
+      flowType: 'Internal Loop',
+      summary: 'A single agent that critiques its own intermediate outputs, checks for reasoning errors, and revises its output prior to responding.',
+      execution: 'Prompt -> Initial generation -> Self-critique prompt ("Check your work for hallucinations and logic errors") -> Revised final response.',
+      azureImplementation: 'Microsoft Agent Framework with reflexive loop hooks and Azure AI Content Safety validation.',
+      tradeoffs: 'Improves accuracy without needing multiple separate agent deployments; doubles the generation time for the turn.',
+      bestFit: 'Complex mathematical problem solving, automated medical summarization, policy interpretation.'
     },
     {
-      id: 'hitl-workflow',
+      id: 'hitl-approval',
       num: '13',
       name: 'Human-in-the-Loop (HITL) Approval Workflow',
       flowType: 'Gated Execution',
-      summary: 'Agent autonomously prepares actions, but execution of high-blast-radius actions pauses until a human approves via webhook or UI.',
-      execution: 'Agent plans wire transfer -> Pauses execution -> Generates approval card in Microsoft Teams -> Human clicks Approve -> Agent completes.',
-      azureImplementation: 'Azure Logic Apps / Durable Functions external event waiting paired with Microsoft Teams Adaptive Cards.',
-      tradeoffs: 'Guarantees compliance and safety for irreversible transactions; introduces human latency into automated workflows.',
-      bestFit: 'Payment authorizations, cloud infrastructure deletions, automated email sends to enterprise customers, medical prescription changes.'
+      summary: 'Agent executes autonomous reasoning until it reaches an action with material business impact, pausing for explicit human sign-off.',
+      execution: 'Agent plans action ($5,000 refund) -> Pauses execution -> Emits approval notification (Teams / Email) -> Human clicks Approve -> Agent executes.',
+      azureImplementation: 'Azure Durable Functions / Logic Apps with external event suspension, or Foundry Agent Service human approval webhook.',
+      tradeoffs: 'Essential for enterprise governance, liability protection, and regulatory compliance; introduces human latency bottleneck.',
+      bestFit: 'Financial transactions, database schema updates, external email sending, HR candidate rejections.'
     },
     {
       id: 'stateful-conversational',
       num: '14',
       name: 'Stateful Conversational Agent with Memory',
-      flowType: 'Memory-Augmented Chat',
-      summary: 'Maintains short-term conversational context, working memory scratchpads, and long-term semantic memory across user sessions.',
-      execution: 'User query -> Retrieve user long-term preferences (Cosmos DB) -> Load active session thread -> Reasoning -> Update memory state.',
-      azureImplementation: 'Cosmos DB for session threads and profile state + Azure Managed Redis for low-latency active turn caching.',
-      tradeoffs: 'Personalized, context-aware experience; requires privacy controls, data retention policies, and context window compression.',
-      bestFit: 'Executive personal assistants, long-term tutoring copilots, ongoing health coaching.'
+      flowType: 'Session Memory',
+      summary: 'Agent maintains multi-turn conversational context, user preferences, and episodic history across days, weeks, and multiple sessions.',
+      execution: 'User query -> Retrieve user preferences & past session summaries (Cosmos DB) -> Augment prompt -> Agent conversation -> Save updated memory.',
+      azureImplementation: 'Azure Cosmos DB for session thread persistence + Azure Managed Redis for low-latency working context.',
+      tradeoffs: 'Delivers personalized, consultative customer experiences; requires strict memory privacy governance and GDPR right-to-be-forgotten deletion.',
+      bestFit: 'Executive coaching assistants, persistent wealth management copilots, long-term technical learning tutors.'
     },
     {
-      id: 'event-driven-agents',
+      id: 'event-driven-agent',
       num: '15',
       name: 'Event-Driven Background Agents',
       flowType: 'Reactive Asynchronous',
-      summary: 'Agents triggered by cloud events (file arrival, telemetry alerts, webhook) rather than user chat prompts.',
-      execution: 'Blob created event -> Event Grid -> Azure Function -> Agent analyzes document -> Stores insight -> Emits completion event.',
-      azureImplementation: 'Event Grid + Service Bus queues triggering Container Apps agent jobs with KEDA autoscaling.',
-      tradeoffs: 'Fully automated, decouples user interfaces from long-running AI tasks; requires robust dead-letter handling.',
-      bestFit: 'Continuous security threat log analysis, automated document processing upon upload, anomaly remediation.'
+      summary: 'Agents that sleep until triggered by cloud events (new document in Blob, database change, IoT alert), execute autonomously, and terminate.',
+      execution: 'Blob created event (Azure Event Grid) -> Wakes Container App worker -> Agent extracts data & calls business API -> Worker sleeps.',
+      azureImplementation: 'Azure Event Grid triggering Azure Container Apps via KEDA scale-to-zero queue scaling.',
+      tradeoffs: 'Zero idle infrastructure cost; high throughput batch processing; requires robust retry handling and idempotency.',
+      bestFit: 'Automated invoice processing upon upload, security log anomaly investigation, real-time customer churn alerts.'
     },
     {
-      id: 'long-running-agents',
+      id: 'durable-long-running',
       num: '16',
       name: 'Durable Long-Running Agents',
-      flowType: 'Stateful Checkpointed Workflows',
-      summary: 'Agents executing multi-day tasks across asynchronous system boundaries with automatic recovery from crashes.',
-      execution: 'Task initiated -> State checkpointed in durable storage -> Agent waits on external system -> Resumes on event -> Finishes.',
-      azureImplementation: 'Azure Durable Functions orchestrating Agent Framework sessions with Azure Storage table checkpointing.',
-      tradeoffs: 'Survives platform restarts, timeouts, and multi-hour network disconnects; requires deterministic orchestrator code.',
-      bestFit: 'Clinical trial patient matching, legal discovery across millions of files, multi-week regulatory filings.'
+      flowType: 'Durable Orchestration',
+      summary: 'Agents designed to run for hours, days, or weeks across intermittent infrastructure failures, retaining state through durable checkpointing.',
+      execution: 'Agent starts 3-day data verification -> Checkpoints state to storage at each step -> Recovers automatically after VM reboot -> Completes task.',
+      azureImplementation: 'Azure Durable Entities / Azure Durable Functions or Dapr Virtual Actors hosted in Azure Container Apps.',
+      tradeoffs: 'Immune to transient cloud restarts and network timeouts; requires deterministic replay design in code.',
+      bestFit: 'Multi-week software dependency upgrades, deep data quality remediation campaigns, automated patent discovery.'
     },
     {
       id: 'agent-swarm',
       num: '17',
       name: 'Agent Swarm (Magentic-One / Emergent Collaboration)',
-      flowType: 'Decentralized Emergence',
-      summary: 'Multiple specialized autonomous agents (Web Surfer, File Surfer, Coder, Terminal) collaborating dynamically on open-ended problems.',
-      execution: 'Complex open-ended task -> Agents observe shared whiteboard state -> Bid on sub-tasks -> Cooperate dynamically to converge.',
-      azureImplementation: 'Magentic-One or AutoGen runtime deployed on Azure Container Apps with Cosmos DB shared state.',
-      tradeoffs: 'Solves complex unbounded tasks; highest non-determinism, unpredictable execution cost, and potential loop divergence.',
-      bestFit: 'Autonomous deep market research, software repository migration, automated penetration testing.'
+      flowType: 'Decentralized Swarm',
+      summary: 'A collective of autonomous agents sharing a shared working board, dynamically bidding on tasks and collaborating to solve open-ended goals.',
+      execution: 'User objective posted to shared board -> Web surfer agent gathers data -> Coder agent writes script -> File surfer agent reads results -> Synthesis.',
+      azureImplementation: 'Microsoft Magentic-One / AutoGen multi-agent framework deployed on Azure Container Apps with Redis message bus.',
+      tradeoffs: 'Can solve open-ended, ambiguous research problems that defeat fixed pipelines; non-deterministic and prone to runaway token consumption.',
+      bestFit: 'Autonomous security penetration testing, deep scientific literature discovery, complex bug reproduction.'
     },
     {
       id: 'hybrid-workflow-agent',
@@ -250,14 +287,44 @@ window.ATLAS.agentPatterns = {
       bestUse: 'Cross-cloud deployments, teams standardizing on LangChain ecosystem.'
     },
     {
+      name: 'LangChain',
+      type: 'Component & Connector Ecosystem',
+      maturity: 'Broad Community Library',
+      strengths: 'Vast collection of document loaders, prompt templates, vector store connectors, and community integrations.',
+      weaknesses: 'Frequently changes API surface; heavy abstractions can obscure low-level latency bottlenecks.',
+      bestUse: 'Rapid prototyping, data ingestion connectors, general-purpose LLM application components.'
+    },
+    {
       name: 'Model Context Protocol (MCP)',
       type: 'Open Tool & Context Protocol',
       maturity: 'Industry Open Standard',
       strengths: 'Standardized client-server protocol for exposing tools, prompts, and resources across any agent framework.',
       weaknesses: 'Requires securing tool server endpoints and managing network authorization boundaries.',
       bestUse: 'Sharing reusable toolboxes across different agent teams, secure enterprise tool integration.'
+    },
+    {
+      name: 'REST & OpenAPI 3.0',
+      type: 'Standard Enterprise Web APIs',
+      maturity: 'Universal Enterprise Standard',
+      strengths: 'Universal compatibility; leverages existing enterprise API Management, authentication, and corporate firewalls.',
+      weaknesses: 'Requires strict JSON schema documentation and parameter validation to prevent agent tool invocation errors.',
+      bestUse: 'Connecting agents directly to existing SAP, Salesforce, ServiceNow, and internal microservice endpoints.'
     }
   ],
+
+  orchestrationPrimitives: {
+    title: 'Agent Workflow & Orchestration Primitives',
+    primitives: [
+      { name: 'Workflow Graph & Nodes', desc: 'Representing agents, tools, and decision gates as discrete nodes in a directed cyclical or acyclic graph.' },
+      { name: 'Edges & Conditional Routing', desc: 'Evaluating LLM outputs or deterministic rules to route execution along specific graph branches.' },
+      { name: 'Parallel Execution (Fan-Out / Fan-In)', desc: 'Concurrently running independent worker tasks and synchronizing their outputs at a barrier node.' },
+      { name: 'State Checkpointing & Durability', desc: 'Saving execution snapshots to Azure Cosmos DB or Blob storage at each step for crash recovery and resume.' },
+      { name: 'Retries, Timeouts & Backoff', desc: 'Automated exponential retry with jitter for transient tool failures and strictly bounded timeout budgets.' },
+      { name: 'Loop Limits & Termination Conditions', desc: 'Enforcing maximum turn counters (e.g. max 10 steps) to prevent costly infinite reasoning loops.' },
+      { name: 'Human Approval Pauses', desc: 'Suspending workflow execution until an authorized human operator grants explicit cryptographic approval.' },
+      { name: 'Agent Handoff & Protocol Passing', desc: 'Transferring conversation control and memory context seamlessly between peer agents.' }
+    ]
+  },
 
   orchestrationComparison: [
     { pattern: 'Sequential Pipeline', determinism: 'High', latency: 'Linear', cost: 'Low-Medium', debuggability: 'Very Easy', bestFit: 'Fixed multi-step processing' },
@@ -266,6 +333,7 @@ window.ATLAS.agentPatterns = {
     { pattern: 'Peer Handoff (Swarm)', determinism: 'Moderate', latency: 'Variable', cost: 'Medium', debuggability: 'Challenging', bestFit: 'Multi-turn consultative conversations' },
     { pattern: 'Generator-Critic', determinism: 'High', latency: 'High', cost: 'High', debuggability: 'Easy', bestFit: 'High-stakes quality & code verification' },
     { pattern: 'Autonomous Swarm', determinism: 'Low', latency: 'High', cost: 'Very High', debuggability: 'Complex', bestFit: 'Unbounded discovery & exploratory research' },
-    { pattern: 'Hybrid Workflow + Agent', determinism: 'Maximum', latency: 'Predictable', cost: 'Optimized', debuggability: 'Very Easy', bestFit: 'Regulated enterprise business workflows' }
+    { pattern: 'Hybrid Workflow + Agent', determinism: 'Maximum', latency: 'Predictable', cost: 'Optimized', debuggability: 'Very Easy', bestFit: 'Regulated enterprise business workflows' },
+    { pattern: 'Event-Driven Reactive', determinism: 'High', latency: 'Asynchronous', cost: 'Scale-to-Zero', debuggability: 'Easy', bestFit: 'Document ingestion & webhook triage' }
   ]
 };

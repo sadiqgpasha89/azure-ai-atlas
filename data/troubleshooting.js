@@ -1,10 +1,10 @@
-/* Production Architecture Troubleshooting & Failure Patterns
+/* Domain 22: Production Architecture Troubleshooting & Failure Patterns
    Diagnostic workflows, root-cause analyses, resolution steps, and KQL queries
    for RAG systems, autonomous agent loops, and Azure platform infrastructure. */
 window.ATLAS = window.ATLAS || {};
 window.ATLAS.troubleshooting = {
   title: 'Production Troubleshooting & Failure Catalog',
-  lede: 'Actionable root-cause analyses, diagnostics, resolution procedures, and KQL queries for production AI incidents.',
+  lede: 'Actionable root-cause analyses, diagnostics, resolution procedures, and ready-to-run KQL queries for production AI incidents.',
 
   categories: [
     {
@@ -35,103 +35,136 @@ window.ATLAS.troubleshooting = {
         },
         {
           id: 'rag-slow-retrieval',
-          title: 'High Search Latency (> 2,000ms)',
+          title: 'High Search Retrieval Latency (> 2,000ms)',
           symptom: 'End-to-end response time exceeds 4 seconds, with search retrieval taking 2,000ms+ before LLM generation even begins.',
           rootCauses: 'Search service under-provisioned (Standard S1 with high QPS); complex regex or wildcards on large indexes; cold Semantic Ranker cross-encoder under concurrency.',
-          diagnostics: 'Check Azure AI Search Metrics: Search QPS, Search Latency, and Search Throttle Percentage.',
-          azureTools: 'Azure Monitor Metrics (`SearchLatency`, `ThrottledSearchQueriesPercentage`), AI Search Diagnostic Logs.',
-          resolution: '1. Add search service Replicas (scaling replicas distributes query read traffic and improves latency). 2. Limit `$top` candidates to 20 before semantic reranking. 3. Cache frequent query embeddings in Redis.',
-          prevention: 'Set alert rule when Azure AI Search `ThrottledSearchQueriesPercentage` > 1% over 5 minutes.',
-          kql: 'AzureMetrics\n| where ResourceProvider == "MICROSOFT.SEARCH"\n| where MetricName in ("SearchLatency", "ThrottledSearchQueriesPercentage")\n| summarize AvgLatency = avg(Average), MaxThrottling = max(Maximum) by bin(TimeGenerated, 5m), Resource\n| render timechart'
+          diagnostics: 'Check Azure AI Search metrics in Azure Monitor: Search Latency, Throttled Search Queries Percentage, and Search Queries Per Second.',
+          azureTools: 'Azure Monitor Metrics, Search Service diagnostic settings, Log Analytics.',
+          resolution: '1. Scale out Search Replicas (add replicas to increase QPS capacity). 2. Switch vector algorithm from Exhaustive KNN to HNSW with `m=8`. 3. Cache high-frequency query embeddings in Azure Managed Redis.',
+          prevention: 'Set up Azure Monitor alert on `SearchQueries.AverageLatency > 500ms`.',
+          kql: 'AzureDiagnostics\n| where Category == "SearchQueries"\n| where Duration_s > 2000\n| project TimeGenerated, OperationName, Duration_s, SearchService_s\n| summarize P95Duration = percentile(Duration_s, 95) by bin(TimeGenerated, 15m)\n| render timechart'
         },
         {
-          id: 'rag-broken-tables',
-          title: 'Jumbled Numbers from PDF Table Cracking',
-          symptom: 'Financial tables extracted from PDF reports produce scrambled rows, wrong column associations, and incorrect math.',
-          rootCauses: 'Naive text splitter treated PDF text streams linearly without parsing 2D bounding boxes and table cells.',
-          diagnostics: 'Examine raw cracked text in the search index; if table rows appear as disjointed words, standard text extraction was used.',
-          azureTools: 'Azure AI Document Intelligence Studio (`prebuilt-layout`).',
-          resolution: 'Replace standard PDF indexer with Azure AI Document Intelligence layout model (`prebuilt-layout`) which generates structured Markdown tables with preserved row/column headers.',
-          prevention: 'Enforce table-aware chunking pipeline rule in CI/CD document ingestion validation.',
-          kql: 'traces\n| where customDimensions["document.type"] == "pdf"\n| where customDimensions["table.extracted"] == "false"\n| count'
+          id: 'rag-duplicate-answers',
+          title: 'Duplicate Chunks & Redundant Responses',
+          symptom: 'Synthesizer repeats identical sentences multiple times; retrieved context contains multiple copies of the exact same paragraph.',
+          rootCauses: 'Duplicate files indexed from multiple folders (e.g. `/v1/policy.pdf` and `/v2/policy.pdf`); sliding window chunking overlap too high (e.g. 50%).',
+          diagnostics: 'Inspect search results for identical text with different document IDs; check indexing pipelines for missing deduplication step.',
+          azureTools: 'Azure AI Search index explorer, Document hashing script in ingestion worker.',
+          resolution: '1. Implement SHA-256 content deduplication in ingestion pipeline. 2. Tune chunk overlap down to 10-15%. 3. Apply post-retrieval MMR (Maximal Marginal Relevance) deduplication.',
+          prevention: 'Automate duplicate detection in data ingestion pipeline before writing vectors to search.',
+          kql: 'traces\n| where message contains "retrieval_chunk"\n| summarize ChunkCount = count() by tostring(customDimensions["chunk_hash"])\n| where ChunkCount > 1'
+        },
+        {
+          id: 'rag-missing-citations',
+          title: 'Missing or Fabricated Citations',
+          symptom: 'Model answers correctly but omits citation links, or references hallucinated page numbers and document titles.',
+          rootCauses: 'System prompt does not enforce structural citation format (e.g. `[doc-1]`); retrieved chunk payloads do not include clean `title` and `sourceUrl` metadata.',
+          diagnostics: 'Inspect the system prompt injection format; verify that metadata fields are populated in Azure AI Search payload.',
+          azureTools: 'Azure AI Foundry Prompt Playground, Azure AI Evaluation SDK (Citation Correctness metric).',
+          resolution: '1. Format injected chunks with explicit XML delimiters: `<doc id="1" title="HR Policy" page="4">...</doc>`. 2. Instruct model: "Every factual claim must cite its source using [doc-id]." 3. Validate citations in code before streaming.',
+          prevention: 'Add automated CI/CD test verifying Citation Correctness >98% on test suite.',
+          kql: 'traces\n| where customDimensions["genai.system"] == "azure_openai"\n| extend citations_valid = tobool(customDimensions["eval.citations_valid"])\n| where citations_valid == false'
         }
       ]
     },
     {
-      id: 'agent',
-      name: 'Agentic AI & Orchestration Failures',
+      id: 'agents',
+      name: 'Agentic Workflow Failures',
       issues: [
         {
           id: 'agent-infinite-loop',
-          title: 'Agent Trapped in Infinite Tool Loop',
-          symptom: 'Agent repeatedly calls the same tool with identical or slightly modified parameters until hitting maximum timeout or token limit.',
-          rootCauses: '1. Tool error message is ambiguous or returns null without actionable explanation. 2. Missing stop condition or loop detection in the agent framework. 3. System prompt tells the agent to keep trying indefinitely.',
-          diagnostics: 'Inspect the OpenTelemetry distributed trace in Application Insights. Look for repeated spans with identical tool names.',
-          azureTools: 'Azure Application Insights Application Map and End-to-end Transaction Details.',
-          resolution: '1. Enforce strict `max_turns = 5` in the orchestrator. 2. Implement loop detection: if the same tool is invoked 3 times with the same hash, force an escalation branch. 3. Return structured error messages from tools (e.g. `{"status": "error", "reason": "item_not_found", "suggested_action": "ask_user_for_clarification"}`).',
-          prevention: 'Unit test agents against simulated failing tool stubs and verify deterministic termination.',
-          kql: 'dependencies\n| where target contains "tool"\n| summarize ToolCalls = count() by operation_Id, name\n| where ToolCalls > 6\n| order by ToolCalls desc'
+          title: 'Agent Trapped in Infinite Tool Execution Loop',
+          symptom: 'Agent repeatedly invokes the same tool with slightly altered parameters until hitting the runtime execution timeout (10 minutes).',
+          rootCauses: 'Tool error message is ambiguous ("Error 500"); system prompt lacks stopping criteria; no maximum turn counter enforced.',
+          diagnostics: 'Inspect the agent trajectory trace in Application Insights. Look for repeated tool call names with identical inputs.',
+          azureTools: 'Application Insights OpenTelemetry agent traces, Foundry Agent Service monitoring dashboard.',
+          resolution: '1. Enforce hard iteration limit (max 8 steps) in the orchestrator runtime. 2. Ensure tools return clear, informative error observations. 3. Instruct model: "If a tool fails twice, stop and ask the user for clarification."',
+          prevention: 'Add automated unit tests asserting agent convergence within 5 steps on typical edge cases.',
+          kql: 'traces\n| where customDimensions["agent.step_count"] > 10\n| project timestamp, operation_Id, customDimensions["agent.name"], customDimensions["agent.step_count"]\n| order by timestamp desc'
         },
         {
           id: 'agent-wrong-tool',
-          title: 'Incorrect Tool Selection & Hallucinated Parameters',
-          symptom: 'Agent selects an inappropriate tool or passes parameters that violate the tool\'s OpenAPI / JSON schema.',
-          rootCauses: 'Tool descriptions in system prompt are overlapping, vague, or lack concrete examples; model reasoning capability is too low for the tool count.',
-          diagnostics: 'Review tool schema definitions and model prompt logs in Foundry Tracing.',
-          azureTools: 'Microsoft Foundry Tracing, PromptFlow execution logs.',
-          resolution: '1. Rewrite tool descriptions with explicit "Use this tool when X, do NOT use for Y" instructions. 2. Reduce tool catalog size per agent by introducing a Router / Triage agent. 3. Upgrade tool-calling model from mini to full frontier model (GPT-4o).',
-          prevention: 'Run automated tool-calling benchmark evaluation verifying 95%+ selection accuracy across 100 test prompts.',
-          kql: 'exceptions\n| where outerMessage contains "tool_call_validation_failed" or outerMessage contains "schema_error"\n| summarize ErrorCount = count() by operation_Name, bin(timestamp, 1h)\n| render columnchart'
+          title: 'Agent Selecting Wrong Tool or Hallucinating Parameters',
+          symptom: 'Agent calls the `DeleteUser` tool instead of `FindUser`, or passes invalid JSON parameter formats.',
+          rootCauses: 'Tool descriptions in OpenAPI / JSON schema are vague or overlapping; model is an SLM not fine-tuned for tool calling.',
+          diagnostics: 'Review tool JSON Schema definitions against OpenAI function calling guidelines.',
+          azureTools: 'Foundry Agent Service tool playground, JSON Schema validator.',
+          resolution: '1. Rewrite tool descriptions with explicit "Use this tool WHEN..." guidance and examples. 2. Enforce strict JSON schema types with `additionalProperties: false`. 3. Upgrade agent model to GPT-4o or o3-mini.',
+          prevention: 'Evaluate Tool Selection Accuracy (>98%) across 100 sample user intents during PR review.',
+          kql: 'traces\n| where customDimensions["tool.status"] == "schema_validation_failed"\n| summarize Failures = count() by tostring(customDimensions["tool.name"])'
+        },
+        {
+          id: 'agent-unsafe-actions',
+          title: 'Agent Executing Unsafe or Unauthorized Actions',
+          symptom: 'Agent writes directly to customer records, modifies production database rows, or issues refunds without authorization.',
+          rootCauses: 'Missing Human-in-the-Loop approval gate; tool has write permissions using elevated service principal credentials.',
+          diagnostics: 'Audit agent tool privileges in Azure Entra ID and API Management access policies.',
+          azureTools: 'Entra ID RBAC audit logs, Azure API Management policy inspector.',
+          resolution: '1. Restrict all agent tools to read-only queries by default. 2. Insert mandatory Human-in-the-Loop (HITL) approval webhook before any mutation tool. 3. Enforce On-Behalf-Of (OBO) token propagation.',
+          prevention: 'Enforce architecture gate: zero autonomous write tools allowed without two-party human approval.',
+          kql: 'AzureActivity\n| where OperationNameValue contains "write" or OperationNameValue contains "delete"\n| where Caller contains "agent-managed-identity"'
         },
         {
           id: 'agent-high-cost',
-          title: 'Token Spend Runaway in Multi-Agent Swarms',
-          symptom: 'Daily Azure OpenAI token costs surge by 5x-10x following deployment of a multi-agent feature.',
-          rootCauses: 'Agents passing complete unabridged conversational history back and forth across every turn; excessive parallel subagents; lack of prompt caching.',
-          diagnostics: 'Examine Cost Management cost breakdown by resource and token usage metrics in APIM.',
-          azureTools: 'Azure Cost Management, Azure API Management analytics, FinOps Toolkit.',
-          resolution: '1. Implement conversational context summarization between agent handoffs. 2. Route classification and lightweight sub-tasks to GPT-4o-mini or Phi-4. 3. Structure system prompts to ensure static text appears at the top for prompt caching (>50% discount).',
-          prevention: 'Set budget alerts in Azure Cost Management with automated webhook triggers to suspend non-critical endpoints at 110% budget.',
-          kql: 'AzureDiagnostics\n| where ResourceProvider == "MICROSOFT.APIMANAGEMENT"\n| extend TotalTokens = toint(parse_json(BackendResponseBody)["usage"]["total_tokens"])\n| summarize DailyTokens = sum(TotalTokens) by bin(TimeGenerated, 1d)\n| render timechart'
+          title: 'Agent Cost Runaway ($10+ per Task)',
+          symptom: 'Single customer sessions consume 150,000+ tokens, driving average task cost beyond business ROI viability.',
+          rootCauses: 'Agent carries entire multi-turn tool history into every prompt without pruning; excessive parallel sub-agent spawning; using GPT-4o for simple JSON parsing.',
+          diagnostics: 'Check Token Usage breakdown per turn in Foundry Tracing.',
+          azureTools: 'Azure Cost Management, Azure AI Foundry Usage & Quotas.',
+          resolution: '1. Implement context pruning: retain only the last 3 tool observations in prompt. 2. Enforce hard session budget ($0.75 max). 3. Route formatting and extraction sub-tasks to GPT-4o-mini ($0.15/1M).',
+          prevention: 'Configure daily cost alerts in Azure Cost Management per agent application.',
+          kql: 'traces\n| extend tokens = toint(customDimensions["genai.usage.total_tokens"])\n| summarize TotalTokens = sum(tokens), TotalCost = sum(tokens) * 0.000005 by tostring(customDimensions["session_id"])\n| where TotalCost > 5.0'
         }
       ]
     },
     {
-      id: 'azure',
-      name: 'Azure Platform & Infrastructure Failures',
+      id: 'platform',
+      name: 'Azure Platform & Infrastructure Incidents',
       issues: [
         {
-          id: 'platform-429-throttling',
-          title: 'HTTP 429 Too Many Requests (Token Rate Limiting)',
-          symptom: 'Applications receive HTTP 429 errors from Azure OpenAI: "Requests to the OpenAI API have been throttled due to rate limits."',
-          rootCauses: 'Application traffic exceeds the provisioned Tokens Per Minute (TPM) or Requests Per Minute (RPM) quota for the target deployment.',
-          diagnostics: 'Inspect the `x-ratelimit-remaining-tokens` and `retry-after` response headers from Azure OpenAI.',
-          azureTools: 'Azure Monitor Metrics (`BlockedCallCount`), APIM gateway logs.',
-          resolution: '1. Request a TPM quota increase in the Azure portal. 2. Implement Azure API Management multi-region load balancing pool with round-robin or priority failover. 3. Apply exponential backoff with random jitter in client SDKs. 4. Upgrade high-volume production workloads to Provisioned Throughput Units (PTU).',
-          prevention: 'Configure APIM token limit policy to throttle non-critical users before the shared Azure OpenAI backend quota is exhausted.',
-          kql: 'AzureDiagnostics\n| where ResourceProvider == "MICROSOFT.COGNITIVESERVICES"\n| where ResultSignature == "429"\n| summarize ThrottledRequests = count() by bin(TimeGenerated, 5m), Resource\n| render timechart'
+          id: 'azure-429-throttling',
+          title: 'Azure OpenAI HTTP 429 Throttling (Rate Limit Exceeded)',
+          symptom: 'API calls fail with `Requests to the OpenAI service have been blocked. Status: 429 RateLimitExceeded`.',
+          rootCauses: 'Spike in token throughput exceeding subscribed TPM (Tokens Per Minute) or RPM (Requests Per Minute) quota; un-jittered retries flooding endpoint.',
+          diagnostics: 'Inspect Azure OpenAI metrics in Azure Monitor: `Processed Prompt Tokens`, `Processed Inference Tokens`, and `Client Errors (429)`.',
+          azureTools: 'Azure Monitor Metrics, Azure API Management token bucket policies, Azure AI Foundry Quotas.',
+          resolution: '1. Implement exponential backoff with full jitter in client SDK. 2. Deploy Azure API Management in front of 2-3 regional Azure OpenAI instances with priority load balancing. 3. Upgrade to Provisioned Throughput Units (PTU).',
+          prevention: 'Set up multi-region APIM pool (East US + Sweden Central) with automatic failover upon receiving 429.',
+          kql: 'AzureDiagnostics\n| where ResourceProvider == "MICROSOFT.COGNITIVESERVICES"\n| where httpStatusCode_d == 429\n| summarize ThrottledCalls = count() by bin(TimeGenerated, 5m), DeploymentName_s\n| render timechart'
         },
         {
-          id: 'platform-private-dns-fail',
-          title: 'Private DNS Resolution Failure in Hub-and-Spoke',
-          symptom: 'Container Apps or Functions cannot connect to Azure OpenAI or AI Search, throwing hostname not found (`NameResolutionFailure`) or 403 Forbidden.',
-          rootCauses: 'Spoke Virtual Network is not linked to the Private DNS Zone (`privatelink.openai.azure.com` or `privatelink.search.windows.net`), or Azure Private DNS Resolver is missing.',
-          diagnostics: 'Run `nslookup your-service.openai.azure.com` inside a container or debug VM in the spoke subnet. If it returns a public IP instead of a private 10.x.x.x IP, DNS linkage is broken.',
-          azureTools: 'Azure Network Watcher IP Flow Verify, VNet DNS configuration blade, Azure CLI.',
-          resolution: '1. Link the spoke VNet to the central Private DNS Zone in the hub. 2. Verify that the Private Endpoint has an active A record pointing to the network interface IP. 3. If using custom DNS servers, verify conditional forwarding to Azure DNS (168.63.129.16).',
-          prevention: 'Enforce Azure Policy initiative that automatically links spoke VNets to enterprise private DNS zones during subscription vending.',
-          kql: 'AzureDiagnostics\n| where Category == "NetworkSecurityGroupRuleCounter"\n| where Direction_s == "Outbound" and Action_s == "Deny"\n| summarize DeniedCount = count() by bin(TimeGenerated, 15m), DestinationIP_s'
+          id: 'azure-auth-managed-identity',
+          title: 'Managed Identity Authentication Failure (401 / 403 Forbidden)',
+          symptom: 'Application crashes on startup with `ClientAuthenticationError: DefaultAzureCredential failed to retrieve a token`.',
+          rootCauses: 'System-Assigned Managed Identity not assigned `Cognitive Services OpenAI User` RBAC role; local developer environment missing Azure CLI login; VNet firewall blocking Entra ID endpoint.',
+          diagnostics: 'Inspect Entra ID Sign-In logs; verify RBAC role assignment on Azure OpenAI resource.',
+          azureTools: 'Entra ID Sign-in logs, Azure portal Access Control (IAM) pane, `az role assignment list`.',
+          resolution: '1. Assign `Cognitive Services OpenAI User` role to the Container App / Function managed identity. 2. Ensure Private DNS Zone links allow resolution of `login.microsoftonline.com`. 3. For local dev, run `az login`.',
+          prevention: 'Include RBAC role assignments in Infrastructure as Code (Bicep/Terraform) templates.',
+          kql: 'SigninLogs\n| where AppDisplayName contains "OpenAI" or AppDisplayName contains "Foundry"\n| where ResultType != 0\n| project TimeGenerated, UserPrincipalName, AppDisplayName, ResultDescription'
         },
         {
-          id: 'platform-managed-id-403',
-          title: 'Managed Identity 403 Authorization Denied',
-          symptom: 'Application receives HTTP 403 Forbidden when calling Azure AI Search or Azure OpenAI: "The principal does not have authorization to perform action."',
-          rootCauses: 'System-assigned or user-assigned Managed Identity is missing the required Azure RBAC role assignment on the target resource (e.g. `Cognitive Services OpenAI User` or `Search Index Data Reader`).',
-          diagnostics: 'Check the client App ID and Object ID in the failed request token and inspect Access Control (IAM) role assignments on the target Azure AI resource.',
-          azureTools: 'Azure portal Access Control (IAM) Check Access tab, Azure Activity Log.',
-          resolution: 'Assign the precise built-in RBAC role: `Cognitive Services OpenAI User` (for inference), `Search Index Data Contributor` (for writing chunks), or `Search Index Data Reader` (for retrieval). Allow 5-10 minutes for RBAC replication.',
-          prevention: 'Automate role assignments declaratively in Bicep / Terraform infrastructure templates.',
-          kql: 'AzureActivity\n| where OperationNameValue contains "RoleAssignment"\n| where ActivityStatusValue == "Success"\n| project TimeGenerated, Caller, Properties'
+          id: 'azure-private-dns-resolution',
+          title: 'Private Endpoint DNS Resolution Failure',
+          symptom: 'Compute instances fail to reach Azure OpenAI with `NameResolutionFailure` or route to public IP address instead of private 10.x IP.',
+          rootCauses: 'Virtual Network link missing between compute VNet and Azure Private DNS Zone (`privatelink.openai.azure.com`); custom DNS server not forwarding to 168.63.129.16.',
+          diagnostics: 'Run `nslookup <openai-name>.openai.azure.com` inside the compute container; check if returned IP is public or private (10.x.x.x).',
+          azureTools: 'Azure Network Watcher IP Flow Verify, Private DNS Zone Virtual Network links blade.',
+          resolution: '1. Link the Private DNS Zone `privatelink.openai.azure.com` to the compute VNet. 2. If using custom enterprise DNS, configure conditional forwarders pointing to Azure Private DNS Resolver.',
+          prevention: 'Automate Private DNS Zone VNet linking via central Hub landing zone deployment.',
+          kql: 'AzureDiagnostics\n| where Category == "NetworkSecurityGroupRuleCounter"\n| where Direction_s == "Outbound" and Action_s == "Deny"\n| project TimeGenerated, SourceIP_s, DestinationIP_s, DestinationPort_d'
+        },
+        {
+          id: 'azure-regional-stockout',
+          title: 'Regional Model Deployment Capacity Unavailable',
+          symptom: 'Foundry deployment fails with `The model deployment cannot be provisioned due to insufficient capacity in this region`.',
+          rootCauses: 'Global high demand for newest frontier model SKU (e.g. GPT-4o, o1) in a specific target region.',
+          diagnostics: 'Check Azure Service Health and Foundry Model Catalog availability map.',
+          azureTools: 'Azure Service Health, Azure AI Foundry portal deployment wizard.',
+          resolution: '1. Deploy the model to an alternate paired region (e.g. Sweden Central, West Europe, Australia East). 2. Use Global Standard deployment type which pools cross-region capacity automatically. 3. Contact Microsoft account team for quota reservation.',
+          prevention: 'Architect all enterprise AI systems with multi-region deployment configurations from day 1.',
+          kql: 'AzureActivity\n| where OperationNameValue contains "deployments/write"\n| where ActivityStatusValue == "Failed"'
         }
       ]
     }

@@ -1,4 +1,4 @@
-/* AI Cost Engineering, FinOps & Unit Economics
+/* Domain 14: AI Cost Engineering, FinOps & Unit Economics
    Interactive multi-model pricing engine, RAG and agent cost modeling,
    monthly TCO estimation across scale tiers, and enterprise ROI calculations. */
 window.ATLAS = window.ATLAS || {};
@@ -20,95 +20,112 @@ window.ATLAS.finops = {
   searchTiers: [
     { tier: 'Basic', monthlyPerSU: 73.00, maxStoragePerPartitionGB: 2, maxPartitions: 3, maxReplicas: 3, bestFor: 'Small internal pilots and dev environments' },
     { tier: 'Standard S1', monthlyPerSU: 245.00, maxStoragePerPartitionGB: 25, maxPartitions: 12, maxReplicas: 12, bestFor: 'Standard enterprise RAG (up to 300GB with 12 partitions)' },
-    { tier: 'Standard S2', monthlyPerSU: 980.00, maxStoragePerPartitionGB: 100, maxPartitions: 12, maxReplicas: 12, bestFor: 'Large corpora (1.2TB), high QPS production search' },
-    { tier: 'Standard S3', monthlyPerSU: 1960.00, maxStoragePerPartitionGB: 200, maxPartitions: 12, maxReplicas: 12, bestFor: 'Multi-terabyte enterprise knowledge repositories' }
+    { tier: 'Standard S2', monthlyPerSU: 980.00, maxStoragePerPartitionGB: 100, maxPartitions: 12, maxReplicas: 12, bestFor: 'High-volume corpora with high QPS throughput' },
+    { tier: 'Standard S3', monthlyPerSU: 1960.00, maxStoragePerPartitionGB: 200, maxPartitions: 12, maxReplicas: 12, bestFor: 'Multi-terabyte enterprise knowledge retrieval' }
   ],
 
-  platformBaselines: {
-    docIntelligencePer1kPages: 10.00, // Prebuilt Layout model
-    semanticRankerPer1kQueries: 1.00,
-    containerAppsReplicaMonthly: 36.00, // 0.5 vCPU, 1GB RAM baseline
-    cosmosDBBaselineMonthly: 25.00, // 400 RU/s autoscale
-    azureMonitorPerGB: 2.30,
-    egressPerGB: 0.087
-  },
+  costDrivers: [
+    { component: 'LLM Inference', driver: 'Input prompt tokens, output completion tokens, model selection (GPT-4o vs mini), PTU reservations.' },
+    { component: 'Embeddings Generation', driver: 'Document corpus size, chunking token volume, re-indexing frequency, embedding dimension (1536 vs 3072).' },
+    { component: 'Azure AI Search', driver: 'Search Unit (SU) tier, number of partitions (storage), number of replicas (QPS SLA), Semantic Ranker query units.' },
+    { component: 'Document Ingestion (OCR)', driver: 'Page volume cracked via Document Intelligence ($1.50/1k pages for Layout; $10-$50/1k for Prebuilt).' },
+    { component: 'Agent Execution Multipliers', driver: 'Number of agent reasoning loops, tool call rounds, and parallel sub-agent workers per user session.' },
+    { component: 'Cloud Compute & Hosting', driver: 'Azure Container Apps vCPU/GB seconds, Azure Functions executions, Redis Managed Cache cluster size.' },
+    { component: 'Storage & Data Lake', driver: 'Raw document volume in ADLS Gen2, Hot/Cool lifecycle tiers, cross-region replication (GRS/GZRS).' },
+    { component: 'Observability & Telemetry', driver: 'Application Insights and Log Analytics log ingestion volume (GB/day) and retention policy duration.' },
+    { component: 'Networking & Data Egress', driver: 'Cross-region data transfer fees, Azure Private Link endpoint hours, Azure Firewall data processed.' }
+  ],
 
   scaleProfiles: [
     {
-      id: 'prototype',
-      name: 'Prototype / PoC',
+      name: 'Prototype / Sandbox',
       users: 50,
-      queriesPerUserDay: 5,
-      tokensPerQueryInput: 800,
-      tokensPerQueryOutput: 250,
-      model: 'gpt-4o-mini',
-      monthlyEst: '$75 – $220 / mo',
-      primaryDriver: 'Model tokens and dev Azure AI Search Basic tier.'
+      dailyQueries: 200,
+      monthlyTokens: '15 Million',
+      searchTier: 'Basic (1 SU)',
+      compute: 'ACA Consumption (Scaled to zero)',
+      estimatedMonthlyTCO: '$250 – $500',
+      costPerTask: '$0.04',
+      assumptions: '100% pay-as-you-go, GPT-4o-mini + GPT-4o blended, minimal log retention.'
     },
     {
-      id: 'pilot',
       name: 'Departmental Pilot',
       users: 500,
-      queriesPerUserDay: 10,
-      tokensPerQueryInput: 1500,
-      tokensPerQueryOutput: 400,
-      model: 'gpt-4o-mini + gpt-4o',
-      monthlyEst: '$850 – $2,200 / mo',
-      primaryDriver: 'AI Search S1 tier ($245/SU) and frontier model synthesis calls.'
+      dailyQueries: 3000,
+      monthlyTokens: '250 Million',
+      searchTier: 'Standard S1 (2 SUs: 1P x 2R for 99.9% SLA)',
+      compute: 'ACA 2 replicas + Azure Managed Redis Basic',
+      estimatedMonthlyTCO: '$1,800 – $3,200',
+      costPerTask: '$0.03',
+      assumptions: 'Hybrid search with Semantic Ranker, Prompt Caching enabled, 30-day log retention.'
     },
     {
-      id: 'production',
       name: 'Enterprise Production',
       users: 5000,
-      queriesPerUserDay: 15,
-      tokensPerQueryInput: 2000,
-      tokensPerQueryOutput: 500,
-      model: 'gpt-4o with prompt caching',
-      monthlyEst: '$6,500 – $14,000 / mo',
-      primaryDriver: 'Frontier LLM tokens, 2x AI Search S1 replicas for HA SLA, Application Insights logs.'
+      dailyQueries: 35000,
+      monthlyTokens: '3.5 Billion',
+      searchTier: 'Standard S1 (6 SUs: 2P x 3R for high QPS)',
+      compute: 'ACA 6 replicas + Azure Managed Redis Standard + APIM',
+      estimatedMonthlyTCO: '$12,000 – $22,000',
+      costPerTask: '$0.02',
+      assumptions: 'Intelligent model routing (70% mini, 30% GPT-4o), active semantic caching.'
     },
     {
-      id: 'scale',
-      name: 'Global Enterprise Scale',
-      users: 50000,
-      queriesPerUserDay: 20,
-      tokensPerQueryInput: 2500,
-      tokensPerQueryOutput: 600,
-      model: 'PTU (Provisioned Throughput)',
-      monthlyEst: '$45,000 – $95,000 / mo',
-      primaryDriver: 'Dedicated PTU reservations ($25k+/mo), multi-region active-active deployment.'
+      name: 'Enterprise Scale (Mission-Critical)',
+      users: 25000,
+      dailyQueries: 250000,
+      monthlyTokens: '25 Billion',
+      searchTier: 'Standard S2 (12 SUs: 3P x 4R multi-region)',
+      compute: 'Provisioned Throughput Units (100 PTUs) + Multi-region APIM',
+      estimatedMonthlyTCO: '$65,000 – $110,000',
+      costPerTask: '$0.012',
+      assumptions: 'Dedicated PTU reservation, Batch API for offline jobs, aggressive token minification.'
     }
   ],
 
-  calculateROI: function (p) {
-    var employees = p.employees || 500;
-    var hoursSavedWeekly = p.hoursSavedWeekly || 2.5;
-    var hourlyWage = p.hourlyWage || 55.0;
+  optimizationStrategies: [
+    { strategy: '1. Intelligent Model Routing', impact: '50 – 70% Token Savings', desc: 'Route 70% of routine questions (summaries, formatting, triage) to GPT-4o-mini ($0.15/M) and reserve GPT-4o ($2.50/M) strictly for complex multi-step synthesis.' },
+    { strategy: '2. Automatic Prompt Caching', impact: '50% Input Token Discount', desc: 'Structure system prompts, few-shot examples, and RAG schemas with identical prefixes >1,024 tokens to trigger Azure OpenAI automatic prompt caching.' },
+    { strategy: '3. Semantic Context Compression', impact: '30 – 40% Token Reduction', desc: 'Extract and inject only the top-scoring sentences from retrieved chunks rather than dumping raw 1,000-token passages into the prompt.' },
+    { strategy: '4. Semantic Caching with Redis', impact: '100% Token Elimination on Cache Hit', desc: 'Cache query embeddings in Azure Managed Redis; return cached answers immediately when user queries have cosine similarity >0.96 with past requests.' },
+    { strategy: '5. Batch Inference API (50% Off)', impact: '50% Token Price Discount', desc: 'Submit non-real-time offline summarization, bulk document evaluation, and catalog enrichment jobs via the 24-hour Batch API.' },
+    { strategy: '6. Agent Loop & Iteration Caps', impact: 'Prevents $50+ Runaway Sessions', desc: 'Hardcode strict iteration bounds (e.g. max 8 tool calls) and token budgets ($0.80 per session) in agent orchestrators.' },
+    { strategy: '7. Azure AI Search Tier Rightsizing', impact: 'Up to $1,500/month per Index', desc: 'Use Standard S1 partitions (25GB each) effectively before jumping to S2/S3; clean up stale index versions.' },
+    { strategy: '8. Log Analytics Retention Tuning', impact: '40% Observability Savings', desc: 'Reduce raw trace retention in Log Analytics from 365 days to 30 days, archiving raw JSON payloads to Cool Blob storage.' },
+    { strategy: '9. Embedding Model Truncation', impact: '50% Vector Storage Reduction', desc: 'Use `text-embedding-3-large` with dimension truncation (e.g. 1536 dims instead of 3072) with <1% loss in retrieval precision.' },
+    { strategy: '10. Token-Aware Prompt Minification', impact: '15 – 25% Prompt Reduction', desc: 'Strip verbose instructions, repetitive guidelines, and bloated JSON schema descriptions from production system prompts.' },
+    { strategy: '11. Document Ingestion Deduplication', impact: 'Prevents 2x-5x OCR & Vector Bloat', desc: 'Compute SHA-256 hashes on source files to prevent cracking and indexing duplicate copies of identical corporate policies.' },
+    { strategy: '12. Scale-to-Zero on Ingestion Workers', impact: 'Saves $200-$500/month Idle Compute', desc: 'Run document cracking and embedding generation on Azure Container Apps with KEDA scaling to zero when queue is empty.' },
+    { strategy: '13. Pre-Filtered Retrieval Before Reranking', impact: 'Reduces Semantic Ranker Query Units', desc: 'Apply security ACL and department metadata filters first to narrow candidates to 50 items before invoking the Semantic Ranker.' },
+    { strategy: '14. FinOps Cost Attribution Labels', impact: '100% Billing Visibility', desc: 'Tag every Azure OpenAI deployment and Container App with `CostCenter`, `Environment`, and `Project` for automated chargeback.' }
+  ],
+
+  calculateROI: function (params) {
+    var employees = params.employees || 500;
+    var hourlyWage = params.hourlyWage || 45;
+    var hoursSavedPerWeekPerEmp = params.hoursSaved || 2.5;
     var weeksPerYear = 48;
-    var annualLaborBenefit = employees * hoursSavedWeekly * weeksPerYear * hourlyWage;
+    var annualLaborBenefit = employees * hoursSavedPerWeekPerEmp * weeksPerYear * hourlyWage;
+    
+    var errorReductionBenefit = (params.errorSavings || 50000);
+    var totalAnnualBenefit = annualLaborBenefit + errorReductionBenefit;
 
-    var directCostSavings = p.directCostSavings || 50000;
-    var totalAnnualBenefit = annualLaborBenefit + directCostSavings;
+    var cloudCostAnnual = (params.monthlyCloudCost || 2500) * 12;
+    var engineeringMaintenanceAnnual = (params.annualMaintenance || 30000);
+    var initialDevCostOneTime = (params.devCost || 60000);
+    var totalYear1Cost = cloudCostAnnual + engineeringMaintenanceAnnual + initialDevCostOneTime;
 
-    var annualCloudCost = p.annualCloudCost || 72000;
-    var annualEngineeringMaintenance = p.annualEngineeringMaintenance || 90000;
-    var totalAnnualCost = annualCloudCost + annualEngineeringMaintenance;
-
-    var riskDiscount = p.riskDiscount || 0.85; // 15% discount for adoption ramp
-    var adjustedBenefit = totalAnnualBenefit * riskDiscount;
-
-    var netBenefit = adjustedBenefit - totalAnnualCost;
-    var roiPercentage = (netBenefit / (totalAnnualCost || 1)) * 100;
-    var paybackMonths = (totalAnnualCost / (adjustedBenefit / 12 || 1));
+    var netYear1Profit = totalAnnualBenefit - totalYear1Cost;
+    var roiPercentage = totalYear1Cost > 0 ? (netYear1Profit / totalYear1Cost) * 100 : 0;
+    var paybackMonths = totalAnnualBenefit > 0 ? (totalYear1Cost / (totalAnnualBenefit / 12)) : 0;
 
     return {
       annualLaborBenefit: annualLaborBenefit,
       totalAnnualBenefit: totalAnnualBenefit,
-      adjustedBenefit: adjustedBenefit,
-      totalAnnualCost: totalAnnualCost,
-      netBenefit: netBenefit,
-      roiPercentage: roiPercentage,
-      paybackMonths: Math.max(0.5, paybackMonths)
+      totalYear1Cost: totalYear1Cost,
+      netYear1Profit: netYear1Profit,
+      roiPercentage: Math.round(roiPercentage),
+      paybackMonths: Number(paybackMonths.toFixed(1))
     };
   }
 };

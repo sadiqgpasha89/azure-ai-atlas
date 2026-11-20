@@ -1,5 +1,5 @@
-/* AI Evaluation, Testing & Quality Center
-   7-Level AI Testing Pyramid, 14 Evaluation Categories, Agent-Specific Metrics,
+/* Domain 10: AI Evaluation, Testing & Quality Center
+   7-Level AI Testing Pyramid, 14 Evaluation Categories, 14 Agent-Specific Metrics,
    Framework Comparison Matrix, and Interactive Release Quality Gate Calculator. */
 window.ATLAS = window.ATLAS || {};
 window.ATLAS.evaluationCenter = {
@@ -84,23 +84,30 @@ window.ATLAS.evaluationCenter = {
 
   agentMetrics: [
     { metric: 'Task Completion Rate', desc: 'Percentage of agent sessions that achieve the defined business objective without human abort.', benchmark: '> 90%' },
+    { metric: 'Goal Success Rate', desc: 'Ratio of multi-step goals fully satisfied according to automated or human ground-truth criteria.', benchmark: '> 92%' },
     { metric: 'Tool Selection Accuracy', desc: 'Frequency with which the agent selects the correct tool for a given intermediate sub-task.', benchmark: '> 95%' },
+    { metric: 'Tool Call Success Rate', desc: 'Percentage of dispatched tool calls that return successful HTTP 200 or valid domain results.', benchmark: '> 96%' },
     { metric: 'Tool Parameter Correctness', desc: 'Ratio of tool invocations where all arguments pass strict JSON schema and business type validation.', benchmark: '> 98%' },
-    { metric: 'Loop Convergence Rate', desc: 'Percentage of workflows that finish within maximum allowed turns (e.g. 5 turns) without infinite loop cutoff.', benchmark: '> 98%' },
-    { metric: 'Average Turns per Task', desc: 'Mean number of tool execution steps required to complete a successful task.', benchmark: '2.5 – 3.8 turns' },
-    { metric: 'Subagent Handoff Accuracy', desc: 'In multi-agent systems, rate at which tasks are delegated to the correct specialist worker agent.', benchmark: '> 92%' },
+    { metric: 'Agent Handoff Accuracy', desc: 'In multi-agent systems, rate at which tasks are delegated to the correct specialist worker agent.', benchmark: '> 92%' },
+    { metric: 'Loop Step Count', desc: 'Distribution of reasoning turns required per task; flags anomalous high-iteration patterns.', benchmark: '2.5 – 3.8 turns' },
+    { metric: 'Agent Convergence Rate', desc: 'Percentage of workflows that finish within maximum allowed turns (e.g. 5 turns) without infinite loop cutoff.', benchmark: '> 98%' },
+    { metric: 'Planning Accuracy', desc: 'Degree to which generated multi-step action agendas correspond to optimal execution paths.', benchmark: '> 88%' },
+    { metric: 'Delegation Accuracy', desc: 'Whether subtasks assigned by the supervisor agent are scoped correctly without redundancy.', benchmark: '> 90%' },
+    { metric: 'Workflow Completion Time', desc: 'End-to-end clock time from initial user prompt to final verified deliverable.', benchmark: '< 15 seconds' },
+    { metric: 'Cost per Completed Task', desc: 'Total inference, tool execution, and embedding cost accumulated per successful workflow completion.', benchmark: '< $0.05 / task' },
     { metric: 'Failure Recovery Rate', desc: 'Ability of the agent to inspect a tool error message, adjust parameters, and succeed on retry.', benchmark: '> 80%' },
-    { metric: 'Human Escalation Rate', desc: 'Percentage of tasks that exceed uncertainty thresholds and require human intervention.', benchmark: '< 10%' },
-    { metric: 'Cost per Completed Task', desc: 'Total inference, tool execution, and embedding cost accumulated per successful workflow completion.', benchmark: '< $0.05 / task' }
+    { metric: 'Human Intervention Rate', desc: 'Percentage of tasks that exceed uncertainty thresholds or require human approval sign-off.', benchmark: '< 10%' }
   ],
 
   frameworks: [
     { name: 'Azure AI Evaluation SDK', type: 'Native Azure SDK', strengths: 'Built-in evaluators for Groundedness, Relevance, Coherence, Fluency, and Prompt Shields; direct integration with Azure AI Foundry.', bestFit: 'Production Azure deployments and CI/CD quality gates.' },
     { name: 'Microsoft Foundry Evaluations', type: 'Managed Cloud Service', strengths: 'UI-driven batch evaluation runs, comparative model sweep visualizations, automated golden dataset management.', bestFit: 'Engineering Manager & Product Manager review dashboards.' },
+    { name: 'PromptFlow Evaluation & Lifecycle', type: 'Managed / Code SDK', strengths: 'Visual DAG evaluation graphs, custom Python evaluators, seamless transition from local dev to cloud batch runs.', bestFit: 'Teams standardizing on PromptFlow pipelines.' },
     { name: 'MLflow / Azure ML', type: 'Open-Source MLOps', strengths: 'Industry-standard experiment tracking, parameter logging, artifact lineage, and automated model registry promotion.', bestFit: 'Unified classic ML and LLM release pipelines.' },
     { name: 'Ragas', type: 'Open-Source RAG Framework', strengths: 'Rich synthetic test dataset generation and specialized mathematical RAG metrics (faithfulness, context recall).', bestFit: 'Deep offline RAG pipeline experimentation and optimization.' },
     { name: 'DeepEval', type: 'Open-Source Testing', strengths: 'Unit-test-like syntax (`assert_test`) for LLMs that integrates cleanly into existing pytest suites.', bestFit: 'Developer-driven local test suites.' },
-    { name: 'PyRIT (Python Risk Identification Toolkit)', type: 'Adversarial Security', strengths: 'Microsoft\'s open-source automated red-teaming tool for discovering prompt injection vulnerabilities and safety failures.', bestFit: 'Security audits and adversarial red-team regression suites.' }
+    { name: 'LangSmith', type: 'Tracing & Evaluation', strengths: 'Rich visualization of multi-turn agent runs, prompt playground, and run comparison.', bestFit: 'Teams deploying LangGraph / LangChain on Azure.' },
+    { name: 'OpenTelemetry GenAI Semantic Conventions', type: 'Open Telemetry Standard', strengths: 'Vendor-neutral instrumentation of spans, token counts, and LLM parameters exported to Application Insights.', bestFit: 'Standardized enterprise observability across all clouds.' }
   ],
 
   qualityGates: [
