@@ -359,3 +359,71 @@ pre.adr{background:var(--paper);border:1px solid var(--line2);border-radius:12px
 [data-theme=dark] .raci-c{background:hsl(150 40% 22%);color:hsl(150 60% 85%)}
 [data-theme=dark] .raci-i{background:hsl(270 40% 25%);color:hsl(270 60% 85%)}
 
+/* ----- severity & threat badges ----- */
+.sev{display:inline-block;font:700 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px}
+.sev.crit{background:hsl(0 80% 90%);color:hsl(0 80% 32%)}
+.sev.high{background:hsl(25 85% 90%);color:hsl(25 85% 30%)}
+.sev.med{background:hsl(45 90% 88%);color:hsl(45 90% 25%)}
+[data-theme=dark] .sev.crit{background:hsl(0 60% 26%);color:hsl(0 85% 85%)}
+[data-theme=dark] .sev.high{background:hsl(25 60% 24%);color:hsl(25 85% 85%)}
+[data-theme=dark] .sev.med{background:hsl(45 50% 22%);color:hsl(45 85% 85%)}
+
+/* ----- testing pyramid visual ----- */
+.pyramid{display:flex;flex-direction:column;gap:8px;margin:22px 0}
+.pyr-level{background:var(--paper);border:1px solid var(--line2);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:16px;box-shadow:3px 3px 0 var(--line);transition:transform .12s}
+.pyr-level:hover{transform:translateX(4px);border-color:var(--accent)}
+.pyr-tag{font:700 11px var(--mono);padding:3px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pyr-body{flex:1;min-width:0}
+.pyr-body b{display:block;font-size:15px;margin-bottom:2px}
+.pyr-body span{font-size:13px;color:var(--muted);display:block}
+.pyr-crit{font:600 11px var(--mono);color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent);padding:3px 8px;border-radius:6px;white-space:nowrap}
+
+/* ----- agent pattern explorer ----- */
+.pattern-card{background:var(--paper);border:1px solid var(--line2);border-radius:14px;padding:18px 20px;box-shadow:4px 4px 0 var(--line);display:flex;flex-direction:column;gap:10px}
+.pattern-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pattern-num{font:700 12px var(--mono);color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:6px}
+.pattern-flow{font:600 11px var(--mono);color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:6px}
+.pattern-card h3{margin:2px 0;font-size:18px}
+.pattern-exec{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:13px/1.45 var(--mono);color:var(--ink)}
+.pattern-meta{display:grid;gap:6px;font-size:13px}
+.pattern-meta b{color:var(--muted);font-family:var(--mono);font-size:11px;text-transform:uppercase}
+
+/* ----- competency heatmap ----- */
+.heat-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.heat-table th,.heat-table td{padding:10px 12px;border:1px solid var(--line2);text-align:left;vertical-align:top}
+.heat-table th{background:color-mix(in srgb,var(--bg) 60%,var(--paper));font:600 11px var(--mono)}
+.heat-cell{display:inline-block;padding:3px 8px;border-radius:6px;font:700 11px var(--mono)}
+.heat-1{background:hsl(212 50% 92%);color:hsl(212 70% 30%)}
+.heat-2{background:hsl(180 50% 90%);color:hsl(180 70% 28%)}
+.heat-3{background:hsl(150 50% 88%);color:hsl(150 70% 25%)}
+.heat-4{background:hsl(90 50% 88%);color:hsl(90 70% 25%)}
+.heat-5{background:hsl(40 80% 88%);color:hsl(40 85% 25%)}
+[data-theme=dark] .heat-1{background:hsl(212 40% 22%);color:hsl(212 70% 85%)}
+[data-theme=dark] .heat-2{background:hsl(180 40% 22%);color:hsl(180 70% 85%)}
+[data-theme=dark] .heat-3{background:hsl(150 35% 22%);color:hsl(150 70% 85%)}
+[data-theme=dark] .heat-4{background:hsl(90 35% 20%);color:hsl(90 70% 85%)}
+[data-theme=dark] .heat-5{background:hsl(40 50% 22%);color:hsl(40 85% 85%)}
+
+/* ----- sub-nav pill tabs ----- */
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 12px}
+.subtab{background:var(--paper);border:1px solid var(--line2);padding:7px 14px;border-radius:99px;font:600 13px var(--sans);color:var(--muted);cursor:pointer}
+.subtab:hover{color:var(--ink);border-color:var(--accent)}
+.subtab.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* ----- interactive sliders & forms ----- */
+.slider-group{display:grid;gap:12px;margin:16px 0}
+.slider-row{display:grid;grid-template-columns:180px 1fr 60px;gap:12px;align-items:center}
+.slider-row label{font-size:13px;font-weight:600}
+.slider-row input[type=range]{accent-color:var(--accent)}
+.slider-val{font:700 13px var(--mono);text-align:right}
+
+/* ----- troubleshooting accordion cards ----- */
+.issue-card{background:var(--paper);border:1px solid var(--line2);border-radius:14px;padding:18px 20px;margin-bottom:14px;box-shadow:4px 4px 0 var(--line)}
+.issue-card h3{margin:0 0 6px;font-size:18px}
+.issue-row{display:grid;grid-template-columns:140px 1fr;gap:10px;margin:8px 0;font-size:14px}
+.issue-label{font:700 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:720px){
+  .issue-row{grid-template-columns:1fr;gap:2px}
+  .slider-row{grid-template-columns:1fr;gap:4px}
+}
+

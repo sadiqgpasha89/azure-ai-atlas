@@ -423,5 +423,236 @@ window.ATLAS.architectures = [
       'Long-running CI pipelines: evaluating 10,000 cases on every commit slows development; use tiered evaluation (fast sanity on PR, deep sweep on merge).',
       'Unmonitored production drift: model providers updating underlying weights silently degrade prompt performance unless continuous evaluation is active.'
     ]
+  },
+  {
+    id: 'voice-ai', name: 'Real-Time Voice and Conversational Speech AI',
+    short: 'Sub-second real-time speech-to-speech interaction using Speech Services, WebSockets and low-latency LLM streaming.',
+    when: 'Building voice agents, call center copilots, or hands-free conversational assistants requiring TTFT under 800ms and natural barge-in.',
+    flow: [
+      { l: 'Audio client', s: 'container-apps' },
+      { l: 'Speech-to-text', s: 'ai-speech' },
+      { l: 'Streaming LLM', s: 'foundry-models' },
+      { l: 'Text-to-speech', s: 'ai-speech' },
+      { l: 'Audio playback', s: 'container-apps' },
+      { l: 'Voice telemetry', s: 'azure-monitor' }
+    ],
+    steps: [
+      [0, 'Audio client establishes a persistent low-latency WebSocket connection to [[container-apps]].'],
+      [1, 'Audio chunks stream to [[ai-speech]] for real-time speech-to-text with partial phrase recognition.'],
+      [2, 'Recognized text streams immediately into [[foundry-models]] with server-sent events for sub-second first-token generation.'],
+      [3, 'Tokens stream sentence by sentence back to [[ai-speech]] neural text-to-speech synthesis with expressive voices.'],
+      [4, 'Synthesized audio frames are pushed back through [[container-apps]] to the client with client-side barge-in cancellation.'],
+      [5, 'Audio latency, word error rates, and user sentiment are tracked in [[azure-monitor]].']
+    ],
+    why: [
+      'Streaming tokens sentence-by-sentence allows audio synthesis to start before the full model response finishes, keeping perceived latency under 800ms.',
+      'Neural voice synthesis with custom enterprise voices maintains brand consistency across customer interactions.',
+      'WebSockets on Container Apps scale from zero to thousands of concurrent audio streams seamlessly.',
+      'Integrated barge-in detection cancels in-flight LLM token generation the instant the user speaks again.'
+    ],
+    fails: [
+      'Buffering whole responses: waiting for the full LLM completion before starting text-to-speech causes multi-second pauses that destroy conversational flow.',
+      'Jitter buffer starvation: fluctuating mobile networks causing audible audio dropouts unless an adaptive jitter buffer is configured.',
+      'Token limit overrun: long voice conversations exhausting model context window without periodic conversation summarization.',
+      'Missing cancellation: audio keeps playing after the user interrupts, leading to a frustrating user experience.'
+    ]
+  },
+  {
+    id: 'computer-vision', name: 'Multimodal Vision and Visual Inspection Pipeline',
+    short: 'Automated defect detection, asset inspection and image reasoning combining Azure AI Vision and Foundry multimodal models.',
+    when: 'Processing enterprise imagery, satellite photos, medical imaging or manufacturing scans with visual reasoning.',
+    flow: [
+      { l: 'Camera & files', s: 'blob' },
+      { l: 'Edge preprocessing', s: 'container-apps' },
+      { l: 'Vision features', s: 'ai-vision' },
+      { l: 'Multimodal model', s: 'foundry-models' },
+      { l: 'Event dispatch', s: 'event-grid' },
+      { l: 'Audit telemetry', s: 'azure-monitor' }
+    ],
+    steps: [
+      [0, 'Raw inspection images and video clips land in [[blob]] storage with lifecycle tiering.'],
+      [1, 'Worker containers in [[container-apps]] resize images, crop regions of interest, and normalize pixel values.'],
+      [2, 'Specialized visual features, dense image captions, and bounding boxes are extracted via [[ai-vision]].'],
+      [3, 'High-resolution images and visual prompts are passed to [[foundry-models|multimodal models]] for complex anomaly reasoning and defect diagnosis.'],
+      [4, 'Detection results and alerts are published to [[event-grid]] for immediate downstream business action.'],
+      [5, 'Model confidence scores, processing times, and detection false-positive rates are logged to [[azure-monitor]].']
+    ],
+    why: [
+      'Specialized vision models handle fast filtering while multimodal LLMs provide nuanced reasoning on edge cases.',
+      'Blob storage provides cost-effective durability for millions of high-resolution images.',
+      'Container Apps scales image processing workers based on incoming queue depth.',
+      'Event Grid enables decoupled real-time alerts across manufacturing and inspection systems.'
+    ],
+    fails: [
+      'Sending uncompressed full-resolution raw files to multimodal LLMs, causing severe latency and token budget exhaustion.',
+      'Ignoring lighting variations: models trained in bright settings failing in dimly lit factory conditions.',
+      'Missing bounding box coordinates when alerting human operators to defect locations.',
+      'Unbounded image retention inflating storage bills without automated lifecycle archival.'
+    ]
+  },
+  {
+    id: 'ai-workflow-automation', name: 'Event-Driven AI Business Workflow Automation',
+    short: 'Asynchronous event-driven document triage, ticketing resolution and ERP integration with human fallback.',
+    when: 'Automating high-volume business workflows (invoices, support claims, compliance audits) that cross SAP, Salesforce, or ServiceNow.',
+    flow: [
+      { l: 'Business event', s: 'event-grid' },
+      { l: 'Message buffer', s: 'service-bus' },
+      { l: 'Orchestrator', s: 'logic-apps' },
+      { l: 'AI reasoning', s: 'foundry-models' },
+      { l: 'Durable state', s: 'cosmos' },
+      { l: 'Audit trail', s: 'azure-monitor' }
+    ],
+    steps: [
+      [0, 'Business events from ERP, CRM, or document uploads trigger [[event-grid]].'],
+      [1, 'Messages are buffered in [[service-bus]] queues with dead-lettering to guarantee at-least-once delivery.'],
+      [2, '[[logic-apps|Logic Apps]] orchestrates the multi-step workflow, manages retries, and coordinates human review approvals.'],
+      [3, 'Document classification, extraction, and decision recommendations are performed by [[foundry-models]].'],
+      [4, 'Workflow checkpoints, transaction logs, and execution states are persisted in [[cosmos|Cosmos DB]].'],
+      [5, 'End-to-end processing metrics and compliance audit logs are tracked in [[azure-monitor]].']
+    ],
+    why: [
+      'Service Bus buffering guarantees no business events are lost during peak traffic or downstream outages.',
+      'Logic Apps provides hundreds of pre-built enterprise connectors (SAP, Salesforce, Dynamics) with visual workflow governance.',
+      'Cosmos DB provides low-latency multi-region state checkpoints for long-running business workflows.',
+      'Clear separation between deterministic workflow logic and generative AI extraction keeps systems auditable.'
+    ],
+    fails: [
+      'Direct synchronous invocation without queuing: downstream AI throttles drop transactions during traffic spikes.',
+      'Unbounded retries on non-transient schema errors wasting tokens and stalling queues.',
+      'Missing dead-letter queue alerting allowing failed business documents to languish silently.',
+      'Inadequate state checkpointing causing workflow restart from step 1 after temporary network blips.'
+    ]
+  },
+  {
+    id: 'ai-batch-processing', name: 'High-Throughput Global Batch AI Inference',
+    short: 'Cost-optimized asynchronous batch processing for millions of customer records, translations or embeddings at 50% discount.',
+    when: 'Processing non-real-time workloads (nightly backfills, catalog summarization, compliance scans) with huge cost savings.',
+    flow: [
+      { l: 'Input dataset', s: 'adls' },
+      { l: 'Pipeline job', s: 'aml-pipelines' },
+      { l: 'Batch endpoint', s: 'aml-endpoints' },
+      { l: 'GPU compute', s: 'gpu-vms' },
+      { l: 'Output sink', s: 'blob' },
+      { l: 'Cost tracker', s: 'cost-management' }
+    ],
+    steps: [
+      [0, 'Large partitioned datasets (millions of records or documents) are stored in [[adls|ADLS Gen2]].'],
+      [1, '[[aml-pipelines|Azure ML Pipelines]] schedules batch jobs, validates data schemas, and chunks work items.'],
+      [2, 'Work items are dispatched to [[aml-endpoints|Batch Endpoints]] or the Azure OpenAI Global Batch API.'],
+      [3, 'Jobs execute across autoscale pools of [[gpu-vms]] or serverless batch compute with zero idle cost.'],
+      [4, 'Enriched results, embeddings, and summaries are written to [[blob]] in Parquet format.'],
+      [5, 'Batch job unit economics and token usage are monitored in [[cost-management]].']
+    ],
+    why: [
+      'Global Batch APIs and off-peak compute provide up to 50% cost discounts compared to real-time interactive endpoints.',
+      'Independent partition execution allows processing millions of records in parallel without hitting real-time rate limits.',
+      'Compute clusters scale to zero when no batch jobs are queued, eliminating idle infrastructure spend.',
+      'Automated retry and checkpointing ensure individual node failures do not restart the entire batch job.'
+    ],
+    fails: [
+      'Using real-time interactive endpoints for offline workloads, paying 2x unnecessary cost and risking 429 throttling.',
+      'Single monolithic batch partitions that fail completely if one record causes an out-of-memory error.',
+      'Failing to monitor batch queue duration, causing SLA breaches on overnight reporting pipelines.',
+      'Leaving high-memory GPU compute clusters idle between scheduled batch runs.'
+    ]
+  },
+  {
+    id: 'predictive-ml', name: 'Enterprise Predictive ML and Continuous MLOps',
+    short: 'Classical ML training, automated feature engineering, model registry, online inference and automated data drift retraining.',
+    when: 'Predicting numerical outcomes (churn, fraud, demand forecast, risk scoring) where tabular data and deterministic statistical models outperform LLMs.',
+    flow: [
+      { l: 'Feature data', s: 'fabric' },
+      { l: 'Feature store', s: 'aml-feature-store' },
+      { l: 'Model training', s: 'aml-training' },
+      { l: 'Model registry', s: 'aml-workspace' },
+      { l: 'Real-time endpoint', s: 'aml-endpoints' },
+      { l: 'Drift monitor', s: 'aml-monitoring' }
+    ],
+    steps: [
+      [0, 'Raw operational records and historical transactions are transformed in [[fabric|Microsoft Fabric]].'],
+      [1, 'Curated features are published to [[aml-feature-store|Azure ML Feature Store]] to prevent train-serve skew.'],
+      [2, 'Automated ML and custom gradient boosting models are trained and tuned using [[aml-training]].'],
+      [3, 'Candidate models with evaluation metrics and environment dependencies are registered in [[aml-workspace]].'],
+      [4, 'Approved models are deployed to managed [[aml-endpoints]] with auto-scaling and blue/green traffic splitting.'],
+      [5, 'Data drift, prediction drift, and feature attribution shifts are tracked continuously by [[aml-monitoring]].']
+    ],
+    why: [
+      'Statistical and gradient-boosted ML models provide superior accuracy, sub-10ms latency, and negligible inference cost for tabular data.',
+      'A centralized feature store guarantees that feature transformations in production match training features identically.',
+      'Managed online endpoints provide automated blue/green canary rollouts with zero downtime.',
+      'Drift monitoring detects covariate shift and triggers automated retraining before model accuracy decays in production.'
+    ],
+    fails: [
+      'Train-serve skew: computing features differently in Python training notebooks than in production streaming APIs.',
+      'Attempting to use an expensive LLM for tabular numerical prediction where XGBoost or LightGBM is 100x faster and cheaper.',
+      'Deploying without drift detection, leading to silent degradation as consumer habits or market conditions change.',
+      'Lack of reproducible conda environment definitions causing deployment failures on endpoint updates.'
+    ]
+  },
+  {
+    id: 'ai-decision-support', name: 'Executive Decision Support & Causal Analytics',
+    short: 'Combining analytical Lakehouse data, causal machine learning, and natural language synthesis for C-suite decision support.',
+    when: 'Translating complex enterprise data warehouses into actionable executive intelligence with scenario modeling and uncertainty intervals.',
+    flow: [
+      { l: 'Lakehouse data', s: 'databricks' },
+      { l: 'Curated store', s: 'cosmos' },
+      { l: 'Reasoning agent', s: 'agent-framework' },
+      { l: 'Foundry models', s: 'foundry-models' },
+      { l: 'Data governance', s: 'purview' },
+      { l: 'Executive UI', s: 'app-service' }
+    ],
+    steps: [
+      [0, 'Enterprise financial, supply chain, and customer data are aggregated in [[databricks]] Delta tables.'],
+      [1, 'Materialized KPIs and scenario projections are synchronized into [[cosmos|Cosmos DB]] for sub-10ms queries.'],
+      [2, 'A decision-support agent built with [[agent-framework|Microsoft Agent Framework]] receives executive queries and formulates analytical query plans.'],
+      [3, 'The agent queries analytical models, calculates confidence intervals, and synthesizes strategic narratives via [[foundry-models]].'],
+      [4, 'Data classification, lineage, and sensitivity labels are governed by [[purview]].'],
+      [5, 'Interactive scenario dashboards and natural language answers are served securely via [[app-service]].']
+    ],
+    why: [
+      'Combines deterministic SQL and statistical modeling with natural language reasoning to eliminate hallucinations in business metrics.',
+      'Executive decision-makers can interrogate complex multi-table lakehouses through conversational dialogue.',
+      'Purview governance guarantees sensitive financial data and executive summaries conform to access controls.',
+      'Cosmos DB caching allows instant interactive response for recurring executive queries and dashboards.'
+    ],
+    fails: [
+      'Allowing LLMs to calculate mathematical totals directly instead of delegating math to SQL or code interpreter tools.',
+      'Missing confidence intervals: presenting statistical forecasts as certainties without uncertainty boundaries.',
+      'Lack of schema documentation causing the agent to query obsolete columns or misunderstood business metrics.',
+      'Missing lineage: inability to show executive auditors the exact raw data rows underlying a generated recommendation.'
+    ]
+  },
+  {
+    id: 'enterprise-search', name: 'Enterprise AI Search with Integrated Vectorization',
+    short: 'Unified hybrid search over SharePoint, Blob, and SQL with chunking, custom skillsets, semantic ranker and zero-trust ACLs.',
+    when: 'Building organization-wide knowledge discovery across disparate silos with automated indexing schedules.',
+    flow: [
+      { l: 'Data sources', s: 'blob' },
+      { l: 'Doc extraction', s: 'doc-intelligence' },
+      { l: 'Search indexer', s: 'ai-search' },
+      { l: 'Semantic ranker', s: 'ai-search' },
+      { l: 'Governance', s: 'purview' },
+      { l: 'Search gateway', s: 'apim' }
+    ],
+    steps: [
+      [0, 'Internal corporate repositories, documentation, and policies reside in [[blob]] and file storage.'],
+      [1, '[[doc-intelligence|Document Intelligence]] extracts structured layouts, tabular grids, and text from complex PDFs.'],
+      [2, 'Integrated vectorization in [[ai-search]] generates dense embeddings and maintains the search index automatically.'],
+      [3, 'Incoming user queries run hybrid search (BM25 + vectors) reranked by the [[ai-search|Semantic Ranker]] for maximum relevance.'],
+      [4, 'Data discovery, sensitivity labeling, and access policies are maintained through [[purview]].'],
+      [5, 'Enterprise client applications query the search index through [[apim]] with rate limiting and telemetry.']
+    ],
+    why: [
+      'Integrated vectorization eliminates custom embedding pipeline code by generating embeddings directly inside the search indexer.',
+      'Layout-aware document cracking preserves table structures and reading order across complex enterprise documents.',
+      'Hybrid search with semantic reranking delivers superior NDCG relevance across both domain jargon and semantic queries.',
+      'API Management provides centralized monitoring, token quotas, and security policy enforcement for search consumers.'
+    ],
+    fails: [
+      'Relying solely on keyword search for semantic queries or solely on vector search for exact product codes and acronyms.',
+      'Indexing raw OCR text without table reconstruction, resulting in jumbled numbers and lost row associations.',
+      'Ignoring index partition limits: vector dimensions and document counts exceeding single-partition capacity.',
+      'Missing security trimming filters allowing employees to retrieve confidential HR or executive documents.'
+    ]
   }
 ];

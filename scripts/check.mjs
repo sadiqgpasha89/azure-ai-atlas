@@ -186,6 +186,80 @@ else {
   if (!Array.isArray(A.labs.exercises) || A.labs.exercises.length < 5) err('labs: expected at least 5 exercises');
 }
 
+// advisor
+if (!A.advisor || typeof A.advisor !== 'object') err('advisor: missing A.advisor');
+else {
+  const advQ = A.advisor.questions;
+  if (!Array.isArray(advQ) || advQ.length < 5) err('advisor: questions missing');
+  let advTest = A.advisor.recommend(A.advisor.defaults);
+  if (!advTest.headline || !archIds.has(advTest.arch)) err(`advisor default recommendation failed arch check: ${advTest.arch}`);
+  advTest.stack.forEach(s => { if (!ids.has(s.id)) err(`advisor stack unknown service ${s.id}`); });
+  advTest.next.forEach(n => { if (!decIds.has(n.id)) err(`advisor next unknown decision ${n.id}`); });
+}
+
+// ragLab
+if (!A.ragLab || typeof A.ragLab !== 'object') err('ragLab: missing A.ragLab');
+else {
+  if (!Array.isArray(A.ragLab.chunkingStrategies) || A.ragLab.chunkingStrategies.length < 5) err('ragLab: expected at least 5 chunkingStrategies');
+  if (!Array.isArray(A.ragLab.retrievalStrategies) || A.ragLab.retrievalStrategies.length < 5) err('ragLab: expected at least 5 retrievalStrategies');
+  if (!Array.isArray(A.ragLab.benchmarkExperiments) || A.ragLab.benchmarkExperiments.length < 4) err('ragLab: expected at least 4 benchmarkExperiments');
+}
+
+// agentPatterns
+if (!A.agentPatterns || typeof A.agentPatterns !== 'object') err('agentPatterns: missing A.agentPatterns');
+else {
+  if (!Array.isArray(A.agentPatterns.patterns) || A.agentPatterns.patterns.length < 15) err('agentPatterns: expected at least 15 patterns');
+  if (!Array.isArray(A.agentPatterns.frameworks) || A.agentPatterns.frameworks.length < 5) err('agentPatterns: expected at least 5 frameworks');
+}
+
+// securityCenter
+if (!A.securityCenter || typeof A.securityCenter !== 'object') err('securityCenter: missing A.securityCenter');
+else {
+  if (!Array.isArray(A.securityCenter.threatCatalog) || A.securityCenter.threatCatalog.length < 10) err('securityCenter: expected at least 10 threats');
+  if (!Array.isArray(A.securityCenter.governanceGates) || A.securityCenter.governanceGates.length < 8) err('securityCenter: expected at least 8 governanceGates');
+}
+
+// evaluationCenter
+if (!A.evaluationCenter || typeof A.evaluationCenter !== 'object') err('evaluationCenter: missing A.evaluationCenter');
+else {
+  if (!Array.isArray(A.evaluationCenter.testingPyramid) || A.evaluationCenter.testingPyramid.length < 6) err('evaluationCenter: expected at least 6 testing levels');
+  if (!Array.isArray(A.evaluationCenter.agentMetrics) || A.evaluationCenter.agentMetrics.length < 7) err('evaluationCenter: expected at least 7 agentMetrics');
+}
+
+// finops
+if (!A.finops || typeof A.finops !== 'object') err('finops: missing A.finops');
+else {
+  if (!Array.isArray(A.finops.modelPricing) || A.finops.modelPricing.length < 6) err('finops: expected at least 6 modelPricing items');
+  if (!Array.isArray(A.finops.scaleProfiles) || A.finops.scaleProfiles.length < 4) err('finops: expected at least 4 scaleProfiles');
+  const roi = A.finops.calculateROI({ employees: 100, hourlyWage: 50 });
+  if (typeof roi.roiPercentage !== 'number') err('finops: calculateROI failed');
+}
+
+// troubleshooting
+if (!A.troubleshooting || typeof A.troubleshooting !== 'object') err('troubleshooting: missing A.troubleshooting');
+else {
+  if (!Array.isArray(A.troubleshooting.categories) || A.troubleshooting.categories.length < 3) err('troubleshooting: expected at least 3 categories');
+}
+
+// traditionalML
+if (!A.traditionalML || typeof A.traditionalML !== 'object') err('traditionalML: missing A.traditionalML');
+else {
+  if (!Array.isArray(A.traditionalML.mlLifecycle) || A.traditionalML.mlLifecycle.length < 8) err('traditionalML: expected at least 8 mlLifecycle stages');
+}
+
+// emWorkspace
+if (!A.emWorkspace || typeof A.emWorkspace !== 'object') err('emWorkspace: missing A.emWorkspace');
+else {
+  if (!Array.isArray(A.emWorkspace.assessmentQuestions) || A.emWorkspace.assessmentQuestions.length < 10) err('emWorkspace: expected at least 10 assessmentQuestions');
+  if (!Array.isArray(A.emWorkspace.skillsMatrix) || A.emWorkspace.skillsMatrix.length < 5) err('emWorkspace: expected at least 5 skillsMatrix roles');
+}
+
+// serviceMatrix
+if (!A.serviceMatrix || typeof A.serviceMatrix !== 'object') err('serviceMatrix: missing A.serviceMatrix');
+else {
+  if (!Array.isArray(A.serviceMatrix.comparisonMatrix) || A.serviceMatrix.comparisonMatrix.length < 5) err('serviceMatrix: expected at least 5 comparisonMatrix items');
+}
+
 // solution shaper: exhaustively run every answer combination
 const Q = A.shaper.questions;
 let combos = 0;
