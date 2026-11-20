@@ -52,7 +52,7 @@ A change is releasable when:
 - External link checking. The build sandbox could not reach Microsoft Learn; run a link checker where it can.
 - Lighthouse or other performance measurement. No budget has been set, and no score is claimed.
 - Component-level tests beyond the calculators and search.
-- First run of `ci.yml` on a GitHub runner. The commands were run locally; the workflow file itself has not been exercised.
+- Running `pages.yml` itself. `ci.yml` has passed on a GitHub runner (pull request #2: checks, tests and the browser smoke job), but the deploy job runs only on a merge to `main`.
 
 ## Post-deployment smoke checklist
 

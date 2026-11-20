@@ -76,7 +76,7 @@ Sequenced by dependency. Do not start P2 or P3 work while P0 content is unverifi
 
 - Run an accessibility scanner and a manual keyboard and screen-reader pass; record results in `docs/quality-and-acceptance.md`.
 - Run a link checker from an environment that can reach Microsoft Learn.
-- Run `ci.yml` once on GitHub and fix anything the runner shows.
+- Watch the first `pages.yml` run after merge; `ci.yml` already passed on PR #2.
 - Remove inline `style=` attributes so `style-src` can drop `'unsafe-inline'`.
 - Explain the `localStorage` keys on the page itself.
 - Add search filters for role, difficulty and phase, and related-content links, once those fields exist in the data.

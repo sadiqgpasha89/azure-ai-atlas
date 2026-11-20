@@ -37,7 +37,7 @@ This ledger is the honest summary. The checkboxes below are ticked only where th
 | 18 Sourcing and freshness | 20 | Partial | Registry, `#/freshness`, issue template; 4 of 59 services and 3 of 17 modules carry verified scope |
 | 19 Quality and testing | 21 | Partial | 36 unit tests, browser smoke over every route; no axe scan, external link check or Lighthouse |
 | 20 Security hardening | 22 | Partial | CSP, no inline script, no secrets, no dependencies; headers unavailable on Pages |
-| 21 Release | 23 | Partial | Deploy gated on checks and tests; `ci.yml` not yet run on GitHub |
+| 21 Release | 23 | Partial | Deploy gated on checks and tests; `ci.yml` passed on GitHub (PR #2); deploy job runs only on merge |
 | Final acceptance 1 to 5 | 27 | Not run | Closest content mapped in `docs/roadmap.md` |
 | Completion report | 28 | Not due | A report for this pass accompanies the pull request. The final report waits for the acceptance scenarios |
 
