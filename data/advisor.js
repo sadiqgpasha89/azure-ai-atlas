@@ -73,7 +73,7 @@ window.ATLAS.advisor = {
       id: 'budget',
       label: '7. What is your cost and capacity strategy?',
       options: [
-        ['frugal', 'Cost-optimized / Pay-as-you-go (Small models like GPT-4o-mini, serverless compute, aggressive caching)'],
+        ['frugal', 'Cost-optimized / Pay-as-you-go (Small-tier models, serverless compute, aggressive caching)'],
         ['balanced', 'Balanced (Frontier models for reasoning, small models for routing, semantic caching)'],
         ['reserved', 'High-throughput / Dedicated (Provisioned Throughput Units (PTU) or reserved GPU clusters)']
       ]
@@ -146,9 +146,9 @@ window.ATLAS.advisor = {
     if (b === 'reserved' && (s === 'enterprise' || s === 'highscale')) {
       stack.push({ id: 'foundry-models', role: 'Foundation Model Inference', why: 'Provisioned Throughput Units (PTU) for guaranteed latency and zero 429 throttling under high enterprise concurrency.', alt: 'Pay-as-you-go global standard (costly at steady volume, subject to throttling).' });
     } else if (b === 'frugal') {
-      stack.push({ id: 'foundry-models', role: 'Foundation Model Inference', why: 'Pay-as-you-go GPT-4o-mini and Phi-4 with prompt caching for minimal token expenditure.', alt: 'Large frontier models like GPT-4o (10x token cost).' });
+      stack.push({ id: 'foundry-models', role: 'Foundation Model Inference', why: 'Pay-as-you-go small-tier models and Phi-family models with prompt caching for minimal token expenditure.', alt: 'Large frontier models like frontier-tier model (10x token cost).' });
     } else {
-      stack.push({ id: 'foundry-models', role: 'Foundation Model Inference', why: 'Tiered deployment: GPT-4o for complex synthesis, GPT-4o-mini for query routing and extraction.', alt: 'Self-hosted open models on AKS (requires dedicated GPU maintenance).' });
+      stack.push({ id: 'foundry-models', role: 'Foundation Model Inference', why: 'Tiered deployment: frontier-tier model for complex synthesis, small-tier model for query routing and extraction.', alt: 'Self-hosted open models on AKS (requires dedicated GPU maintenance).' });
     }
 
     if (w === 'predictive-ml') {

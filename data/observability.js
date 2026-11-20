@@ -161,7 +161,7 @@ S({
   edges: [
     'Environments and deployment protection rules mandate manual approvals from Engineering Managers before production release.',
     'Automated rollback triggers automatically if canary error rates exceed thresholds in [[azure-monitor]].',
-    'Matrix testing evaluates prompt variations across multiple models (e.g. GPT-4o vs GPT-4o-mini) simultaneously.'
+    'Matrix testing evaluates prompt variations across multiple models (e.g. frontier-tier vs small-tier models) simultaneously.'
   ],
   ml: [
     'Automating the GenAIOps release lifecycle from prompt commit to production canary.',

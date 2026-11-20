@@ -37,7 +37,7 @@ window.ATLAS.foundry = {
       subsections: [
         {
           title: 'Model Categories & Trade-Offs',
-          content: '• Frontier OpenAI Models (GPT-4o, GPT-4o-mini): Industry standard for complex general reasoning, tool calling, and multimodal vision.\n• Deep Reasoning Models (o1, o3-mini): Chain-of-thought planning, algorithmic reasoning, complex code generation, and mathematical validation.\n• Open-Source / Open-Weight Models (Meta Llama 3.3 70B, Mistral Large, DeepSeek): Unrestricted model weights, vendor-neutral deployments, and fine-tuning freedom.\n• Small Language Models (Phi-4 14B): High-throughput, low-latency, cost-effective models optimized for classification, summarization, and edge deployment.\n• Specialized Models: text-embedding-3-large (3072 dims), Cohere Rerank, Document Intelligence layout models.'
+          content: '• Frontier and small OpenAI models: Industry standard for complex general reasoning, tool calling, and multimodal vision.\n• Deep Reasoning Models: Chain-of-thought planning, algorithmic reasoning, complex code generation, and mathematical validation.\n• Open-Source / Open-Weight Models (Meta Llama 3.3 70B, Mistral Large, DeepSeek): Unrestricted model weights, vendor-neutral deployments, and fine-tuning freedom.\n• Small Language Models (Phi-4 14B): High-throughput, low-latency, cost-effective models optimized for classification, summarization, and edge deployment.\n• Specialized Models: text-embedding-3-large (3072 dims), Cohere Rerank, Document Intelligence layout models.'
         },
         {
           title: 'Serverless API vs Managed Compute Deployments',
@@ -45,7 +45,7 @@ window.ATLAS.foundry = {
         },
         {
           title: 'Tool Calling & Structured Output Optimization',
-          content: 'Not all models excel at agentic tool calling. GPT-4o, o3-mini, and Llama 3.3 70B provide native JSON schema validation and function calling support with low schema failure rates (<0.5%). Smaller or unaligned models often require explicit parsing wrappers, retry loops, and schema reflection prompts.'
+          content: 'Not all models excel at agentic tool calling. Many frontier, reasoning-tier and large open-weight models provide native JSON schema validation and function calling support with low schema failure rates (<0.5%). Smaller or unaligned models often require explicit parsing wrappers, retry loops, and schema reflection prompts.'
         }
       ]
     },
@@ -56,7 +56,7 @@ window.ATLAS.foundry = {
       subsections: [
         {
           title: 'Pay-as-you-go vs Provisioned Throughput (PTU)',
-          content: 'Pay-as-you-go shares global capacity pools; requests are metered per 1,000 tokens and can receive HTTP 429 when regional tenant load surges. Provisioned Throughput Units (PTU) reserve dedicated tensor processing capacity on Microsoft hardware. One PTU provides predictable throughput and guaranteed latency bounds. Sized based on peak concurrency: e.g. 100 PTUs of GPT-4o supports ~60-80 concurrent active sessions.'
+          content: 'Pay-as-you-go shares global capacity pools; requests are metered per 1,000 tokens and can receive HTTP 429 when regional tenant load surges. Provisioned Throughput Units (PTU) reserve dedicated tensor processing capacity on Microsoft hardware. One PTU provides predictable throughput and guaranteed latency bounds. Sized based on peak concurrency: e.g. 100 PTUs of frontier-tier model supports ~60-80 concurrent active sessions.'
         },
         {
           title: 'Batch Inference API (50% Cost Discount)',
@@ -64,11 +64,11 @@ window.ATLAS.foundry = {
         },
         {
           title: 'Token & Request Quota Governance (TPM & RPM)',
-          content: 'Quotas are assigned per model SKU per subscription/region. Teams must implement client-side token bucket rate limiters, configure Azure API Management throttling policies, and design automated failover to alternate regions or fallback models (e.g. primary East US GPT-4o -> secondary Sweden Central GPT-4o -> fallback GPT-4o-mini) when 429 status codes occur.'
+          content: 'Quotas are assigned per model SKU per subscription/region. Teams must implement client-side token bucket rate limiters, configure Azure API Management throttling policies, and design automated failover to alternate regions or fallback models (e.g. primary East US frontier-tier model -> secondary Sweden Central frontier-tier model -> fallback small-tier model) when 429 status codes occur.'
         },
         {
           title: 'Latency Optimization Techniques',
-          content: '1. Streaming Server-Sent Events (SSE): Reduces Time to First Token (TTFT) from 2,500ms to <300ms, improving perceived user responsiveness.\n2. Prompt Caching: Automatic 50% cost and latency discount when prompts share prefixes >1,024 tokens (system prompts, few-shot examples, large schemas).\n3. Speculative Decoding: Leverages a small draft model (Phi-4) to propose tokens verified by a larger model (GPT-4o), boosting generation speed by 1.8x.'
+          content: '1. Streaming Server-Sent Events (SSE): Reduces Time to First Token (TTFT) from 2,500ms to <300ms, improving perceived user responsiveness.\n2. Prompt Caching: Automatic 50% cost and latency discount when prompts share prefixes >1,024 tokens (system prompts, few-shot examples, large schemas).\n3. Speculative Decoding: Leverages a small draft model (Phi-4) to propose tokens verified by a larger model (frontier-tier model), boosting generation speed by 1.8x.'
         }
       ]
     },
@@ -83,7 +83,7 @@ window.ATLAS.foundry = {
         },
         {
           title: 'Model Context Protocol (MCP) Integration',
-          desc: 'Foundry Agent Service supports the Model Context Protocol (MCP), allowing agents to discover and invoke tools, query external databases (SQL, Postgres), and access enterprise systems (Salesforce, Jira) over standardized JSON-RPC protocols with perimeter security.'
+          content: 'Foundry Agent Service supports the Model Context Protocol (MCP), allowing agents to discover and invoke tools, query external databases (SQL, Postgres), and access enterprise systems (Salesforce, Jira) over standardized JSON-RPC protocols with perimeter security.'
         },
         {
           title: 'Agent Identity & Token Delegation',
@@ -144,7 +144,7 @@ for dep in deployments:
 
 # Define agent with Code Interpreter and File Search tools
 agent = project_client.agents.create_agent(
-    model="gpt-4o",
+    model="<your-deployment-name>",
     name="financial-analyst-agent",
     instructions="You are an expert financial analyst. Analyze uploaded earnings PDFs and execute Python code to generate summary metrics and growth charts.",
     tools=[CodeInterpreterTool(), FileSearchTool()]

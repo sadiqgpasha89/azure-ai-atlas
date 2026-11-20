@@ -167,6 +167,7 @@
         '<a class="btn" href="#/finops">FinOps Calculator</a>' +
         '<a class="btn" href="#/em-workspace">EM Workspace</a>' +
         '<a class="btn" href="#/advanced-ai">Advanced AI</a>' +
+        '<a class="btn" href="#/freshness">What is verified</a>' +
       '</div>' +
       '</div>' + heroSVG() + '</section>';
 
@@ -191,6 +192,7 @@
       '<a class="card" style="--h:190" href="#/d"><div class="mini">Decisions</div><h3>16. Architecture Decision Centre</h3><p>' + A.decisions.length + ' architectural decision guides with dedicated EM and PE lenses, reversibility markers, red flags, and review questions.</p></a>' +
       '<a class="card" style="--h:212" href="#/p"><div class="mini">Playbooks</div><h3>17. AI Engineering Playbooks</h3><p>5 in-depth playbooks: RAG Engineering, Multi-Agent Orchestration, GenAIOps Lifecycle, Security Hardening, and SRE/Reliability.</p></a>' +
       '<a class="card" style="--h:305" href="#/labs"><div class="mini">Curriculum</div><h3>18. Hands-on Labs & Roadmaps</h3><p>3 role-based progressive roadmaps (EM, PE, Engineer), 5 practical production labs, and official Microsoft Learn links.</p></a>' +
+      '<a class="card" style="--h:150" href="#/freshness"><div class="mini">Content governance</div><h3>20. Freshness & Sources</h3><p>What has been checked against Microsoft documentation, on what date, from which source, and what has not. Includes the model lifecycle table.</p></a>' +
       '<a class="card" style="--h:25" href="#/gov"><div class="mini">Governance</div><h3>19. Landing Zones & Tenancy</h3><p>Cloud Adoption Framework (CAF) AI landing zones, management group hierarchy, Virtual WAN hub-and-spoke, and tenancy models.</p></a>' +
       '</div>';
 
@@ -231,7 +233,7 @@
     var c = catById[s.cat], hue = c.hue, i = c.items.indexOf(s);
     var h = '<div class="eyebrow"><a href="#/">Atlas</a> / <a class="chip" style="--h:' + hue + '" href="#/c/' + c.id + '">' + esc(c.name) + '</a>' +
       (s.doc ? '<a href="https://learn.microsoft.com/' + esc(s.doc) + '" target="_blank" rel="noopener">Microsoft Learn ↗</a>' : '') + '</div>';
-    h += '<h1>' + esc(s.name) + '</h1><p class="lede">' + esc(s.tag) + '</p>';
+    h += '<h1>' + esc(s.name) + '</h1><p class="lede">' + esc(s.tag) + '</p>' + verificationBox(id);
     h += '<h2 style="margin-top:28px">What it is</h2>' + paras(s.what);
     h += '<h2>How it works</h2>' + stepperHost({ flow: s.flow, steps: s.steps, hue: hue });
     h += '<div class="lists two" style="margin-top:34px"><div class="box warn"><h3>Gotchas</h3>' + ul(s.gotchas) + '</div><div class="box"><h3>Edge cases</h3>' + ul(s.edges) + '</div></div>';
@@ -435,7 +437,7 @@
     var h = '<div class="eyebrow"><a href="#/">Atlas</a> / <a href="#/d">Decisions</a> / Tool</div><h1>Solution shaper</h1>' +
       '<p class="lede">Describe the system. Get a starting shape you can argue with.</p>' +
       '<div class="callout"><b>Read this first</b>This is a rule-based starting point, not an architecture sign-off. It shows the usual shape for your answers and the decisions most worth a conversation. Your evals and constraints override it.</div>' +
-      '<div class="shaper"><form id="shForm" class="shform" onsubmit="return false">';
+      '<div class="shaper"><form id="shForm" class="shform">';
     Q.forEach(function (q) {
       h += '<fieldset data-q="' + q.id + '"><legend>' + esc(q.label) + '</legend>' + q.options.map(function (o) {
         return '<label class="opt"><input type="radio" name="' + q.id + '" value="' + o[0] + '"><span>' + esc(o[1]) + '</span></label>';
@@ -586,7 +588,7 @@
     var h = '<div class="eyebrow"><a href="#/">Atlas</a> / <a href="#/d">Decisions</a> / Tool</div><h1>Cost per task</h1>' +
       '<p class="lede">Unit economics for an LLM feature, and which levers move them.</p>' +
       '<div class="callout"><b>About the numbers</b>Prices here are placeholders for the arithmetic. Look up current prices for your model and Region, and measure your own token counts. Nothing is sent anywhere: the calculation runs in your browser.</div>' +
-      '<div class="wide"><div class="calc"><form id="calcForm" class="calcform" onsubmit="return false">';
+      '<div class="wide"><div class="calc"><form id="calcForm" class="calcform">';
     CALC_FIELDS.forEach(function (g) {
       h += '<fieldset><legend>' + esc(g[0]) + '</legend>';
       g[1].forEach(function (f) {
@@ -760,13 +762,14 @@
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Production Operations</div>' +
       '<h1>' + esc(op.title) + '</h1>' +
       '<p class="lede">' + fmt(op.lede) + '</p>' +
+      lifecycleNotice() +
       '<div class="callout"><b>AI SRE & Observability Command Center</b>Real-time telemetry, specialized dashboards, continuous CI/CD evaluation gates, and actionable incident runbooks for production AI and agent workloads.</div>';
 
     // 1. Specialized Dashboard Blueprints
     if (op.dashboardBlueprints && op.dashboardBlueprints.length) {
       h += '<h2>1. Specialized Production Dashboard Blueprints</h2>' +
         '<p style="max-width:68ch">Four purpose-built monitoring dashboards covering application availability, agent execution loops, RAG retrieval quality, and FinOps unit economics.</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin:20px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:16px;margin:20px 0">';
       op.dashboardBlueprints.forEach(function (db) {
         h += '<div class="dash-card">' +
           '<div class="dash-top">' +
@@ -801,24 +804,23 @@
 
       h += '<h3>The 13 Versioned AI Engineering Artifacts</h3>' +
         '<p style="max-width:68ch">Production repeatability requires explicit versioning across all 13 AI artifacts in Git, registries, and configuration stores.</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:16px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px;margin:16px 0">';
       dlc.artifactsToVersion.forEach(function (art) {
         h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:10px 12px">' +
           '<div style="font-weight:700;font-size:13px;color:var(--accent)">' + esc(art.artifact) + '</div>' +
-          '<div style="font-size:12px;margin:3px 0"><code>' + esc(art.storage) + '</code></div>' +
-          '<div style="font-size:11px;color:var(--muted)">' + esc(art.practice) + '</div>' +
+          '<div style="font-size:12px;margin:3px 0"><code>' + esc(art.tool) + '</code></div>' +
+          '<div style="font-size:11px;color:var(--muted)">' + esc(art.format) + '</div>' +
         '</div>';
       });
       h += '</div>';
 
       h += '<h3>Multi-Tier Environment & Promotion Strategy</h3>' +
         '<div class="tablewrap"><table class="matrix-table">' +
-        '<thead><tr><th>Environment</th><th>Scope & Configuration</th><th>Data & Model Boundary</th><th>Gate to Next Tier</th></tr></thead><tbody>';
+        '<thead><tr><th>Environment</th><th>Purpose</th><th>Typical Configuration</th></tr></thead><tbody>';
       dlc.environmentStrategy.forEach(function (env) {
-        h += '<tr><td><b>' + esc(env.tier) + '</b></td>' +
+        h += '<tr><td><b>' + esc(env.env) + '</b></td>' +
           '<td>' + esc(env.purpose) + '</td>' +
-          '<td>' + esc(env.isolation) + '</td>' +
-          '<td><b>' + esc(env.promotionGate) + '</b></td></tr>';
+          '<td>' + esc(env.configuration) + '</td></tr>';
       });
       h += '</tbody></table></div>';
     }
@@ -952,10 +954,10 @@
     // RAID Tracker
     h += '<h2>' + esc(tk.raidTracker.title) + '</h2>' +
       '<p>' + fmt(tk.raidTracker.intro) + '</p>' +
-      '<div class="tablewrap"><table class="matrix-table"><thead><tr><th>Type</th><th>Risk / Assumption / Issue / Dependency</th><th>Engineering Mitigation Strategy</th></tr></thead><tbody>' +
+      '<div class="tablewrap"><table class="matrix-table"><thead><tr><th>Type</th><th>Risk / Assumption / Issue / Dependency</th><th>Mitigation / Validation / Resolution</th></tr></thead><tbody>' +
       tk.raidTracker.items.map(function (it) {
         var cls = it.type === 'Risk' ? 'door one-way' : (it.type === 'Issue' ? 'door mixed' : 'door two-way');
-        return '<tr><td><span class="' + cls + '">' + esc(it.type) + '</span></td><td><b>' + esc(it.title) + '</b></td><td>' + fmt(it.mitigation) + '</td></tr>';
+        return '<tr><td><span class="' + cls + '">' + esc(it.type) + '</span></td><td><b>' + esc(it.title) + '</b></td><td>' + fmt(it.mitigation || it.validation || it.resolution || '') + '</td></tr>';
       }).join('') + '</tbody></table></div>';
 
     // Quality Gates
@@ -1078,8 +1080,9 @@
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Interactive Tool</div>' +
       '<h1>Azure AI Architecture Advisor</h1>' +
       '<p class="lede">' + esc(adv.lede) + '</p>' +
+      lifecycleNotice() +
       '<div class="callout"><b>AI Architecture Command Center</b>Answer seven workload dimensions to generate a tailored Azure AI architecture blueprint, service stack with trade-offs, security design, delivery phasing, and an executive Architecture Decision Record (ADR).</div>' +
-      '<div class="shaper"><form id="advForm" class="shform" onsubmit="return false">';
+      '<div class="shaper"><form id="advForm" class="shform">';
 
     adv.questions.forEach(function (q) {
       h += '<fieldset data-q="' + q.id + '"><legend>' + esc(q.label) + '</legend>' +
@@ -1155,13 +1158,14 @@
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Engineering Lab</div>' +
       '<h1>' + esc(lab.title) + '</h1>' +
       '<p class="lede">' + esc(lab.lede) + '</p>' +
+      lifecycleNotice() +
       '<div class="callout"><b>Production Grounding Playbook</b>RAG systems succeed or fail at the ingestion and retrieval layers. Compare 14 RAG architecture patterns, build robust ingestion pipelines, master chunking trade-offs, evaluate retrieval scoring algorithms, and calculate retrieval quality metrics.</div>';
 
     // 1. The 14 RAG Architecture Patterns Catalog
     if (lab.patterns && lab.patterns.length) {
       h += '<h2>1. The 14 RAG Architecture Patterns</h2>' +
         '<p style="max-width:68ch">From basic naive RAG to advanced Graph RAG, Agentic RAG, and Speculative RAG: patterns classified by difficulty, flow, and Azure implementation.</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin:20px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:16px;margin:20px 0">';
       lab.patterns.forEach(function (p) {
         var diffHue = p.difficulty === 'Beginner' ? 150 : (p.difficulty === 'Intermediate' ? 212 : (p.difficulty === 'Advanced' ? 280 : 0));
         h += '<div class="pattern-card">' +
@@ -1189,16 +1193,16 @@
         '<div class="box" style="margin:16px 0">' +
           '<div style="font-weight:700;font-size:12px;font-family:var(--mono);text-transform:uppercase;color:var(--muted);margin-bottom:8px">Ingestion Pipeline Stages:</div>' +
           '<ol style="margin:0;padding-left:20px;font-size:13px;line-height:1.6">' +
-            ing.stages.map(function (st) { return '<li>' + esc(st) + '</li>'; }).join('') +
+            ing.stages.map(function (st) { return '<li><b>' + esc(st.step.replace(/^\d+\.\s*/, '')) + '.</b> ' + esc(st.desc) + '</li>'; }).join('') +
           '</ol>' +
         '</div>';
 
       h += '<h3>Production Ingestion Engineering Topics</h3>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:16px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px;margin:16px 0">';
       ing.productionTopics.forEach(function (pt) {
         h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:10px;padding:12px 14px">' +
           '<h4 style="margin:0 0 6px;font-size:14px;font-weight:700;color:var(--accent)">' + esc(pt.topic) + '</h4>' +
-          '<p style="margin:0;font-size:12px;line-height:1.55;color:var(--ink)">' + esc(pt.guidance) + '</p>' +
+          '<p style="margin:0;font-size:12px;line-height:1.55;color:var(--ink)">' + esc(pt.desc) + '</p>' +
         '</div>';
       });
       h += '</div>';
@@ -1208,12 +1212,12 @@
     if (lab.searchReference) {
       h += '<h2>3. ' + esc(lab.searchReference.title) + '</h2>' +
         '<p style="max-width:68ch">Azure AI Search index tuning, vector algorithms, scoring profiles, and security trimming architecture.</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:16px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px;margin:16px 0">';
       lab.searchReference.topics.forEach(function (tp) {
         h += '<div class="card" style="--h:212">' +
           '<div class="mini">Search Engine</div>' +
-          '<h3>' + esc(tp.concept) + '</h3>' +
-          '<p style="font-size:13px;color:var(--ink);line-height:1.55">' + esc(tp.guidance) + '</p>' +
+          '<h3>' + esc(tp.name) + '</h3>' +
+          '<p style="font-size:13px;color:var(--ink);line-height:1.55">' + esc(tp.desc) + '</p>' +
         '</div>';
       });
       h += '</div>';
@@ -1255,12 +1259,11 @@
       h += '<h2>6. RAG Evaluation Metrics Reference</h2>' +
         '<p style="max-width:68ch">The 11 core metrics used to evaluate and gate production RAG systems.</p>' +
         '<div class="tablewrap"><table class="matrix-table">' +
-        '<thead><tr><th>Metric</th><th>Target Threshold</th><th>What It Measures</th><th>Failure Mode / Cause</th></tr></thead><tbody>';
+        '<thead><tr><th>Metric</th><th>Illustrative Target</th><th>What It Measures</th></tr></thead><tbody>';
       lab.evaluationMetrics.forEach(function (em) {
-        h += '<tr><td><b>' + esc(em.metric) + '</b></td>' +
+        h += '<tr><td><b>' + esc(em.name) + '</b></td>' +
           '<td><span class="chip" style="--h:150">' + esc(em.target) + '</span></td>' +
-          '<td>' + esc(em.description) + '</td>' +
-          '<td style="color:var(--warn)">' + esc(em.failureMode) + '</td></tr>';
+          '<td>' + esc(em.definition) + '</td></tr>';
       });
       h += '</tbody></table></div>';
     }
@@ -1269,7 +1272,7 @@
     h += '<h2>7. Interactive RAG Quality Calculator</h2>' +
       '<p style="max-width:68ch">Enter test dataset metrics to compute Groundedness, Answer Relevance, Context Recall, and Ranking MRR.</p>' +
       '<div class="wide"><div class="calc">' +
-        '<form id="ragCalcForm" class="calcform" onsubmit="return false">' +
+        '<form id="ragCalcForm" class="calcform">' +
           '<fieldset><legend>Evaluation Benchmark Dataset Inputs</legend>' +
             '<label class="num"><span class="nl2">Total Test Queries Evaluated</span><span class="inp"><input type="number" id="ragQueries" value="100" min="10" step="5"></span></label>' +
             '<label class="num"><span class="nl2">Queries with Correct Context in Top-5</span><span class="inp"><input type="number" id="ragRecall5Hits" value="92" min="0" step="1"></span><small>Measures Retrieval Recall@5</small></label>' +
@@ -1347,27 +1350,29 @@
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Agentic AI</div>' +
       '<h1>' + esc(ap.title) + '</h1>' +
       '<p class="lede">' + esc(ap.lede) + '</p>' +
+      lifecycleNotice() +
       '<div class="callout"><b>Agent Design Catalog</b>A comprehensive catalog of 18 architectural patterns for autonomous agents and multi-agent systems, complete with execution flows, Azure implementations, trade-offs, and framework selection matrices.</div>';
 
     // 1. Agent Fundamentals & Distinctions
     if (ap.fundamentals) {
       h += '<h2>1. ' + esc(ap.fundamentals.title) + '</h2>' +
         '<p style="max-width:68ch">Distinguishing between raw foundation models, conversational chatbots, deterministic workflows, and true autonomous agent systems.</p>' +
-        '<div class="tablewrap"><table class="matrix-table">' +
-        '<thead><tr><th>Architecture Paradigm</th><th>Autonomy Level</th><th>Decision Making</th><th>Execution Flow</th><th>Best Suited For</th></tr></thead><tbody>';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px;margin:16px 0">';
       ap.fundamentals.concepts.forEach(function (cp) {
-        h += '<tr><td><b>' + esc(cp.name) + '</b></td>' +
-          '<td><span class="chip" style="--h:212">' + esc(cp.autonomy) + '</span></td>' +
-          '<td>' + esc(cp.decisionMaking) + '</td>' +
-          '<td><code>' + esc(cp.executionFlow) + '</code></td>' +
-          '<td>' + esc(cp.bestFor) + '</td></tr>';
+        var lines = String(cp.desc).split('\n').filter(Boolean);
+        var bullets = lines.length > 1;
+        h += '<div class="card" style="--h:212"><div class="mini">Fundamental</div><h3>' + esc(cp.concept) + '</h3>' +
+          (bullets
+            ? '<ul style="margin:8px 0;padding-left:18px;font-size:13px;line-height:1.55">' + lines.map(function (l) { return '<li style="margin:5px 0">' + esc(l.replace(/^[•\-]\s*/, '')) + '</li>'; }).join('') + '</ul>'
+            : '<p style="font-size:13px;line-height:1.55;color:var(--ink)">' + esc(cp.desc) + '</p>') +
+        '</div>';
       });
-      h += '</tbody></table></div>';
+      h += '</div>';
     }
 
     // 2. The 18 Agent Patterns Grid
     h += '<h2>2. The 18 Agent Architecture Patterns</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:16px;margin:20px 0">';
 
     ap.patterns.forEach(function (p) {
       h += '<div class="pattern-card">' +
@@ -1406,13 +1411,12 @@
     if (ap.orchestrationPrimitives) {
       h += '<h2>4. ' + esc(ap.orchestrationPrimitives.title) + '</h2>' +
         '<p style="max-width:68ch">The foundational structural building blocks used to orchestrate multi-agent workflows.</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px;margin:16px 0">';
       ap.orchestrationPrimitives.primitives.forEach(function (op) {
         h += '<div class="card" style="--h:280">' +
           '<div class="mini">Primitive</div>' +
           '<h3>' + esc(op.name) + '</h3>' +
-          '<p style="font-size:13px;color:var(--ink);margin:4px 0">' + esc(op.description) + '</p>' +
-          '<div style="font-size:12px;color:var(--muted);margin-top:6px"><b>Trade-off:</b> ' + esc(op.tradeoffs) + '</div>' +
+          '<p style="font-size:13px;color:var(--ink);margin:4px 0">' + esc(op.desc) + '</p>' +
         '</div>';
       });
       h += '</div>';
@@ -1447,7 +1451,7 @@
     // 12 Threat Catalog Cards
     h += '<h2>1. AI Threat Catalog (OWASP Top 10 for LLMs)</h2>' +
       '<p style="max-width:68ch">Threat modeling and concrete Azure native mitigations for the 12 most dangerous AI attack vectors.</p>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:16px;margin:20px 0">';
 
     sec.threatCatalog.forEach(function (th) {
       var sevClass = th.severity === 'Critical' ? 'crit' : (th.severity === 'High' ? 'high' : 'med');
@@ -1529,7 +1533,7 @@
 
     // 14 Evaluation Categories
     h += '<h2>2. The 14 Dimensions of AI Quality Evaluation</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:16px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:12px;margin:16px 0">';
     ec.evaluationCategories.forEach(function (cat) {
       h += '<div class="card" style="--h:212"><div class="mini">Evaluation Metric</div><h3>' + esc(cat.category) + '</h3><p>' + esc(cat.focus) + '</p></div>';
     });
@@ -1557,7 +1561,7 @@
     h += '<h2>5. Interactive Release Quality Gate Calculator</h2>' +
       '<p style="max-width:68ch">Select application risk tier and adjust slider metrics to test whether your AI feature passes the release gate.</p>' +
       '<div class="wide"><div class="calc">' +
-        '<form id="evalGateForm" class="calcform" onsubmit="return false">' +
+        '<form id="evalGateForm" class="calcform">' +
           '<fieldset><legend>Select Application Risk Tier</legend>' +
             '<div class="btns" style="margin-bottom:12px">' +
               '<button type="button" class="btn btn-sm subtab active" data-tier="0">Tier 1: Internal Low-Risk</button>' +
@@ -1623,7 +1627,7 @@
       out.innerHTML = '<div class="eyebrow"><span class="chip" style="--h:212">' + esc(tierObj.tier) + '</span></div>' +
         '<h3 style="margin-top:4px">' + (allPassed ? '<span style="color:var(--ok)">✓ Release Gate Passed</span>' : '<span style="color:var(--warn)">✗ Release Gate Blocked</span>') + '</h3>' +
         '<p style="font-size:13px;color:var(--muted)">' + esc(tierObj.description) + '</p>' +
-        '<table class="matrix-table" style="font-size:12px;margin:12px 0">' +
+        '<div class="tablewrap"><table class="matrix-table" style="font-size:12px;margin:12px 0">' +
           '<thead><tr><th>Dimension</th><th>Target Threshold</th><th>Actual Score</th><th>Status</th></tr></thead>' +
           '<tbody>' +
             '<tr><td>Groundedness</td><td>&ge; ' + tierObj.requirements.groundedness + '%</td><td>' + g + '%</td><td><span class="status-pill ' + (passG ? 'ok' : 'warn') + '">' + (passG ? 'PASS' : 'FAIL') + '</span></td></tr>' +
@@ -1632,7 +1636,7 @@
             '<tr><td>Tool Accuracy</td><td>&ge; ' + tierObj.requirements.toolAccuracy + '%</td><td>' + t + '%</td><td><span class="status-pill ' + (passT ? 'ok' : 'warn') + '">' + (passT ? 'PASS' : 'FAIL') + '</span></td></tr>' +
             '<tr><td>Prompt Defense</td><td>&ge; ' + tierObj.requirements.promptInjectionBlock + '%</td><td>' + p + '%</td><td><span class="status-pill ' + (passP ? 'ok' : 'warn') + '">' + (passP ? 'PASS' : 'FAIL') + '</span></td></tr>' +
           '</tbody>' +
-        '</table>' +
+        '</table></div>' +
         '<div class="callout" style="margin-top:12px">' +
           (allPassed ?
             '<b>Certificate of Release Readiness</b>Model and prompt configuration meet all statistical benchmarks for ' + esc(tierObj.tier) + '. Ready to proceed to canary release.' :
@@ -1643,167 +1647,282 @@
     checkGate();
   }
 
-  /* ---------- AI FinOps & Cost Engineering Center ---------- */
+  /* Model lifecycle record from the verification registry (null when the model was not verified). */
+  function lifecycleOf(key) {
+    var v = A.verification, list = (v && v.modelLifecycle) || [];
+    for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i];
+    return null;
+  }
+  function lifecycleChip(key) {
+    var r = lifecycleOf(key);
+    if (!r) return '<span class="chip" style="--h:30" title="Not checked against the Microsoft model retirement table">lifecycle unverified</span>';
+    var tip = 'Retirement: ' + r.retirement + (r.replacement ? ' · Replacement: ' + r.replacement : '') + ' · Verified ' + A.verification.modelLifecycleVerified;
+    return '<span class="chip" style="--h:' + (/deprecated|legacy/i.test(r.lifecycle) ? 20 : 150) + '" title="' + esc(tip) + '">' + esc(r.lifecycle) + '</span>';
+  }
+  /* Shared notice: how fresh the model facts on a page are, with the source. */
+  function lifecycleNotice() {
+    var v = A.verification; if (!v) return '';
+    return '<div class="callout warn" role="note"><b>Model names and lifecycle change</b>Model availability, retirement dates and replacements below were checked against ' +
+      '<a href="' + esc(v.sources[v.modelLifecycleSource].url) + '" rel="noopener">Microsoft’s model retirement table</a> on <strong>' + esc(v.modelLifecycleVerified) +
+      '</strong>. Pages in the Atlas describe model <i>tiers</i> (frontier, small, reasoning) rather than specific model names, because names and retirement dates change. Choose current models from the Microsoft catalog and re-check the retirement table before you commit. Check <a href="#/freshness">what has and has not been verified</a>.</div>';
+  }
+
+  function numField(f, val) {
+    return '<label class="num"><span class="nl2">' + esc(f.label) + '</span><span class="inp"><input type="number" inputmode="decimal" id="' + f.id + '" value="' + val + '" min="' + f.min + '"' +
+      (f.max != null ? ' max="' + f.max + '"' : '') + ' step="' + f.step + '" aria-describedby="' + f.id + 'Err"></span>' +
+      (f.hint ? '<small>' + esc(f.hint) + '</small>' : '') + '<small class="field-err" id="' + f.id + 'Err" role="alert"></small></label>';
+  }
+  /* Reads and validates a field set. Empty, non-numeric or out-of-range values are errors; 0 is valid when min <= 0. */
+  function readFields(fields) {
+    var vals = {}, errs = [];
+    fields.forEach(function (f) {
+      var el = $('#' + f.id), raw = el.value.trim(), n = raw === '' ? NaN : Number(raw), msg = '';
+      if (isNaN(n)) msg = 'Enter a number.';
+      else if (n < f.min) msg = 'Must be at least ' + f.min + '.';
+      else if (f.max != null && n > f.max) msg = 'Must be at most ' + f.max + '.';
+      $('#' + f.id + 'Err').textContent = msg;
+      el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      if (msg) errs.push(f.label + ': ' + msg); else vals[f.key] = n;
+    });
+    return { vals: vals, errs: errs };
+  }
+
+  var TCO_FIELDS = [
+    { id: 'tcoUsers', key: 'users', label: 'Active daily users', min: 0, step: 50 },
+    { id: 'tcoQueries', key: 'queriesPerUserDay', label: 'Queries per user per day', min: 0, step: 1 },
+    { id: 'tcoDays', key: 'daysPerMonth', label: 'Active days per month', min: 1, max: 31, step: 0.5 },
+    { id: 'tcoInputTokens', key: 'inputTokens', label: 'Input tokens per query', min: 0, step: 100, hint: 'System prompt + question + retrieved chunks' },
+    { id: 'tcoOutputTokens', key: 'outputTokens', label: 'Output tokens per query', min: 0, step: 50 },
+    { id: 'tcoCacheHit', key: 'cacheHitPct', label: 'Prompt cache hit rate (%)', min: 0, max: 100, step: 5, hint: '0 is valid: no caching' },
+    { id: 'tcoInPrice', key: 'inputPer1M', label: 'Input price ($ per 1M tokens)', min: 0, step: 0.01, hint: 'Editable. Check your price sheet.' },
+    { id: 'tcoCachedPrice', key: 'cachedPer1M', label: 'Cached input price ($ per 1M)', min: 0, step: 0.01 },
+    { id: 'tcoOutPrice', key: 'outputPer1M', label: 'Output price ($ per 1M tokens)', min: 0, step: 0.01 },
+    { id: 'tcoSearchCost', key: 'searchMonthly', label: 'Azure AI Search ($ per month)', min: 0, step: 10, hint: 'Your tier × replicas × partitions at your Region’s price' },
+    { id: 'tcoHostCost', key: 'hostingMonthly', label: 'App hosting ($ per month)', min: 0, step: 10 },
+    { id: 'tcoStateCost', key: 'stateMonthly', label: 'State / database ($ per month)', min: 0, step: 5 },
+    { id: 'tcoTelemetry', key: 'telemetryPer1kQueries', label: 'Telemetry ($ per 1,000 queries)', min: 0, step: 0.01 }
+  ];
+  var ROI_FIELDS = [
+    { id: 'roiEmployees', key: 'employees', label: 'Employees affected', min: 0, step: 10 },
+    { id: 'roiHours', key: 'hoursSavedWeekly', label: 'Hours saved per employee per week', min: 0, max: 40, step: 0.5, hint: 'Measure this in a pilot; do not assume it' },
+    { id: 'roiWage', key: 'hourlyWage', label: 'Fully burdened hourly cost ($)', min: 0, step: 5 },
+    { id: 'roiWeeks', key: 'weeksPerYear', label: 'Working weeks per year', min: 1, max: 52, step: 1 },
+    { id: 'roiDirect', key: 'directCostSavings', label: 'Direct cost reductions ($ / year)', min: 0, step: 5000 },
+    { id: 'roiCloud', key: 'annualCloudCost', label: 'Annual cloud and token spend ($)', min: 0, step: 5000, hint: 'Use the TCO calculator × 12' },
+    { id: 'roiMaint', key: 'annualEngineeringMaintenance', label: 'Annual engineering and operations ($)', min: 0, step: 5000 },
+    { id: 'roiBuild', key: 'oneTimeBuildCost', label: 'One-time build cost ($)', min: 0, step: 10000, hint: 'Counted in year 1 so payback is not flattered' },
+    { id: 'roiDiscount', key: 'realizationDiscountPct', label: 'Benefit realization discount (%)', min: 0, max: 100, step: 5, hint: 'Share of benefit you expect not to materialise' }
+  ];
+
+  /* ---------- AI FinOps ---------- */
   function pageFinOps() {
-    var fo = A.finops;
+    var fo = A.finops, ps = fo.priceStatus || {};
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Cost & FinOps</div>' +
       '<h1>' + esc(fo.title) + '</h1>' +
       '<p class="lede">' + esc(fo.lede) + '</p>' +
-      '<div class="callout"><b>Unit Economics & FinOps Governance</b>AI applications present distinct financial characteristics: variable token costs, recurring search partitions, and agent multiplier loops. Estimate monthly TCO and model corporate ROI with precision.</div>';
+      '<div class="callout warn" role="note"><b>Estimates, not Azure quotes</b>Prices on this page are <strong>illustrative and not sourced or dated</strong>. ' + esc(ps.note || '') +
+      ' Use the <a href="' + esc(ps.officialPricing || 'https://azure.microsoft.com/pricing/') + '" rel="noopener">official Azure pricing page</a> or the Azure Pricing Calculator for numbers you will budget against, and overwrite the price fields below.</div>' +
+      lifecycleNotice();
 
-    // Model Pricing Reference Table
-    h += '<h2>1. Azure OpenAI & Foundry Model Pricing Reference</h2>' +
+    h += '<h2>1. Model price reference (illustrative)</h2>' +
+      '<p style="max-width:70ch">These rows show the <i>shape</i> of token pricing (cached input is cheaper, output costs several times input). They list older models still named in the retirement table, so check the lifecycle column before using one, and use your own deployment’s prices in the calculator.</p>' +
       '<div class="tablewrap"><table class="matrix-table">' +
-      '<thead><tr><th>Model</th><th>Input / 1M Tokens</th><th>Cached Input / 1M</th><th>Output / 1M Tokens</th><th>Batch Discount</th><th>Primary Workload Fit</th></tr></thead><tbody>';
-
+      '<caption class="sr-only">Illustrative model prices per million tokens with lifecycle status</caption>' +
+      '<thead><tr><th scope="col">Model</th><th scope="col">Lifecycle</th><th scope="col">Input / 1M</th><th scope="col">Cached input / 1M</th><th scope="col">Output / 1M</th><th scope="col">Batch</th><th scope="col">Workload fit</th></tr></thead><tbody>';
     fo.modelPricing.forEach(function (m) {
-      h += '<tr><td><b>' + esc(m.name) + '</b></td>' +
-        '<td>$' + m.input1M.toFixed(2) + '</td>' +
-        '<td><span class="chip" style="--h:150">$' + m.cached1M.toFixed(2) + ' (-50%)</span></td>' +
-        '<td>$' + m.output1M.toFixed(2) + '</td>' +
-        '<td>' + (m.batchDiscount > 0 ? '50% off' : 'N/A') + '</td>' +
-        '<td><small>' + esc(m.bestFor) + '</small></td></tr>';
+      h += '<tr><th scope="row">' + esc(m.name) + '</th><td>' + lifecycleChip(m.lifecycleKey) + '</td>' +
+        '<td>$' + m.input1M.toFixed(2) + '</td><td>$' + m.cached1M.toFixed(2) + '</td><td>$' + m.output1M.toFixed(2) + '</td>' +
+        '<td>' + (m.batchDiscount > 0 ? Math.round(m.batchDiscount * 100) + '% off (check eligibility)' : 'n/a') + '</td><td><small>' + esc(m.bestFor) + '</small></td></tr>';
     });
     h += '</tbody></table></div>';
 
-    // Interactive Monthly AI TCO Calculator
-    h += '<h2>2. Monthly Enterprise AI TCO Calculator</h2>' +
-      '<p style="max-width:68ch">Model total monthly infrastructure, token inference, search, and observability spend based on your expected user volume.</p>' +
-      '<div class="wide"><div class="calc">' +
-        '<form id="tcoForm" class="calcform" onsubmit="return false">' +
-          '<fieldset><legend>Workload & Concurrency Parameters</legend>' +
-            '<label class="num"><span class="nl2">Select Foundation Model</span><span class="inp"><select id="tcoModel" style="border:0;background:none;color:var(--ink);width:100%;font:14px var(--sans)">' +
-              fo.modelPricing.filter(function (x) { return x.output1M > 0; }).map(function (m) {
-                return '<option value="' + m.id + '">' + esc(m.name) + ' ($' + m.input1M + ' / $' + m.output1M + ')</option>';
-              }).join('') +
-            '</select></span></label>' +
-            '<label class="num"><span class="nl2">Active Daily Users</span><span class="inp"><input type="number" id="tcoUsers" value="2500" min="10" step="50"></span></label>' +
-            '<label class="num"><span class="nl2">Queries per User / Day</span><span class="inp"><input type="number" id="tcoQueries" value="12" min="1" step="1"></span></label>' +
-            '<label class="num"><span class="nl2">Average Input Tokens per Query</span><span class="inp"><input type="number" id="tcoInputTokens" value="1800" min="100" step="100"></span><small>System prompt + user question + retrieved chunks</small></label>' +
-            '<label class="num"><span class="nl2">Average Output Tokens per Query</span><span class="inp"><input type="number" id="tcoOutputTokens" value="450" min="50" step="50"></span></label>' +
-            '<label class="num"><span class="nl2">Prompt Caching Hit Rate (%)</span><span class="inp"><input type="number" id="tcoCacheHit" value="40" min="0" max="90" step="5"></span><small>Saves 50% on cached input tokens</small></label>' +
-            '<label class="num"><span class="nl2">Search Tier & Capacity</span><span class="inp"><select id="tcoSearch" style="border:0;background:none;color:var(--ink);width:100%;font:14px var(--sans)">' +
-              '<option value="73">Basic ($73/mo)</option>' +
-              '<option value="490" selected>Standard S1 x 2 Replicas ($490/mo - HA SLA)</option>' +
-              '<option value="1960">Standard S2 x 2 Replicas ($1,960/mo - High QPS)</option>' +
-            '</select></span></label>' +
-          '</fieldset>' +
-        '</form>' +
-        '<div id="tcoOut" class="calcout" aria-live="polite"></div>' +
-      '</div></div>';
+    h += '<h2>2. Azure AI Search tier limits (verified ' + esc(fo.searchTiersSource.verified) + ')</h2>' +
+      '<p style="max-width:68ch">Storage per partition from <a href="' + esc(fo.searchTiersSource.url) + '" rel="noopener">' + esc(fo.searchTiersSource.title) + '</a>. Limits differ for services created before the 2024–2025 capacity increases (shown as “legacy”). Search prices are not listed here because they vary by Region; enter yours in the calculator.</p>' +
+      '<div class="tablewrap"><table class="matrix-table"><thead><tr><th scope="col">Tier</th><th scope="col">Storage / partition</th><th scope="col">Legacy storage / partition</th><th scope="col">Max partitions</th><th scope="col">Max replicas</th><th scope="col">Best for</th></tr></thead><tbody>';
+    fo.searchTiers.forEach(function (t) {
+      h += '<tr><th scope="row">' + esc(t.tier) + '</th><td>' + t.storagePerPartitionGB + ' GB</td><td>' + t.legacyStoragePerPartitionGB + ' GB</td><td>' + t.maxPartitions + '</td><td>' + t.maxReplicas + '</td><td><small>' + esc(t.bestFor) + '</small></td></tr>';
+    });
+    h += '</tbody></table></div>';
 
-    // Scale Profiles Reference Table
-    h += '<h2>3. Typical Scale Profiles & Budget Baselines</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:18px 0">';
+    h += '<h2>3. Monthly TCO calculator</h2>' +
+      '<p style="max-width:68ch">Every input is editable, 0 is accepted where it makes sense, and the formulas are shown under the results.</p>' +
+      '<div class="wide"><div class="calc"><form id="tcoForm" class="calcform" novalidate>' +
+        '<fieldset><legend>Workload</legend>' +
+          '<label class="num"><span class="nl2">Start from</span><span class="inp"><select id="tcoModel"><option value="custom">Custom: enter your own deployment prices</option>' +
+            fo.modelPricing.filter(function (x) { return x.output1M > 0; }).map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('') +
+          '</select></span><small>Fills the three price fields; you can then overwrite them.</small></label>' +
+          TCO_FIELDS.slice(0, 6).map(function (f) { return numField(f, fo.tcoDefaults[f.key]); }).join('') +
+        '</fieldset>' +
+        '<fieldset><legend>Prices and fixed costs (overwrite with your own)</legend>' +
+          TCO_FIELDS.slice(6).map(function (f) { return numField(f, fo.tcoDefaults[f.key]); }).join('') +
+        '</fieldset>' +
+        '<p><button type="button" class="btn" id="tcoReset">Reset to defaults</button></p>' +
+      '</form><div id="tcoOut" class="calcout" aria-live="polite"></div></div></div>';
+
+    h += '<h2>4. Scale profiles (illustrative)</h2>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:14px;margin:18px 0">';
     fo.scaleProfiles.forEach(function (sp) {
-      h += '<div class="card" style="--h:212">' +
-        '<div class="mini">Scale Profile</div>' +
-        '<h3>' + esc(sp.name) + '</h3>' +
+      h += '<div class="card" style="--h:212"><div class="mini">Scale profile</div><h3>' + esc(sp.name) + '</h3>' +
         '<div style="font:700 22px var(--serif);color:var(--accent);margin:4px 0">' + esc(sp.estimatedMonthlyTCO) + '</div>' +
-        '<p style="font-size:13px;color:var(--muted)"><b>' + sp.users.toLocaleString() + ' users</b> · ' + sp.dailyQueries + ' queries/day<br><b>Tokens:</b> ' + esc(sp.monthlyTokens) + '<br><b>Cost/Task:</b> ' + esc(sp.costPerTask) + '</p>' +
-        '<p style="font-size:12px;color:var(--ink);margin-top:8px"><i>Assumptions:</i> ' + esc(sp.assumptions) + '</p>' +
-      '</div>';
+        '<p style="font-size:13px;color:var(--muted)"><b>' + sp.users.toLocaleString() + ' users</b> · ' + esc(String(sp.dailyQueries)) + ' queries/day<br><b>Tokens:</b> ' + esc(sp.monthlyTokens) + '<br><b>Cost/task:</b> ' + esc(sp.costPerTask) + '</p>' +
+        '<p style="font-size:12px;margin-top:8px"><i>Assumptions:</i> ' + esc(sp.assumptions) + '</p></div>';
     });
     h += '</div>';
 
-    // Interactive Enterprise ROI Calculator
-    h += '<h2>4. Enterprise AI ROI Calculator</h2>' +
-      '<p style="max-width:68ch">Estimate annual financial return on investment based on knowledge worker hours saved and operational cost reductions.</p>' +
-      '<div class="wide"><div class="calc">' +
-        '<form id="roiForm" class="calcform" onsubmit="return false">' +
-          '<fieldset><legend>Labor Productivity & Financial Inputs</legend>' +
-            '<label class="num"><span class="nl2">Affected Team Size (Employees)</span><span class="inp"><input type="number" id="roiEmployees" value="450" min="10" step="10"></span></label>' +
-            '<label class="num"><span class="nl2">Average Hours Saved per Employee / Week</span><span class="inp"><input type="number" id="roiHoursSaved" value="2.5" min="0.5" max="20" step="0.5"></span></label>' +
-            '<label class="num"><span class="nl2">Average Fully Burdened Hourly Wage ($)</span><span class="inp"><input type="number" id="roiWage" value="65" min="15" step="5"></span></label>' +
-            '<label class="num"><span class="nl2">Direct Operational Cost Reductions ($ / Year)</span><span class="inp"><input type="number" id="roiDirectSavings" value="75000" min="0" step="5000"></span></label>' +
-            '<label class="num"><span class="nl2">Estimated Annual Cloud & Token Spend ($)</span><span class="inp"><input type="number" id="roiCloudSpend" value="85000" min="1000" step="5000"></span></label>' +
-            '<label class="num"><span class="nl2">Annual Engineering Maintenance ($)</span><span class="inp"><input type="number" id="roiMaintSpend" value="110000" min="0" step="5000"></span></label>' +
-          '</fieldset>' +
-        '</form>' +
-        '<div id="roiOut" class="calcout" aria-live="polite"></div>' +
-      '</div></div>';
+    h += '<h2>5. ROI model</h2>' +
+      '<p style="max-width:68ch">A year-1 view that includes the one-time build cost. The defaults are placeholders for a large internal assistant, not a benchmark; replace them with measured pilot data before showing the result to anyone.</p>' +
+      '<div class="wide"><div class="calc"><form id="roiForm" class="calcform" novalidate>' +
+        '<fieldset><legend>Benefit and cost inputs</legend>' + ROI_FIELDS.map(function (f) { return numField(f, fo.roiDefaults[f.key]); }).join('') +
+        '<p><button type="button" class="btn" id="roiReset">Reset to defaults</button></p></fieldset>' +
+      '</form><div id="roiOut" class="calcout" aria-live="polite"></div></div></div>';
 
     afterRender = mountFinOps;
     return '<div class="wide">' + h + '</div>';
   }
 
   function mountFinOps() {
-    var tcoForm = $('#tcoForm'), tcoOut = $('#tcoOut');
-    var roiForm = $('#roiForm'), roiOut = $('#roiOut');
-    if (!tcoForm || !tcoOut || !roiForm || !roiOut) return;
+    var fo = A.finops, tcoForm = $('#tcoForm'), roiForm = $('#roiForm'), tcoOut = $('#tcoOut'), roiOut = $('#roiOut');
+    if (!tcoForm || !roiForm) return;
+    function usd(n, d) { return (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: d || 0, maximumFractionDigits: d == null ? 0 : d }); }
+    function share(part, total) { return total > 0 ? Math.round(part / total * 100) + '%' : '0%'; }
+    function errBox(errs) { return '<div class="callout warn" role="alert"><b>Fix these inputs to see results</b><ul>' + errs.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul></div>'; }
 
+    function loadModelPrices() {
+      var m = fo.modelPricing.filter(function (x) { return x.id === $('#tcoModel').value; })[0];
+      var d = fo.tcoDefaults;
+      $('#tcoInPrice').value = m ? m.input1M : d.inputPer1M; $('#tcoCachedPrice').value = m ? m.cached1M : d.cachedPer1M; $('#tcoOutPrice').value = m ? m.output1M : d.outputPer1M;
+    }
     function recalcTCO() {
-      var modelId = $('#tcoModel').value;
-      var modelObj = A.finops.modelPricing.find(function (m) { return m.id === modelId; }) || A.finops.modelPricing[0];
-      var users = parseFloat($('#tcoUsers').value) || 2500;
-      var queriesPerDay = parseFloat($('#tcoQueries').value) || 12;
-      var inputTokens = parseFloat($('#tcoInputTokens').value) || 1800;
-      var outputTokens = parseFloat($('#tcoOutputTokens').value) || 450;
-      var cacheHitPct = (parseFloat($('#tcoCacheHit').value) || 40) / 100;
-      var searchCostMonthly = parseFloat($('#tcoSearch').value) || 490;
-
-      var daysPerMonth = 30.5;
-      var totalMonthlyQueries = users * queriesPerDay * daysPerMonth;
-
-      // Token calculations
-      var effectiveInputCostPer1M = (modelObj.input1M * (1 - cacheHitPct)) + (modelObj.cached1M * cacheHitPct);
-      var monthlyInputTokenCost = (totalMonthlyQueries * inputTokens / 1000000) * effectiveInputCostPer1M;
-      var monthlyOutputTokenCost = (totalMonthlyQueries * outputTokens / 1000000) * modelObj.output1M;
-      var monthlyInferenceCost = monthlyInputTokenCost + monthlyOutputTokenCost;
-
-      // Supporting infra
-      var containerAppsCompute = 108.00; // 3 replicas
-      var cosmosState = 45.00;
-      var observability = (totalMonthlyQueries * 0.00015); // log volume
-      var totalMonthlyTCO = monthlyInferenceCost + searchCostMonthly + containerAppsCompute + cosmosState + observability;
-
-      var costPerUser = (totalMonthlyTCO / users).toFixed(2);
-      var costPerQuery = (totalMonthlyTCO / totalMonthlyQueries).toFixed(4);
-
-      tcoOut.innerHTML = '<div class="eyebrow"><span class="chip" style="--h:212">Monthly FinOps Projections</span></div>' +
+      var r = readFields(TCO_FIELDS);
+      if (r.errs.length) { tcoOut.innerHTML = errBox(r.errs); return; }
+      var t = fo.calculateTCO(r.vals), mdl = fo.modelPricing.filter(function (x) { return x.id === $('#tcoModel').value; })[0];
+      tcoOut.innerHTML = '<div class="eyebrow"><span class="chip" style="--h:212">Monthly estimate</span> ' + (mdl ? lifecycleChip(mdl.lifecycleKey) : '') + '</div>' +
         '<div class="kpis" style="margin-top:10px">' +
-          '<div class="kpi"><small>Total Monthly TCO</small><b style="color:var(--accent)">$' + Math.round(totalMonthlyTCO).toLocaleString() + '</b><span class="fine">All infrastructure & tokens</span></div>' +
-          '<div class="kpi"><small>Monthly LLM Inference</small><b>$' + Math.round(monthlyInferenceCost).toLocaleString() + '</b><span class="fine">' + Math.round((monthlyInferenceCost / totalMonthlyTCO) * 100) + '% of total spend</span></div>' +
-          '<div class="kpi"><small>Search & Hosting</small><b>$' + Math.round(searchCostMonthly + containerAppsCompute + cosmosState).toLocaleString() + '</b><span class="fine">AI Search + ACA + Cosmos</span></div>' +
-          '<div class="kpi"><small>Cost per Active User</small><b>$' + costPerUser + ' / mo</b><span class="fine">Based on ' + users.toLocaleString() + ' users</span></div>' +
-          '<div class="kpi"><small>Cost per Query</small><b>$' + costPerQuery + '</b><span class="fine">Unit economics</span></div>' +
+          '<div class="kpi"><small>Total per month</small><b style="color:var(--accent)">' + usd(t.total) + '</b><span class="fine">Estimate, not an Azure quote</span></div>' +
+          '<div class="kpi"><small>Model inference</small><b>' + usd(t.inference) + '</b><span class="fine">' + share(t.inference, t.total) + ' of total</span></div>' +
+          '<div class="kpi"><small>Search + hosting + state</small><b>' + usd(t.search + t.hosting + t.state) + '</b><span class="fine">Your entered fixed costs</span></div>' +
+          '<div class="kpi"><small>Per active user</small><b>' + (t.perUser == null ? 'n/a' : usd(t.perUser, 2) + ' / mo') + '</b><span class="fine">' + (t.perUser == null ? 'Enter at least 1 user' : r.vals.users.toLocaleString() + ' users') + '</span></div>' +
+          '<div class="kpi"><small>Per query</small><b>' + (t.perQuery == null ? 'n/a' : usd(t.perQuery, 4)) + '</b><span class="fine">' + (t.perQuery == null ? 'Enter queries above 0' : t.monthlyQueries.toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' queries / mo') + '</span></div>' +
         '</div>' +
-        '<div class="tablewrap" style="margin-top:14px"><table class="matrix-table" style="font-size:12px">' +
-          '<thead><tr><th>Cost Driver</th><th>Monthly Expense</th><th>Share of Spend</th></tr></thead>' +
-          '<tbody>' +
-            '<tr><td>LLM Input Tokens (' + Math.round(cacheHitPct * 100) + '% Cached)</td><td>$' + Math.round(monthlyInputTokenCost).toLocaleString() + '</td><td>' + Math.round((monthlyInputTokenCost / totalMonthlyTCO) * 100) + '%</td></tr>' +
-            '<tr><td>LLM Output Tokens</td><td>$' + Math.round(monthlyOutputTokenCost).toLocaleString() + '</td><td>' + Math.round((monthlyOutputTokenCost / totalMonthlyTCO) * 100) + '%</td></tr>' +
-            '<tr><td>Azure AI Search Tier</td><td>$' + Math.round(searchCostMonthly).toLocaleString() + '</td><td>' + Math.round((searchCostMonthly / totalMonthlyTCO) * 100) + '%</td></tr>' +
-            '<tr><td>Compute & State (ACA + Cosmos)</td><td>$' + Math.round(containerAppsCompute + cosmosState).toLocaleString() + '</td><td>' + Math.round(((containerAppsCompute + cosmosState) / totalMonthlyTCO) * 100) + '%</td></tr>' +
-            '<tr><td>Azure Monitor & APIM Telemetry</td><td>$' + Math.round(observability).toLocaleString() + '</td><td>' + Math.round((observability / totalMonthlyTCO) * 100) + '%</td></tr>' +
-          '</tbody>' +
-        '</table></div>';
+        '<div class="tablewrap" style="margin-top:14px"><table class="matrix-table" style="font-size:12px"><thead><tr><th scope="col">Cost driver</th><th scope="col">Monthly</th><th scope="col">Share</th></tr></thead><tbody>' +
+          '<tr><th scope="row">Input tokens (' + r.vals.cacheHitPct + '% cached)</th><td>' + usd(t.input) + '</td><td>' + share(t.input, t.total) + '</td></tr>' +
+          '<tr><th scope="row">Output tokens</th><td>' + usd(t.output) + '</td><td>' + share(t.output, t.total) + '</td></tr>' +
+          '<tr><th scope="row">AI Search</th><td>' + usd(t.search) + '</td><td>' + share(t.search, t.total) + '</td></tr>' +
+          '<tr><th scope="row">Hosting</th><td>' + usd(t.hosting) + '</td><td>' + share(t.hosting, t.total) + '</td></tr>' +
+          '<tr><th scope="row">State / database</th><td>' + usd(t.state) + '</td><td>' + share(t.state, t.total) + '</td></tr>' +
+          '<tr><th scope="row">Telemetry</th><td>' + usd(t.telemetry) + '</td><td>' + share(t.telemetry, t.total) + '</td></tr>' +
+        '</tbody></table></div>' +
+        '<details class="formulas"><summary>Formulas used</summary><pre>queries = users × queries/user/day × days/month\n' +
+          'effective input $/1M = input × (1 − cache%) + cached × cache%\n' +
+          'inference = queries × input tokens ÷ 1e6 × effective input + queries × output tokens ÷ 1e6 × output\n' +
+          'telemetry = queries ÷ 1000 × $/1k queries\n' +
+          'total = inference + search + hosting + state + telemetry</pre></details>';
     }
-
     function recalcROI() {
-      var r = A.finops.calculateROI({
-        employees: parseFloat($('#roiEmployees').value) || 450,
-        hoursSavedWeekly: parseFloat($('#roiHoursSaved').value) || 2.5,
-        hourlyWage: parseFloat($('#roiWage').value) || 65,
-        directCostSavings: parseFloat($('#roiDirectSavings').value) || 75000,
-        annualCloudCost: parseFloat($('#roiCloudSpend').value) || 85000,
-        annualEngineeringMaintenance: parseFloat($('#roiMaintSpend').value) || 110000
-      });
-
-      roiOut.innerHTML = '<div class="eyebrow"><span class="chip" style="--h:150">ROI & Payback Analysis</span></div>' +
+      var r = readFields(ROI_FIELDS);
+      if (r.errs.length) { roiOut.innerHTML = errBox(r.errs); return; }
+      var o = fo.calculateROI(r.vals);
+      roiOut.innerHTML = '<div class="eyebrow"><span class="chip" style="--h:150">Year-1 ROI</span></div>' +
         '<div class="kpis" style="margin-top:10px">' +
-          '<div class="kpi"><small>Adjusted Annual Benefit</small><b style="color:var(--ok)">$' + Math.round(r.adjustedBenefit).toLocaleString() + '</b><span class="fine">15% risk adoption discount applied</span></div>' +
-          '<div class="kpi"><small>Total Annual Cost</small><b>$' + Math.round(r.totalAnnualCost).toLocaleString() + '</b><span class="fine">Cloud + Engineering</span></div>' +
-          '<div class="kpi"><small>Net Annual Benefit</small><b style="color:var(--accent)">$' + Math.round(r.netBenefit).toLocaleString() + '</b><span class="fine">Annual profit impact</span></div>' +
-          '<div class="kpi"><small>Return on Investment (ROI)</small><b style="color:var(--ok)">+' + Math.round(r.roiPercentage) + '%</b><span class="fine">Net benefit / cost</span></div>' +
-          '<div class="kpi"><small>Payback Period</small><b>' + r.paybackMonths.toFixed(1) + ' Months</b><span class="fine">Breakeven horizon</span></div>' +
-        '</div>';
+          '<div class="kpi"><small>Realised benefit</small><b style="color:var(--ok)">' + usd(o.adjustedBenefit) + '</b><span class="fine">After ' + r.vals.realizationDiscountPct + '% discount</span></div>' +
+          '<div class="kpi"><small>Year-1 cost</small><b>' + usd(o.totalYear1Cost) + '</b><span class="fine">Run cost + one-time build</span></div>' +
+          '<div class="kpi"><small>Net year 1</small><b style="color:var(--accent)">' + usd(o.netYear1) + '</b><span class="fine">Benefit − cost</span></div>' +
+          '<div class="kpi"><small>ROI</small><b>' + (o.roiPercentage == null ? 'n/a' : Math.round(o.roiPercentage) + '%') + '</b><span class="fine">' + (o.roiPercentage == null ? 'Needs a cost above 0' : 'Net ÷ cost') + '</span></div>' +
+          '<div class="kpi"><small>Payback</small><b>' + (o.paybackMonths == null ? 'No payback' : o.paybackMonths.toFixed(1) + ' months') + '</b><span class="fine">' + (o.paybackMonths == null ? 'No realised benefit' : 'Year-1 cost ÷ monthly benefit') + '</span></div>' +
+          '<div class="kpi"><small>Break-even hours saved</small><b>' + (o.breakEvenHoursWeekly == null ? 'n/a' : o.breakEvenHoursWeekly.toFixed(2) + ' h/wk') + '</b><span class="fine">Per employee, to cover year-1 cost</span></div>' +
+        '</div>' +
+        '<details class="formulas"><summary>Formulas used</summary><pre>labor = employees × hours/week × weeks × hourly cost\n' +
+          'realised = (labor + direct savings) × (1 − discount%)\n' +
+          'year-1 cost = cloud + engineering + one-time build\n' +
+          'net = realised − year-1 cost;  ROI = net ÷ year-1 cost\n' +
+          'payback (months) = year-1 cost ÷ (realised benefit ÷ 12)\nbreak-even hours = (year-1 cost ÷ (1 − discount) − direct savings) ÷ (employees × weeks × hourly cost)</pre></details>' +
+        '<p class="fine">Labour savings are only real if the time is redeployed or headcount changes. Treat this as a model of your assumptions, not a forecast.</p>';
     }
-
-    tcoForm.addEventListener('input', recalcTCO);
+    tcoForm.addEventListener('input', function (e) { if (e.target.id !== 'tcoModel') recalcTCO(); });
+    $('#tcoModel').addEventListener('change', function () { loadModelPrices(); recalcTCO(); });
     roiForm.addEventListener('input', recalcROI);
-    recalcTCO();
-    recalcROI();
+    $('#tcoReset').addEventListener('click', function () {
+      TCO_FIELDS.forEach(function (f) { $('#' + f.id).value = fo.tcoDefaults[f.key]; });
+      $('#tcoModel').selectedIndex = 0; loadModelPrices(); recalcTCO();
+    });
+    $('#roiReset').addEventListener('click', function () {
+      ROI_FIELDS.forEach(function (f) { $('#' + f.id).value = fo.roiDefaults[f.key]; }); recalcROI();
+    });
+    loadModelPrices(); recalcTCO(); recalcROI();
+  }
+
+  /* ---------- Content verification (service pages and #/freshness) ---------- */
+  function sourceLinks(ids) {
+    var v = A.verification;
+    return ids.map(function (id) { var s = v.sources[id]; return s ? '<a href="' + esc(s.url) + '" rel="noopener">' + esc(s.title) + '</a>' : ''; }).filter(Boolean).join(' · ');
+  }
+  function stateChip(state, date) {
+    var map = { verified: ['Verified', 150], due: ['Review due', 40], unverified: ['Unverified', 20] };
+    var m = map[state] || map.unverified;
+    return '<span class="chip" style="--h:' + m[1] + '">' + m[0] + (date ? ' ' + esc(date) : '') + '</span>';
+  }
+  /* Box on a service page. A service with no record is shown as unverified rather than silently trusted. */
+  function verificationBox(id) {
+    var v = A.verification; if (!v) return '';
+    var rec = v.records.filter(function (r) { return r.id === id; })[0];
+    if (!rec) {
+      return '<div class="callout" role="note"><b>' + stateChip('unverified') + ' Content not yet checked against current Microsoft documentation</b>' +
+        'This page was written from general knowledge. Names, limits, regions and prices may have changed, so confirm in the Microsoft Learn link above before relying on them. <a href="#/freshness">How verification works</a>.</div>';
+    }
+    var st = v.state(rec.lastVerified, rec.kind);
+    return '<div class="callout" role="note"><b>' + stateChip(st, rec.lastVerified) + (rec.status ? ' Status: ' + esc(rec.status) : '') + '</b>' +
+      '<ul>' + rec.claims.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' +
+      (rec.caveats ? '<p><strong>Caveat:</strong> ' + esc(rec.caveats) + '</p>' : '') +
+      '<p class="fine">Sources: ' + sourceLinks(rec.sources) + '. The rest of this page has not been re-checked.</p></div>';
+  }
+
+  function pageFreshness() {
+    var v = A.verification, now = new Date();
+    var recs = v.records, mods = v.modules, nServices = A.services.length;
+    var verifiedMods = mods.filter(function (m) { return m.verified; }).length;
+    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Content governance</div>' +
+      '<h1>Content freshness and sources</h1>' +
+      '<p class="lede">Azure AI changes monthly. This page shows exactly what in the Atlas has been checked against Microsoft documentation, on what date, and what has not. Anything not listed here should be treated as unverified.</p>' +
+      '<div class="kpis" style="margin:18px 0">' +
+        '<div class="kpi"><small>Registry as of</small><b>' + esc(v.asOf) + '</b><span class="fine">Updated only when a source is re-read</span></div>' +
+        '<div class="kpi"><small>Service pages verified</small><b>' + recs.length + ' of ' + nServices + '</b><span class="fine">Others are labelled unverified</span></div>' +
+        '<div class="kpi"><small>Modules with any verified scope</small><b>' + verifiedMods + ' of ' + mods.length + '</b><span class="fine">Scope is narrow; see below</span></div>' +
+        '<div class="kpi"><small>Models with lifecycle checked</small><b>' + v.modelLifecycle.length + '</b><span class="fine">Verified ' + esc(v.modelLifecycleVerified) + '</span></div>' +
+      '</div>' +
+      '<div class="callout"><b>How to read this</b><strong>Verified</strong> means a person read the cited Microsoft page on that date and the listed claims match it. <strong>Review due</strong> means the date is older than the review interval (service pages ' + v.reviewIntervalDays.service + ' days, model lifecycle ' + v.reviewIntervalDays.lifecycle + ' days; it is computed from today’s date in your browser). <strong>Unverified</strong> means nothing was checked. Verification covers only the claims listed, never a whole page.</div>';
+
+    h += '<h2>1. Verified service records</h2>' +
+      '<div class="tablewrap"><table class="matrix-table"><thead><tr><th scope="col">Service</th><th scope="col">State</th><th scope="col">Status</th><th scope="col">Claims checked</th><th scope="col">Sources</th></tr></thead><tbody>';
+    recs.forEach(function (r) {
+      var label = byId[r.id] ? '<a href="#/s/' + esc(r.id) + '">' + esc(byId[r.id].name) + '</a>' : esc(r.id);
+      h += '<tr><th scope="row">' + label + '</th><td>' + stateChip(v.state(r.lastVerified, r.kind, now), r.lastVerified) + '</td><td>' + esc(r.status || 'not stated') + '</td>' +
+        '<td><ul>' + r.claims.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul>' + (r.caveats ? '<small><strong>Caveat:</strong> ' + esc(r.caveats) + '</small>' : '') + '</td>' +
+        '<td><small>' + sourceLinks(r.sources) + '</small></td></tr>';
+    });
+    h += '</tbody></table></div>';
+
+    var src = v.sources[v.modelLifecycleSource];
+    h += '<h2>2. Azure OpenAI / Foundry model lifecycle</h2>' +
+      '<p style="max-width:70ch">Copied from <a href="' + esc(src.url) + '" rel="noopener">' + esc(src.title) + '</a> (page dated ' + esc(src.pageUpdated) + ', checked ' + esc(v.modelLifecycleVerified) + ') ' +
+      stateChip(v.state(v.modelLifecycleVerified, 'lifecycle', now)) + '. Dates differ by model version, deployment type and Region, so confirm for your subscription.</p>' +
+      '<div class="tablewrap"><table class="matrix-table"><thead><tr><th scope="col">Model</th><th scope="col">Lifecycle</th><th scope="col">Retirement</th><th scope="col">Replacement</th><th scope="col">Note</th></tr></thead><tbody>';
+    v.modelLifecycle.forEach(function (m) {
+      h += '<tr><th scope="row"><code>' + esc(m.label) + '</code></th><td>' + esc(m.lifecycle) + '</td><td>' + esc(m.retirement) + '</td><td>' + esc(m.replacement || 'none named') + '</td><td><small>' + esc(m.note || '') + '</small></td></tr>';
+    });
+    h += '</tbody></table></div><p style="max-width:70ch">' + esc(v.modelLifecycleCurrentFamily) + '</p>';
+
+    h += '<h2>3. Module coverage</h2>' +
+      '<p style="max-width:70ch">The Atlas pages below were written before this registry existed. A date here means a narrow, named scope was checked; the “still unverified” column is what remains. The review order is tracked in docs/roadmap.md in the repository.</p>' +
+      '<div class="tablewrap"><table class="matrix-table"><thead><tr><th scope="col">Module</th><th scope="col">State</th><th scope="col">Verified scope</th><th scope="col">Still unverified</th></tr></thead><tbody>';
+    mods.forEach(function (m) {
+      h += '<tr><th scope="row"><a href="' + esc(m.route) + '">' + esc(m.name) + '</a></th><td>' + stateChip(v.state(m.verified, 'service', now), m.verified) + '</td><td>' + esc(m.scope || 'none') + '</td><td><small>' + esc(m.remaining) + '</small></td></tr>';
+    });
+    h += '</tbody></table></div>';
+
+    h += '<h2>4. Sources used</h2><ul>' + Object.keys(v.sources).map(function (k) {
+      var s = v.sources[k]; return '<li><a href="' + esc(s.url) + '" rel="noopener">' + esc(s.title) + '</a>' + (s.pageUpdated ? ' <small>(page dated ' + esc(s.pageUpdated) + ')</small>' : '') + '</li>';
+    }).join('') + '</ul>';
+    return '<div class="wide">' + h + '</div>';
   }
 
   /* ---------- Production Troubleshooting Catalog ---------- */
@@ -1886,12 +2005,13 @@
       '<div class="callout"><b>Predictive ML & Enterprise Integration</b>Enterprise AI Engineering Managers must balance generative AI with classical predictive machine learning, unified lakehouses, high-availability DR architectures, and ERP/CRM system integrations.</div>';
 
     // 10-Phase ML Lifecycle
-    h += '<h2>1. The 10-Phase Predictive ML Lifecycle</h2>' +
+    h += '<h2>1. The ' + ml.mlLifecycle.length + '-Phase Predictive ML Lifecycle</h2>' +
       '<div class="pyramid" style="margin:16px 0">';
     ml.mlLifecycle.forEach(function (st) {
+      var m = /^(\d+)\.\s*(.*)$/.exec(st.phase) || [null, '', st.phase];
       h += '<div class="pyr-level">' +
-        '<span class="pyr-tag">Phase ' + esc(st.step) + '</span>' +
-        '<div class="pyr-body"><b>' + esc(st.name) + '</b><span>' + esc(st.focus) + '</span></div>' +
+        '<span class="pyr-tag">Phase ' + esc(m[1]) + '</span>' +
+        '<div class="pyr-body"><b>' + esc(m[2]) + '</b><span>' + esc(st.focus) + '</span></div>' +
       '</div>';
     });
     h += '</div>';
@@ -1899,36 +2019,38 @@
     // Azure ML Platform Matrix
     h += '<h2>2. Azure Machine Learning Capabilities Matrix</h2>' +
       '<div class="tablewrap"><table class="matrix-table">' +
-      '<thead><tr><th>Azure ML Component</th><th>Architectural Role</th><th>Engineering Manager Takeaway</th></tr></thead><tbody>';
+      '<thead><tr><th>Azure ML Component</th><th>Architectural Role</th></tr></thead><tbody>';
     ml.azureMLMatrix.forEach(function (cm) {
-      h += '<tr><td><b>' + esc(cm.component) + '</b></td><td>' + esc(cm.role) + '</td><td>' + esc(cm.managerTakeaway) + '</td></tr>';
+      h += '<tr><td><b>' + esc(cm.capability) + '</b></td><td>' + esc(cm.purpose) + '</td></tr>';
     });
     h += '</tbody></table></div>';
 
     // Manager Decision Scenarios
     if (ml.managerDecisions) {
       h += '<h2>3. Manager Decision Scenarios</h2>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin:16px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px;margin:16px 0">';
       ml.managerDecisions.forEach(function (ds) {
         h += '<div class="card" style="--h:212">' +
           '<div class="mini">Decision Scenario</div>' +
-          '<h3>' + esc(ds.scenario) + '</h3>' +
-          '<p style="font-size:13px;line-height:1.55;color:var(--ink)">' + esc(ds.guidance) + '</p>' +
+          '<h3>' + esc(ds.decision) + '</h3>' +
+          '<p style="font-size:13px;line-height:1.55;color:var(--ink)"><b>Favors traditional ML:</b> ' + esc(ds.whenTraditional) + '</p>' +
+          '<p style="font-size:13px;line-height:1.55;color:var(--ink)"><b>Favors GenAI:</b> ' + esc(ds.whenGenAI) + '</p>' +
+          '<p style="font-size:13px;line-height:1.55;color:var(--ink)"><b>Manager verdict:</b> ' + esc(ds.managerVerdict) + '</p>' +
         '</div>';
       });
       h += '</div>';
     }
 
     // Enterprise Data Storage Archetypes
-    if (ml.dataStorageArchetypes) {
+    if (ml.dataArchitectures) {
       h += '<h2>4. Enterprise AI Data Storage Archetypes</h2>' +
         '<div class="tablewrap"><table class="matrix-table">' +
-        '<thead><tr><th>Archetype</th><th>Azure Service</th><th>Access Pattern</th><th>Target Workload</th></tr></thead><tbody>';
-      ml.dataStorageArchetypes.forEach(function (da) {
-        h += '<tr><td><b>' + esc(da.archetype) + '</b></td>' +
-          '<td><code>' + esc(da.service) + '</code></td>' +
-          '<td>' + esc(da.accessPattern) + '</td>' +
-          '<td>' + esc(da.useCase) + '</td></tr>';
+        '<thead><tr><th>Archetype</th><th>Best For</th><th>Typical Formats</th><th>Access Latency</th></tr></thead><tbody>';
+      ml.dataArchitectures.forEach(function (da) {
+        h += '<tr><td><b>' + esc(da.type) + '</b></td>' +
+          '<td>' + esc(da.bestFor) + '</td>' +
+          '<td><code>' + esc(da.format) + '</code></td>' +
+          '<td>' + esc(da.latency) + '</td></tr>';
       });
       h += '</tbody></table></div>';
     }
@@ -1937,11 +2059,12 @@
     if (ml.enterpriseConnectors) {
       h += '<h2>5. Enterprise Line-of-Business Connectors</h2>' +
         '<div class="tablewrap"><table class="matrix-table">' +
-        '<thead><tr><th>Target Enterprise System</th><th>Integration Pattern</th><th>Typical AI / Agent Use Case</th></tr></thead><tbody>';
+        '<thead><tr><th>Target Enterprise System</th><th>Protocol / Integration</th><th>Typical AI / Agent Use Case</th><th>Security Pattern</th></tr></thead><tbody>';
       ml.enterpriseConnectors.forEach(function (ec) {
         h += '<tr><td><b>' + esc(ec.system) + '</b></td>' +
-          '<td><code>' + esc(ec.pattern) + '</code></td>' +
-          '<td>' + esc(ec.useCase) + '</td></tr>';
+          '<td><code>' + esc(ec.protocol) + '</code></td>' +
+          '<td>' + esc(ec.pattern) + '</td>' +
+          '<td>' + esc(ec.security) + '</td></tr>';
       });
       h += '</tbody></table></div>';
     }
@@ -1959,14 +2082,11 @@
 
     // 1. 14-Question Guided Assessment
     h += '<h2>1. Guided AI Project Assessment Questionnaire</h2>' +
-      '<p style="max-width:68ch">Evaluate incoming business proposals across 14 critical feasibility and governance criteria.</p>' +
+      '<p style="max-width:68ch">A review question set for incoming business proposals, covering ' + em.assessmentQuestions.length + ' feasibility and governance criteria. It is a discussion checklist, not a scored form: for an interactive intake that produces a recommendation, use the <a href="#/advisor">Architecture Advisor</a>.</p>' +
       '<div class="wide"><div class="box" style="margin:16px 0">' +
         '<ol style="padding-left:20px;margin:12px 0">' +
           em.assessmentQuestions.map(function (q) {
-            return '<li style="margin:10px 0;font-size:14px">' +
-              '<span class="chip" style="--h:212;margin-right:8px">' + esc(q.category) + '</span>' +
-              '<b>' + esc(q.text) + '</b>' +
-            '</li>';
+            return '<li style="margin:10px 0;font-size:14px"><b>' + esc(String(q.text).replace(/^\d+\.\s*/, '')) + '</b></li>';
           }).join('') +
         '</ol>' +
       '</div></div>';
@@ -1975,7 +2095,7 @@
     if (em.reviewChecklist) {
       h += '<h2>2. Architecture Solution Review Checklist</h2>' +
         '<p style="max-width:68ch">Six engineering pillars to audit during AI design reviews before committing budget or engineering sprints.</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin:16px 0">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px;margin:16px 0">';
       em.reviewChecklist.forEach(function (rc) {
         h += '<div class="card" style="--h:150">' +
           '<div class="mini">Review Pillar</div>' +
@@ -1992,7 +2112,7 @@
     h += '<h2>3. Interactive AI Project Complexity & Staffing Estimator</h2>' +
       '<p style="max-width:68ch">Score your initiative across 8 engineering dimensions to generate complexity tiers, timeline estimates, and team composition.</p>' +
       '<div class="wide"><div class="calc">' +
-        '<form id="compForm" class="calcform" onsubmit="return false">' +
+        '<form id="compForm" class="calcform">' +
           em.complexityEstimator.factors.map(function (f, i) {
             return '<fieldset><legend>' + esc(f.name) + '</legend>' +
               '<label class="opt"><input type="radio" name="f' + i + '" value="1" checked><span><b>Low:</b> ' + esc(f.low) + '</span></label>' +
@@ -2090,12 +2210,12 @@
     // 14-Field Comparison Matrix Cards
     h += '<h2>1. Comprehensive 14-Field Azure AI Services Matrix</h2>' +
       '<p style="max-width:68ch">Every service evaluated across all 14 mandatory architectural criteria to guide defensible selection in design reviews.</p>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:20px;margin:20px 0">';
 
     sm.comparisonMatrix.forEach(function (sv) {
       h += '<div class="pattern-card">' +
         '<div class="pattern-top">' +
-          '<a href="#/s/' + sv.id + '" style="font-size:18px;font-weight:700;color:var(--ink);text-decoration:none"><b>' + esc(sv.name) + '</b></a>' +
+          '<a href="#/s/' + esc(byId[sv.atlasId || sv.id] ? (sv.atlasId || sv.id) : sv.id) + '" style="font-size:18px;font-weight:700;color:var(--ink);text-decoration:none"><b>' + esc(sv.name) + '</b></a>' +
           '<span class="chip" style="--h:212">' + esc(sv.category) + '</span>' +
         '</div>' +
         '<p style="font-size:13px;color:var(--muted);margin:0"><b>What:</b> ' + esc(sv.what) + '</p>' +
@@ -2123,7 +2243,7 @@
 
     // Platform Decisions
     h += '<h2>2. Critical Azure Platform Architectural Decisions</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px;margin:20px 0">';
 
     sm.platformDecisions.forEach(function (pd) {
       h += '<div class="card" style="--h:212">' +
@@ -2148,7 +2268,7 @@
 
     // 1. The 4 Foundation Pillars
     h += '<h2>1. The Four Azure Infrastructure Pillars</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px;margin:20px 0">';
     fd.pillars.forEach(function (pil) {
       h += '<div class="card" style="--h:' + (pil.color || 212) + '">' +
         '<div class="mini">Pillar · ' + pil.topics.length + ' Core Topics</div>' +
@@ -2157,8 +2277,8 @@
         '<div style="display:flex;flex-direction:column;gap:10px">';
       pil.topics.forEach(function (tp) {
         h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px">' +
-          '<div style="font-weight:700;font-size:13px;display:flex;justify-content:space-between"><span>' + esc(tp.concept) + '</span><code style="font-size:11px">' + esc(tp.azureService) + '</code></div>' +
-          '<p style="font-size:12px;margin:4px 0 0;color:var(--ink);line-height:1.5">' + esc(tp.guidance) + '</p>' +
+          '<div style="font-weight:700;font-size:13px"><span>' + esc(tp.name) + '</span></div>' +
+          '<p style="font-size:12px;margin:4px 0 0;color:var(--ink);line-height:1.5">' + esc(tp.desc) + '</p>' +
         '</div>';
       });
       h += '</div></div>';
@@ -2168,7 +2288,7 @@
     // 2. The 7 Platform Decision Cards
     h += '<h2>2. The 7 Critical Azure Platform Decisions</h2>' +
       '<p style="max-width:68ch">Fundamental infrastructure trade-offs that dictate operational complexity, scalability, and security posture across every AI workload.</p>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:16px;margin:20px 0">';
     fd.decisions.forEach(function (dec) {
       h += '<div class="pattern-card">' +
         '<div class="pattern-top">' +
@@ -2196,7 +2316,7 @@
     // 3. Solution Review Checklist (Manager Level Outcome)
     h += '<h2>3. Infrastructure Solution Review Pillars</h2>' +
       '<p style="max-width:68ch">When reviewing AI solution diagrams, engineering leaders should evaluate these four risk pillars to identify architectural defects early.</p>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:16px;margin:20px 0">';
     fd.solutionReviewPillars.forEach(function (srp) {
       h += '<div class="card" style="--h:150">' +
         '<div class="mini">Review Pillar</div>' +
@@ -2217,6 +2337,7 @@
     var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Microsoft Foundry</div>' +
       '<h1>' + esc(fd.title) + '</h1>' +
       '<p class="lede">' + esc(fd.lede) + '</p>' +
+      lifecycleNotice() +
       '<div class="callout"><b>Unified AI Platform Engineering</b>' +
       'Microsoft Foundry serves as Azure’s consolidated platform for foundation models, autonomous agents, prompt evaluation, security guardrails, and enterprise observability. This guide details the platform architecture, quota optimization, agent runtime, and evaluation pipelines.</div>';
 
@@ -2226,7 +2347,7 @@
       h += '<div class="box" style="margin:20px 0;border-left:4px solid var(--accent)">' +
         '<h3>' + (idx + 1) + '. ' + esc(sec.name) + '</h3>' +
         '<p style="color:var(--muted);font-size:14px;margin:4px 0 14px">' + esc(sec.desc) + '</p>' +
-        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px">';
+        '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:12px">';
       (sec.subsections || []).forEach(function (sub) {
         h += '<div style="background:var(--paper);border:1px solid var(--line2);border-radius:10px;padding:12px 14px">' +
           '<h4 style="margin:0 0 6px;font-size:14px;font-weight:700">' + esc(sub.title) + '</h4>' +
@@ -2274,7 +2395,7 @@
       'Beyond basic RAG and single-prompt agents, production AI systems require advanced engineering: graph grounding, multimodal fusion, parameter-efficient fine-tuning (LoRA), edge SLM inference, dynamic model routing, hierarchical memory, synthetic data pipelines, and automated adversarial red teaming.</div>';
 
     h += '<h2>Advanced AI Engineering Topics (' + adv.topics.length + ')</h2>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px;margin:20px 0">';
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:20px;margin:20px 0">';
     adv.topics.forEach(function (tp) {
       h += '<div class="pattern-card">' +
         '<div class="pattern-top">' +
@@ -2314,7 +2435,8 @@
       nl('#/advisor', 'Architecture Advisor', kind === 'advisor') +
       nl('#/em-workspace', 'EM Workspace & Staffing', kind === 'em-workspace') +
       nl('#/finops', 'AI FinOps & ROI Calculator', kind === 'finops') +
-      nl('#/toolkit', 'Leadership Toolkit & RACI', kind === 'toolkit');
+      nl('#/toolkit', 'Leadership Toolkit & RACI', kind === 'toolkit') +
+      nl('#/freshness', 'Content Freshness & Sources', kind === 'freshness');
 
     h += '<h3>Engineering Centers</h3>' +
       nl('#/foundation', 'Cloud Foundation & Networking', kind === 'foundation') +
@@ -2377,6 +2499,7 @@
     else if (kind === 'agents') { html = pageAgentPatterns(); title = 'Agentic AI Architecture Patterns — Azure AI Engineering OS'; }
     else if (kind === 'security-center') { html = pageSecurityCenter(); title = 'AI Security & Governance Center — Azure AI Engineering OS'; }
     else if (kind === 'evaluation') { html = pageEvaluationCenter(); title = 'AI Evaluation & Quality Center — Azure AI Engineering OS'; }
+    else if (kind === 'freshness') { html = pageFreshness(); title = 'Content freshness and sources — Azure AI Engineering OS'; }
     else if (kind === 'finops') { html = pageFinOps(); title = 'AI FinOps & Cost Engineering — Azure AI Engineering OS'; }
     else if (kind === 'troubleshooting') { html = pageTroubleshooting(); title = 'Production Troubleshooting & Failure Catalog — Azure AI Engineering OS'; }
     else if (kind === 'traditional-ml') { html = pageTraditionalML(); title = 'Traditional ML, Data Architecture & Enterprise Integration — Azure AI Engineering OS'; }
@@ -2443,89 +2566,53 @@
     try { localStorage.setItem('atlas-theme', next); } catch (e) {}
   });
 
-  var overlay = $('#overlay'), q = $('#q'), resultsEl = $('#results'), sel = 0, hits = [];
-  var index = A.services.map(function (s) {
-    return { type: 'Service', href: '#/s/' + s.id, name: s.name, id: s.id, tag: s.tag, cat: catById[s.cat].name,
-      hay: [s.name, s.id, s.tag, s.what, s.ml.join(' '), s.gotchas.join(' '), s.edges.join(' ')].join(' ').toLowerCase() };
-  }).concat(A.architectures.map(function (a) {
-    return { type: 'Architecture', href: '#/a/' + a.id, name: a.name, id: a.id, tag: a.short, cat: 'Architecture', hay: (a.name + ' ' + a.short + ' ' + a.why.join(' ')).toLowerCase() };
-  })).concat(A.decisions.map(function (d) {
-    return { type: 'Decision', href: '#/d/' + d.id, name: d.title, id: d.id, tag: d.question, cat: 'Decision guide',
-      hay: plain([d.title, d.question, d.why, d.em.call, d.pe.call, d.redflags.join(' '), d.ask.join(' '), d.rules.map(function (r) { return r.join(' '); }).join(' ')].join(' ')).toLowerCase() };
-  })).concat(A.engineeringPlaybooks.map(function (p) {
-    return { type: 'Playbook', href: '#/p/' + p.id, name: p.title, id: p.id, tag: p.tag, cat: 'Playbook',
-      hay: (p.title + ' ' + p.tag + ' ' + p.intro + ' ' + p.sections.map(function (s) { return s.title + ' ' + (s.body || '') + ' ' + (s.bullets ? s.bullets.join(' ') : ''); }).join(' ')).toLowerCase() };
-  })).concat([
-    { type: 'Tool', href: '#/d/em', name: 'Decisions for engineering managers', id: 'em', tag: 'Default calls, evidence to ask for, and the guides you lead', cat: 'Decision tab', hay: 'manager budget headcount risk launch gate quick calls' },
-    { type: 'Tool', href: '#/d/pe', name: 'Decisions for principal engineers', id: 'pe', tag: 'Default designs, trade-offs and the tests to demand', cat: 'Decision tab', hay: 'principal architect design review adr trade-off quick calls' },
-    { type: 'Tool', href: '#/d/shaper', name: 'Solution shaper', id: 'shaper', tag: 'Get a starting stack, risks and next decisions for your use case', cat: 'Tool', hay: 'recommend stack wizard rag agent starting point' },
-    { type: 'Tool', href: '#/d/checklists', name: 'Readiness checklists', id: 'checklists', tag: 'Maturity ladder, production readiness and decision record template', cat: 'Tool', hay: 'production readiness launch checklist adr decision record maturity prototype pilot scale' },
-    { type: 'Tool', href: '#/d/calculator', name: 'Cost per task calculator', id: 'calculator', tag: 'Unit economics for LLM features and the levers that cut cost', cat: 'Tool', hay: 'price tokens caching batch unit economics budget' },
-    { type: 'Governance', href: '#/gov', name: 'Enterprise AI Governance & Landing Zones', id: 'gov', tag: 'CAF Landing zones, network isolation, 8-pillar security framework, tenancy models', cat: 'Governance', hay: 'landing zone caf hierarchy vnet private link firewall security framework tenancy azure policy' },
-    { type: 'Operations', href: '#/ops', name: 'Production AI Operations Centre', id: 'ops', tag: '10-widget dashboard template, KQL queries, SRE runbooks, postmortem template', cat: 'Operations', hay: 'dashboard kql runbook 429 throttling postmortem incident sre latency ttft kusto' },
-    { type: 'Toolkit', href: '#/toolkit', name: 'AI Engineering Manager Toolkit', id: 'toolkit', tag: 'Use-case assessment, estimation, RACI, RAID, quality gates, skills matrix', cat: 'Toolkit', hay: 'toolkit assessment estimation raci raid quality gates vendor skills executive status report template' },
-    { type: 'Labs', href: '#/labs', name: 'Hands-on Labs & Learning Roadmaps', id: 'labs', tag: 'Role roadmaps, 5 implementation labs, Microsoft Learn links', cat: 'Labs', hay: 'labs exercises tutorial roadmaps learn curriculum hands-on' },
-    { type: 'Advisor', href: '#/advisor', name: 'Architecture Advisor & Solution Generator', id: 'advisor', tag: 'Guided intake -> Stack recommendation, SVG diagram, and 15-section ADR generator', cat: 'Operating System', hay: 'advisor recommend stack intake adr decision requirements generator blueprint interactive' },
-    { type: 'Lab', href: '#/rag-lab', name: 'RAG Engineering Lab', id: 'rag-lab', tag: 'Chunking trade-offs, hybrid search (HNSW + BM25), RRF reranking, and interactive quality calculator', cat: 'Engineering Lab', hay: 'rag lab chunking hnsw bm25 rrf semantic ranker evaluation groundedness relevance recall benchmark experiments golden dataset' },
-    { type: 'Lab', href: '#/agents', name: 'Agent Pattern Explorer', id: 'agents', tag: '18 architectural patterns, 6-framework decision matrix, and 7 orchestration modes', cat: 'Engineering Lab', hay: 'agents patterns multi-agent autogen semantic kernel langgraph mcp tools delegation reflection routing human in the loop coordinator' },
-    { type: 'Governance', href: '#/security-center', name: 'AI Security & Threat Defense Center', id: 'security-center', tag: 'OWASP Top 10 for LLMs threat catalog and interactive 10-Gate AI Governance checklist', cat: 'Security', hay: 'security owasp threat prompt injection jailbreak exfiltration data poison governance 10 gates audit compliance guardrails' },
-    { type: 'Quality', href: '#/evaluation', name: 'AI Evaluation & Quality Center', id: 'evaluation', tag: '7-level AI testing pyramid, 14 quality dimensions, and interactive release quality gate calculator', cat: 'Quality', hay: 'evaluation testing pyramid quality gates hallucination benchmark regression metrics bleurt ragas unit integration e2e red teaming' },
-    { type: 'FinOps', href: '#/finops', name: 'AI FinOps & Cost Engineering Center', id: 'finops', tag: 'Multi-model token pricing, monthly TCO calculator, scale profiles, and corporate ROI model', cat: 'FinOps', hay: 'finops cost calculator tco pricing ptu payg token optimization budget roi payback financial economics scale' },
-    { type: 'Operations', href: '#/troubleshooting', name: 'Production Troubleshooting Catalog', id: 'troubleshooting', tag: 'Diagnostic workflows, root-cause analyses, resolution runbooks, and KQL queries', cat: 'Operations', hay: 'troubleshooting errors 429 rate limit token timeout hallucination loop kql failure root cause diagnostics runbook' },
-    { type: 'Machine Learning', href: '#/traditional-ml', name: 'Traditional ML & Enterprise Integrations', id: 'traditional-ml', tag: '10-phase ML lifecycle, Azure ML comparison, resilience patterns, and ERP/CRM connectors', cat: 'Machine Learning', hay: 'traditional ml mlops lifecycle training azure ml fabric databricks sap salesforce dynamics resilience circuit breaker fallback' },
-    { type: 'Leadership', href: '#/em-workspace', name: 'Engineering Manager Workspace', id: 'em-workspace', tag: '14-point project intake, solution review, complexity estimator, and 8-role skills matrix', cat: 'Leadership', hay: 'em workspace manager project review staffing estimator skills matrix competency portfolio prioritization 3x3 delivery' },
-    { type: 'Architecture', href: '#/services-matrix', name: 'Azure Service Decision Matrix', id: 'services-matrix', tag: '14-field comparison table across Azure AI services and 7 platform trade-off guides', cat: 'Architecture', hay: 'service matrix comparison aca aks functions blob adls managed identity private endpoints consumption ptu trade-offs' }
-  ]).concat(A.foundation && A.foundation.pillars ? A.foundation.pillars.map(function (p) {
-    return { type: 'Foundation', href: '#/foundation', name: p.name, id: p.id, tag: p.summary, cat: 'Cloud Foundation', hay: (p.name + ' ' + p.summary + ' ' + (p.topics || []).map(function (t) { return t.concept + ' ' + t.azureService + ' ' + t.guidance; }).join(' ')).toLowerCase() };
-  }) : []).concat(A.foundation && A.foundation.decisions ? A.foundation.decisions.map(function (d) {
-    return { type: 'Platform Decision', href: '#/foundation', name: d.title, id: d.title, tag: d.recommendation, cat: 'Cloud Foundation', hay: (d.title + ' ' + d.category + ' ' + d.question + ' ' + d.recommendation + ' ' + d.redFlags).toLowerCase() };
-  }) : []).concat(A.foundry && A.foundry.sections ? A.foundry.sections.map(function (s) {
-    return { type: 'Foundry', href: '#/foundry', name: s.name, id: s.id, tag: s.desc, cat: 'Microsoft Foundry', hay: (s.name + ' ' + s.desc + ' ' + (s.subsections || []).map(function (sub) { return sub.title + ' ' + sub.content; }).join(' ')).toLowerCase() };
-  }) : []).concat(A.advancedAI && A.advancedAI.topics ? A.advancedAI.topics.map(function (t) {
-    return { type: 'Advanced AI', href: '#/advanced-ai', name: t.name, id: t.id, tag: t.summary, cat: 'Advanced AI', hay: (t.name + ' ' + t.tag + ' ' + t.summary + ' ' + t.problemSolved + ' ' + t.azureImplementation).toLowerCase() };
-  }) : []).concat(A.ragLab && A.ragLab.patterns ? A.ragLab.patterns.map(function (p) {
-    return { type: 'RAG Pattern', href: '#/rag-lab', name: p.name, id: p.id, tag: p.useCase, cat: 'RAG Pattern', hay: (p.name + ' ' + p.difficulty + ' ' + p.useCase + ' ' + p.retrievalFlow + ' ' + p.tradeoffs).toLowerCase() };
-  }) : []).concat(A.agentPatterns && A.agentPatterns.patterns ? A.agentPatterns.patterns.map(function (p) {
-    return { type: 'Agent Pattern', href: '#/agents', name: p.name, id: p.id, tag: p.bestFor, cat: 'Agent Pattern', hay: (p.name + ' ' + p.category + ' ' + p.bestFor + ' ' + p.description).toLowerCase() };
-  }) : []).concat(A.securityCenter && A.securityCenter.threatCatalog ? A.securityCenter.threatCatalog.map(function (t) {
-    return { type: 'Security Threat', href: '#/security-center', name: t.id + ': ' + t.name, id: t.id, tag: t.impact, cat: 'Security Threat', hay: (t.id + ' ' + t.name + ' ' + t.summary + ' ' + t.impact + ' ' + (t.mitigations || []).join(' ')).toLowerCase() };
-  }) : []).concat(A.troubleshooting && A.troubleshooting.categories ? A.troubleshooting.categories.reduce(function (acc, cat) {
-    return acc.concat((cat.issues || []).map(function (item) {
-      return { type: 'Troubleshooting', href: '#/troubleshooting', name: item.title, id: item.id, tag: item.symptom, cat: cat.name, hay: (item.title + ' ' + item.symptom + ' ' + (item.rootCauses || '') + ' ' + (item.resolution || '')).toLowerCase() };
-    }));
-  }, []) : []).concat(A.serviceMatrix && A.serviceMatrix.comparisonMatrix ? A.serviceMatrix.comparisonMatrix.map(function (sm) {
-    return { type: 'Service Matrix', href: '#/services-matrix', name: sm.name, id: sm.id, tag: sm.what, cat: 'Service Matrix', hay: (sm.name + ' ' + sm.category + ' ' + sm.what + ' ' + sm.why + ' ' + sm.whenUse).toLowerCase() };
-  }) : []).concat(A.serviceMatrix && A.serviceMatrix.platformDecisions ? A.serviceMatrix.platformDecisions.map(function (pd) {
-    return { type: 'Platform Decision', href: '#/services-matrix', name: pd.title, id: pd.id, tag: pd.winner, cat: 'Platform Decision', hay: (pd.title + ' ' + pd.why + ' ' + pd.winner + ' ' + pd.summary).toLowerCase() };
-  }) : []);
-  function openSearch() { overlay.hidden = false; q.value = ''; runSearch(); q.focus(); }
+  /* Forms are live calculators, never navigations (inline onsubmit is blocked by the CSP). */
+  document.addEventListener('submit', function (e) { e.preventDefault(); });
+
+  /* ---- Search: index/query logic lives in assets/search.js (unit-tested in Node) ---- */
+  var overlay = $('#overlay'), q = $('#q'), resultsEl = $('#results'), filtersEl = $('#searchFilters'), sel = 0, hits = [], kind = 'all';
+  var S = window.AtlasSearch, index = S.build(A);
+  var kindCounts = {};
+  index.forEach(function (it) { kindCounts[it.kind] = (kindCounts[it.kind] || 0) + 1; });
+  function paintFilters() {
+    filtersEl.innerHTML = [['all', 'All']].concat(S.KINDS.filter(function (k) { return kindCounts[k[0]]; })).map(function (k) {
+      return '<button type="button" class="chip' + (k[0] === kind ? ' on' : '') + '" data-kind="' + k[0] + '" aria-pressed="' + (k[0] === kind) + '">' + esc(k[1]) + '</button>';
+    }).join('');
+  }
+  /* Highlights query words. Matching runs on the raw text and each piece is escaped separately, so a query
+     such as "amp" can never cut through an HTML entity like &amp;. */
+  function mark(text, terms) {
+    var words = terms.filter(function (t) { return t.length > 1; }).map(function (t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+    if (!words.length) return esc(text);
+    var re = new RegExp('(' + words.join('|') + ')', 'ig');
+    return String(text).split(re).map(function (part, i) { return i % 2 ? '<mark>' + esc(part) + '</mark>' : esc(part); }).join('');
+  }
+  function openSearch() { overlay.hidden = false; q.value = ''; kind = 'all'; paintFilters(); runSearch(); q.focus(); }
   function closeSearch() { overlay.hidden = true; }
   function runSearch() {
-    var terms = q.value.toLowerCase().split(/\s+/).filter(Boolean);
-    hits = index.map(function (it) {
-      var score = 0, ok = true;
-      terms.forEach(function (t) {
-        var nm = it.name.toLowerCase(), s = 0;
-        if (nm.indexOf(t) === 0) s = 100; else if (nm.indexOf(t) > -1) s = 70; else if (it.id.indexOf(t) > -1) s = 55;
-        else if (it.tag.toLowerCase().indexOf(t) > -1) s = 30; else if (it.hay.indexOf(t) > -1) s = 10;
-        if (!s) ok = false; score += s;
-      });
-      return { it: it, score: terms.length ? (ok ? score : 0) : 1 };
-    }).filter(function (h) { return h.score > 0; }).sort(function (a, b) { return b.score - a.score || a.it.name.localeCompare(b.it.name); }).slice(0, 12);
-    sel = 0; paint();
+    hits = S.query(index, q.value, kind, 15); sel = 0; paint();
   }
   function paint() {
-    resultsEl.innerHTML = hits.length ? hits.map(function (h, i) {
-      return '<li role="option"><a href="' + h.it.href + '" class="' + (i === sel ? 'sel' : '') + '"><b>' + esc(h.it.name) + ' <small style="font-weight:400;color:var(--muted)">· ' + esc(h.it.cat) + '</small></b><span>' + esc(h.it.tag) + '</span></a></li>';
-    }).join('') : '<li class="none">No matches. Try a service name or a concept like “vector” or “throttling”.</li>';
+    var terms = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+    resultsEl.innerHTML = hits.length ? hits.map(function (it, i) {
+      return '<li role="option" aria-selected="' + (i === sel) + '"><a href="' + esc(it.href) + '" class="' + (i === sel ? 'sel' : '') + '"><b>' + mark(it.name, terms) +
+        ' <small class="muted-s">· ' + esc(it.type) + (it.cat && it.cat !== it.type ? ' · ' + esc(it.cat) : '') + '</small></b><span>' + mark(plain(it.tag).slice(0, 160), terms) + '</span></a></li>';
+    }).join('') : '<li class="none">No matches' + (kind !== 'all' ? ' in this filter' : '') + '. Try a service name (“AI Search”), a concept (“throttling”, “vector”), an acronym (“RAG”, “PTU”, “MCP”) or an error code (“429”).' +
+      (kind !== 'all' ? ' <button type="button" class="chip" data-kind="all">Search everything</button>' : '') + '</li>';
+    var st = $('#searchStatus'); if (st) st.textContent = hits.length + (hits.length === 1 ? ' result' : ' results');
+    var cur = resultsEl.querySelector('a.sel'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
   }
   $('#searchBtn').addEventListener('click', openSearch);
-  overlay.addEventListener('click', function (e) { if (e.target === overlay || e.target.closest('a')) closeSearch(); });
+  overlay.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-kind]');
+    if (chip) { kind = chip.getAttribute('data-kind'); paintFilters(); runSearch(); q.focus(); return; }
+    if (e.target === overlay || e.target.closest('a')) closeSearch();
+  });
   q.addEventListener('input', runSearch);
   q.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowDown') { e.preventDefault(); sel = Math.min(hits.length - 1, sel + 1); paint(); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); sel = Math.max(0, sel - 1); paint(); }
-    else if (e.key === 'Enter' && hits[sel]) { location.hash = hits[sel].it.href; closeSearch(); }
+    else if (e.key === 'Enter' && hits[sel]) { location.hash = hits[sel].href; closeSearch(); }
   });
   document.addEventListener('keydown', function (e) {
     var typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || ''));

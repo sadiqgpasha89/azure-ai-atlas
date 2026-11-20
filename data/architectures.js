@@ -312,7 +312,7 @@ window.ATLAS.architectures = [
       [1, '[[doc-intelligence|Document Intelligence]] extracts form key-value pairs, tables, and document layout into structured markdown.'],
       [2, '[[content-understanding|Content Understanding]] (or [[ai-vision]] and [[ai-speech]]) generates visual bounding box descriptions, OCR text and audio transcripts.'],
       [3, 'Multimodal vector embeddings and text representations are indexed into [[ai-search]] with vector and metadata filters.'],
-      [4, 'User submits an inquiry with text or images; retrieved diagram crops and textual context pass to [[foundry-models|multimodal models (e.g. GPT-4o)]] to generate visual-grounded answers.']
+      [4, 'User submits an inquiry with text or images; retrieved diagram crops and textual context pass to [[foundry-models|multimodal models (a vision-capable deployment)]] to generate visual-grounded answers.']
     ],
     why: [
       'Extracting tables and diagrams preserves critical business information lost by plain text extractors.',

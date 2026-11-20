@@ -580,7 +580,7 @@ window.ATLAS.engineeringPlaybooks = [
         bullets: [
           '**Prompt Caching:** Place static context (system instructions, corporate definitions, large reference manuals) at the beginning of the prompt. Azure OpenAI automatically applies a substantial discount on repeated prefixes over 1,024 tokens.',
           '**Semantic Caching:** Store question embeddings and verified answers in [[redis|Azure Managed Redis]]. When an incoming query has >95% cosine similarity to a cached question, return the cached response immediately, bypassing the model entirely.',
-          '**Model Cascading / Tiered Routing:** Route simple classification and routing prompts to fast, cheap models (e.g. GPT-4o-mini), reserving complex frontier models (e.g. GPT-4o) exclusively for multi-hop synthesis.',
+          '**Model Cascading / Tiered Routing:** Route simple classification and routing prompts to fast, cheap small-tier models, reserving frontier-tier models exclusively for multi-hop synthesis.',
           '**Global Batch Processing:** Shift asynchronous offline jobs (daily report generation, bulk document indexing, evaluation sweeps) to Global Batch deployments for an immediate 50% discount.'
         ]
       },

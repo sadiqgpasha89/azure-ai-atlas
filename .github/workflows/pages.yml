@@ -22,10 +22,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate service data
-        run: node scripts/check.mjs
-      - name: Syntax-check app
-        run: node --check assets/app.js
+      - name: Validate data, syntax and content-governance rules
+        run: npm run check
+      - name: Unit and site tests
+        run: npm test
 
   deploy:
     needs: validate
