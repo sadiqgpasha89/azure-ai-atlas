@@ -4,6 +4,8 @@ A static, zero-dependency, client-side web application designed for **AI Enginee
 
 **Live Application:** [https://sadiqgpasha89.github.io/azure-ai-atlas/](https://sadiqgpasha89.github.io/azure-ai-atlas/)
 
+**New here?** Open [Start here](https://sadiqgpasha89.github.io/azure-ai-atlas/#/start) for a path by role, or the [Glossary](https://sadiqgpasha89.github.io/azure-ai-atlas/#/glossary) for the vocabulary. Press `/` anywhere to search.
+
 **Status:** a broad reference and decision-support site with a stable core. Content accuracy is tracked openly: [`#/freshness`](https://sadiqgpasha89.github.io/azure-ai-atlas/#/freshness) shows what has been checked against Microsoft documentation and what has not (most pages have not yet). Work remaining against the delivery plan is in [`plan.md`](plan.md) and [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
@@ -20,6 +22,20 @@ Operating as an enterprise AI Engineering Manager requires answering five fundam
 The **Azure AI Atlas** transforms standard cloud documentation into an active **Engineering Operating System** that equips engineering leadership with the frameworks, architectural blueprints, interactive calculators, governance models, and troubleshooting runbooks needed to design and govern enterprise AI systems.
 
 ---
+
+## How the site is organised
+
+Every page sits in one of five sections, in the order an AI system is built:
+
+| Section | Pages |
+|---|---|
+| **Start** | Home, Start here, Glossary, What is verified |
+| **Design** | Architecture Advisor, Reference architectures, Decision guides, Solution shaper, Service comparison, Cloud foundation, Landing zones and tenancy |
+| **Build** | Microsoft Foundry, RAG lab, Agent patterns, Traditional ML and MLOps, Advanced AI, Playbooks, Labs and roadmaps |
+| **Secure & operate** | Security and threats, Evaluation and quality, Operations, Troubleshooting, Readiness checklists |
+| **Lead & budget** | Manager workspace, Manager toolkit, FinOps and ROI, Cost per task |
+
+The service catalogue (59 services in 11 categories) follows in the sidebar. Long pages open with an "On this page" list, and module pages end with links to the previous and next page in the same section. The theme is a minimal light and dark design with one accent colour.
 
 ## Core Capabilities & Centers
 
@@ -154,7 +170,7 @@ cd azure-ai-atlas
 npm run serve        # http://127.0.0.1:8765/  (or: python3 -m http.server 8000)
 
 npm run check        # data, cross-links and content-governance rules, plus syntax checks
-npm test             # 36 unit and site tests (node:test, no dependencies)
+npm test             # unit and site tests (node:test, no dependencies)
 npm run smoke        # browser test over every route at 1280 px and 375 px (needs Playwright)
 npm run verify       # all three
 ```
@@ -217,6 +233,7 @@ azure-ai-atlas/
 │   ├── evaluationcenter.js      # 7-level testing pyramid, 14 dimensions, quality gate calculator
 │   ├── finops.js                # Illustrative pricing, search tier limits, tested TCO and ROI functions
 │   ├── verification.js          # Content-governance registry: verified facts, sources, dates, model lifecycle
+│   ├── guide.js                 # Start here paths and stages, common tasks, glossary
 │   ├── troubleshooting.js       # Production failure catalog, root-cause analyses, KQL queries
 │   ├── mltraditional.js         # 10-phase ML lifecycle, platform comparison, ERP connectors
 │   ├── emworkspace.js           # 14-question project intake, complexity estimator, skills matrix

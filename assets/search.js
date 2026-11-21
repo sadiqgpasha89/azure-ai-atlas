@@ -81,6 +81,8 @@
       ['#/d/calculator', 'Cost per task calculator', 'Unit economics for LLM features and the levers that cut cost', 'Tool', 'price tokens caching batch unit economics budget'],
       ['#/freshness', 'Content freshness and sources', 'What has been verified against Microsoft documentation, when, and what has not', 'Tool', 'verified verification lastverified sources freshness lifecycle model retirement deprecated stale review'],
       ['#/advisor', 'Architecture Advisor & Solution Generator', 'Guided intake to stack recommendation, diagram and ADR generator', 'Tool', 'advisor recommend stack intake adr decision requirements generator blueprint interactive'],
+      ['#/start', 'Start here', 'Paths by role and the six stages from idea to production', 'Guide', 'start getting started orientation onboarding path role manager architect engineer workflow lifecycle'],
+      ['#/glossary', 'Glossary', 'Plain-language definitions of the terms used across the atlas', 'Guide', 'glossary terms definitions vocabulary meaning what is'],
       ['#/finops', 'AI FinOps & Cost Engineering Center', 'Token pricing inputs, monthly TCO calculator, scale profiles and ROI model', 'Tool', 'finops cost calculator tco pricing ptu payg token optimization budget roi payback financial economics scale']
     ].forEach(function (t) { add('tool', 'Tool', t[0], t[1], t[2], t[3], null, t[4]); });
     [
@@ -123,6 +125,7 @@
     each(A.evaluationCenter && A.evaluationCenter.testingPyramid, function (l) { add('guide', 'Evaluation', '#/evaluation', l.name, l.scope, 'Evaluation', l); });
     each(A.evaluationCenter && A.evaluationCenter.agentMetrics, function (m) { add('guide', 'Agent metric', '#/evaluation', m.metric, m.desc, 'Evaluation', m); });
     each(A.emWorkspace && A.emWorkspace.skillsMatrix, function (s) { add('tool', 'Skills matrix', '#/em-workspace', s.role, s.focus, 'EM workspace', s); });
+    each(A.glossary, function (g) { add('guide', 'Glossary', '#/glossary', g.term, g.def, 'Glossary', g); });
     ['useCaseAssessment', 'projectEstimation', 'architectureReview', 'raciMatrix', 'raidTracker', 'qualityGates', 'vendorMatrix', 'skillsMatrix', 'executiveReportTemplate'].forEach(function (k) {
       var t = A.toolkit && A.toolkit[k]; if (t) add('tool', 'Toolkit', '#/toolkit', t.title, t.intro, 'Manager toolkit', t);
     });

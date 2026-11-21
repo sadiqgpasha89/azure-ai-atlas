@@ -2,6 +2,21 @@
 
 User-visible changes. Newest first.
 
+## 1.2.0 — 2026-11-21
+
+### Added
+- **Start here** (`#/start`): a path for each role (engineering manager, architect, engineer) and six stages from idea to production. Each stage gives the question to answer, what to do, and links into the atlas.
+- **Glossary** (`#/glossary`): 51 terms in six groups (retrieval, models, agents, quality and safety, platform, operations and cost), each with links to the pages where it matters. The page has a live filter, and every term is in the site search.
+- **Common tasks** on the home page: one-click entry points such as "Choose a vector store" and "Fix 429 throttling".
+- **On this page** list at the top of long pages, and a **section pager** (previous and next page in the same section) at the bottom of module pages.
+
+### Changed
+- **New navigation.** The 16-link top bar is gone. The sidebar now groups every page in five sections that follow the life of an AI system: Start, Design, Build, Secure and operate, Lead and budget, then the service catalogue. The header holds only the brand, search, Start here, Portfolio and the theme toggle.
+- **New home page.** One headline, a large search field, two calls to action, the five sections, common tasks and the service categories. The long card lists moved to their own index pages.
+- **Minimalist theme.** Neutral white and near-black surfaces, one blue accent, one sans-serif typeface, thin borders and no offset shadows. Light and dark modes both updated.
+- The site name is now "Azure AI Atlas" in the header, page titles and breadcrumbs.
+
+
 ## 1.1.0 — 2026-11-20
 
 ### Added

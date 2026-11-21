@@ -26,33 +26,6 @@
   function ul(items) { return '<ul>' + items.map(function (i) { return '<li>' + fmt(i) + '</li>'; }).join('') + '</ul>'; }
   function hueOf(catId) { return catById[catId] ? catById[catId].hue : 212; }
 
-  /* ---------- isometric drawing ---------- */
-  function miniCube(h) {
-    return '<svg class="iso" viewBox="-30 -16 60 56" style="--h:' + h + '" aria-hidden="true"><g class="node">' +
-      '<path class="face f-left" d="M-26 0L0 13V35L-26 22Z"/><path class="face f-right" d="M0 13L26 0V22L0 35Z"/><path class="face f-top" d="M0-13L26 0L0 13L-26 0Z"/></g></svg>';
-  }
-  function slab(cx, cy, w, d, label, sub, h, lx) {
-    var hh = w / 2;
-    return '<g style="--h:' + h + '" class="node" tabindex="-1">' +
-      '<path class="face f-left" d="M' + (cx - w) + ' ' + cy + 'L' + cx + ' ' + (cy + hh) + 'V' + (cy + hh + d) + 'L' + (cx - w) + ' ' + (cy + d) + 'Z"/>' +
-      '<path class="face f-right" d="M' + cx + ' ' + (cy + hh) + 'L' + (cx + w) + ' ' + cy + 'V' + (cy + d) + 'L' + cx + ' ' + (cy + hh + d) + 'Z"/>' +
-      '<path class="face f-top" d="M' + cx + ' ' + (cy - hh) + 'L' + (cx + w) + ' ' + cy + 'L' + cx + ' ' + (cy + hh) + 'L' + (cx - w) + ' ' + cy + 'Z"/>' +
-      '<path d="M' + (cx + w * 0.55) + ' ' + (cy - 2) + 'L' + (lx - 8) + ' ' + (cy - 2) + '" stroke="var(--line2)" stroke-dasharray="3 4" fill="none"/>' +
-      '<text x="' + lx + '" y="' + (cy + 2) + '" style="text-anchor:start;font-size:16px;font-family:var(--serif)">' + label + '</text>' +
-      '<text x="' + lx + '" y="' + (cy + 20) + '" style="text-anchor:start;font-size:11px;font-weight:400;fill:var(--muted)">' + sub + '</text></g>';
-  }
-  function heroSVG() {
-    var layers = [
-      { l: 'Foundation', s: 'GPU VMs · AKS · Blob · Lustre', h: 212, w: 140 },
-      { l: 'Data', s: 'Fabric · Databricks · Event Hubs', h: 185, w: 120 },
-      { l: 'Models', s: 'Foundry · Azure ML', h: 268, w: 100 },
-      { l: 'Apps & agents', s: 'APIM · Functions · Agent Service', h: 305, w: 80 }
-    ];
-    var out = '<svg viewBox="0 0 560 420" role="img" aria-label="Isometric stack: foundation, data, models, apps and agents">';
-    layers.forEach(function (L, i) { out += slab(150, 320 - i * 80, L.w, 24, L.l, L.s, L.h, 318); });
-    return out + '</svg>';
-  }
-
   /* ---------- stepper ---------- */
   function mountStepper(host, spec) {
     var flow = spec.flow.map(function (f) { return typeof f === 'string' ? { l: f } : f; });
@@ -149,74 +122,114 @@
   var pendingSteppers = [];
   function stepperHost(spec) { pendingSteppers.push(spec); return '<div class="stepper" data-sp="' + (pendingSteppers.length - 1) + '"></div>'; }
 
+  /* ---------- site sections: one model drives the sidebar, the home page and the section pager ---------- */
+  var SECTIONS = [
+    { name: 'Start', blurb: 'Orientation, role paths and shared vocabulary.', items: [
+      ['#/', 'Home'], ['#/start', 'Start here'], ['#/glossary', 'Glossary'], ['#/freshness', 'What is verified']] },
+    { name: 'Design', blurb: 'Choose the services and shape the architecture.', items: [
+      ['#/advisor', 'Architecture Advisor'], ['#/a', 'Reference architectures'], ['#/d', 'Decision guides'], ['#/d/shaper', 'Solution shaper'],
+      ['#/services-matrix', 'Service comparison'], ['#/foundation', 'Cloud foundation'], ['#/gov', 'Landing zones & tenancy']] },
+    { name: 'Build', blurb: 'Patterns, playbooks and labs for RAG, agents and ML.', items: [
+      ['#/foundry', 'Microsoft Foundry'], ['#/rag-lab', 'RAG lab'], ['#/agents', 'Agent patterns'], ['#/traditional-ml', 'Traditional ML & MLOps'],
+      ['#/advanced-ai', 'Advanced AI'], ['#/p', 'Playbooks'], ['#/labs', 'Labs & roadmaps']] },
+    { name: 'Secure & operate', blurb: 'Threats, quality gates, monitoring and incident runbooks.', items: [
+      ['#/security-center', 'Security & threats'], ['#/evaluation', 'Evaluation & quality'], ['#/ops', 'Operations'],
+      ['#/troubleshooting', 'Troubleshooting'], ['#/d/checklists', 'Readiness checklists']] },
+    { name: 'Lead & budget', blurb: 'Intake, staffing, governance, cost and return.', items: [
+      ['#/em-workspace', 'Manager workspace'], ['#/toolkit', 'Manager toolkit'], ['#/finops', 'FinOps & ROI'], ['#/d/calculator', 'Cost per task']] }
+  ];
+  /* The nav entry a route belongs to: exact match first, then the index page of its kind (#/a/x -> #/a). */
+  function navHref(kind, id) {
+    var exact = '#/' + kind + (id ? '/' + id : ''), parent = '#/' + kind, hit = null;
+    SECTIONS.forEach(function (s) { s.items.forEach(function (it) { if (it[0] === exact) hit = it[0]; }); });
+    if (hit) return hit;
+    if (kind === 'a' || kind === 'p' || kind === 'd') return parent;
+    return kind ? null : '#/';
+  }
+
   /* ---------- pages ---------- */
   function pageHome() {
-    var n = A.services.length;
-    var h = '<div class="wide"><section class="hero"><div>' +
-      '<div class="eyebrow">The Azure AI Engineering Operating System · ' + n + ' services · 23 domains · ' + A.architectures.length + ' architectures · ' + A.decisions.length + ' decisions</div>' +
-      '<h1>Azure AI Engineering Operating System</h1>' +
-      '<p class="lede">From cloud catalog to engineering management operating system: what to build, how to architect end to end, why to choose each technology over alternatives, how to evaluate and operate in production, and how to estimate cost and complexity.</p>' +
-      '<div class="btns">' +
-        '<a class="btn primary" href="#/advisor">Architecture Advisor →</a>' +
-        '<a class="btn" href="#/foundation">Cloud Foundation</a>' +
-        '<a class="btn" href="#/services-matrix">Services Matrix</a>' +
-        '<a class="btn" href="#/foundry">Microsoft Foundry</a>' +
-        '<a class="btn" href="#/rag-lab">RAG Lab (14)</a>' +
-        '<a class="btn" href="#/agents">Agent Patterns (18)</a>' +
-        '<a class="btn" href="#/a">Architectures (' + A.architectures.length + ')</a>' +
-        '<a class="btn" href="#/finops">FinOps Calculator</a>' +
-        '<a class="btn" href="#/em-workspace">EM Workspace</a>' +
-        '<a class="btn" href="#/advanced-ai">Advanced AI</a>' +
-        '<a class="btn" href="#/freshness">What is verified</a>' +
-      '</div>' +
-      '</div>' + heroSVG() + '</section>';
+    var G = A.guide;
+    var h = '<div class="wide home"><section class="hero">' +
+      '<h1>Design, build and run AI systems on Azure</h1>' +
+      '<p class="lede">Decision guides, reference architectures, patterns and calculators for teams that ship RAG, agents and machine learning on Microsoft Azure.</p>' +
+      '<button type="button" class="hero-search" data-open-search><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Search services, patterns, runbooks and terms</span><kbd>/</kbd></button>' +
+      '<div class="btns"><a class="btn primary" href="#/start">Start here</a><a class="btn" href="#/advisor">Architecture Advisor</a></div>' +
+      '<ul class="stats">' +
+        '<li><b>' + A.services.length + '</b> services</li><li><b>' + A.architectures.length + '</b> architectures</li>' +
+        '<li><b>' + A.decisions.length + '</b> decision guides</li><li><b>' + A.engineeringPlaybooks.length + '</b> playbooks</li><li><b>' + A.glossary.length + '</b> terms</li>' +
+      '</ul></section>';
 
-    h += '<h2>Core Operating System Capability Centers</h2>' +
-      '<p style="max-width:68ch">An integrated decision-support platform designed for AI Engineering Managers, Principal Architects, and Staff Engineers delivering enterprise AI on Microsoft Azure across 23 capability domains.</p>' +
-      '<div class="grid">' +
-      '<a class="card" style="--h:212" href="#/advisor"><div class="mini">Decision Engine</div><h3>1. Architecture Advisor</h3><p>Guided intake translating business requirements into tailored Azure architectures, service stacks, security designs, and 15-section ADRs.</p></a>' +
-      '<a class="card" style="--h:195" href="#/foundation"><div class="mini">Infrastructure</div><h3>2. Azure Cloud Foundation</h3><p>Networking (VNet, Private Endpoints), Entra identity, storage tiers, compute options, and the 7 critical Azure platform decision matrices.</p></a>' +
-      '<a class="card" style="--h:200" href="#/services-matrix"><div class="mini">Service Matrix</div><h3>3. Services Decision Matrix</h3><p>Exhaustive 14-field comparison matrix across 14 Azure AI services and core platform trade-off guides (Container Apps vs AKS, etc.).</p></a>' +
-      '<a class="card" style="--h:268" href="#/foundry"><div class="mini">Unified Platform</div><h3>4. Microsoft Foundry Deep Dive</h3><p>Hub/project hierarchy, multi-model catalog, PTU vs Pay-As-You-Go economics, hosted code agents, toolboxes, and App Insights tracing.</p></a>' +
-      '<a class="card" style="--h:150" href="#/rag-lab"><div class="mini">Engineering Lab</div><h3>5. RAG Engineering Lab</h3><p>14 RAG architecture patterns, ingestion pipeline engineering, chunking trade-offs, hybrid search (HNSW + BM25), and quality calculator.</p></a>' +
-      '<a class="card" style="--h:280" href="#/agents"><div class="mini">Agentic AI</div><h3>6. Agent Pattern Explorer</h3><p>18 design patterns (Supervisor, Swarm, HITL), agent fundamentals, 8 frameworks matrix (Agent Framework vs Semantic Kernel), and primitives.</p></a>' +
-      '<a class="card" style="--h:268" href="#/a"><div class="mini">Blueprints</div><h3>7. Reference Architectures</h3><p>' + A.architectures.length + ' production blueprints: Traditional RAG, Agentic RAG, GraphRAG, Multimodal RAG, Multi-Agent Swarms, Voice AI, and Batch.</p></a>' +
-      '<a class="card" style="--h:300" href="#/traditional-ml"><div class="mini">Predictive AI</div><h3>8. Traditional ML & MLOps</h3><p>10-phase classical ML lifecycle, Azure ML matrix, tabular vs LLM decision scenarios, 7 storage archetypes, and ERP/CRM integrations.</p></a>' +
-      '<a class="card" style="--h:6" href="#/security-center"><div class="mini">Zero-Trust & Risk</div><h3>9. AI Security & Governance</h3><p>12 AI threat catalog cards (OWASP Top 10 for LLMs), interactive 10-Gate AI Governance checklist, Private Link, and identity delegation.</p></a>' +
-      '<a class="card" style="--h:42" href="#/evaluation"><div class="mini">Quality Evals</div><h3>10. Evaluation & Quality Center</h3><p>7-level AI testing pyramid, 14 quality dimensions, agent metrics, and interactive release quality gate calculator with risk tier presets.</p></a>' +
-      '<a class="card" style="--h:185" href="#/ops"><div class="mini">SRE & Telemetry</div><h3>11. Production Operations Centre</h3><p>4 specialized dashboard blueprints (App, Agent, RAG, FinOps) with KQL queries, GenAIOps CI/CD, 10 live widgets, and SRE runbooks.</p></a>' +
-      '<a class="card" style="--h:120" href="#/finops"><div class="mini">FinOps & Budget</div><h3>12. AI FinOps & ROI Calculator</h3><p>Multi-model token pricing reference, monthly enterprise TCO calculator, scale profiles, and corporate ROI calculator with payback horizon.</p></a>' +
-      '<a class="card" style="--h:40" href="#/em-workspace"><div class="mini">Leadership</div><h3>13. EM Workspace & Staffing</h3><p>Guided 14-question project assessment, 6-pillar solution review checklist, complexity & staffing estimator, and team competency heatmap.</p></a>' +
-      '<a class="card" style="--h:340" href="#/troubleshooting"><div class="mini">Diagnostics</div><h3>14. Failure Troubleshooting Catalog</h3><p>Actionable root-cause procedures, diagnostics, and ready-to-run KQL queries for RAG, agent loops, and Azure 429 throttling.</p></a>' +
-      '<a class="card" style="--h:320" href="#/advanced-ai"><div class="mini">Frontier AI</div><h3>15. Advanced AI Engineering</h3><p>Graph RAG, Multimodal AI, LoRA fine-tuning, Edge SLMs (Phi-4 ONNX), Dynamic Model Routing, Hierarchical Memory, and PyRIT Red Teaming.</p></a>' +
-      '<a class="card" style="--h:190" href="#/d"><div class="mini">Decisions</div><h3>16. Architecture Decision Centre</h3><p>' + A.decisions.length + ' architectural decision guides with dedicated EM and PE lenses, reversibility markers, red flags, and review questions.</p></a>' +
-      '<a class="card" style="--h:212" href="#/p"><div class="mini">Playbooks</div><h3>17. AI Engineering Playbooks</h3><p>5 in-depth playbooks: RAG Engineering, Multi-Agent Orchestration, GenAIOps Lifecycle, Security Hardening, and SRE/Reliability.</p></a>' +
-      '<a class="card" style="--h:305" href="#/labs"><div class="mini">Curriculum</div><h3>18. Hands-on Labs & Roadmaps</h3><p>3 role-based progressive roadmaps (EM, PE, Engineer), 5 practical production labs, and official Microsoft Learn links.</p></a>' +
-      '<a class="card" style="--h:150" href="#/freshness"><div class="mini">Content governance</div><h3>20. Freshness & Sources</h3><p>What has been checked against Microsoft documentation, on what date, from which source, and what has not. Includes the model lifecycle table.</p></a>' +
-      '<a class="card" style="--h:25" href="#/gov"><div class="mini">Governance</div><h3>19. Landing Zones & Tenancy</h3><p>Cloud Adoption Framework (CAF) AI landing zones, management group hierarchy, Virtual WAN hub-and-spoke, and tenancy models.</p></a>' +
-      '</div>';
+    h += '<h2>Find your way</h2><div class="sections">';
+    SECTIONS.slice(1).forEach(function (s) {
+      h += '<section class="sec"><h3>' + esc(s.name) + '</h3><p>' + esc(s.blurb) + '</p><ul>' +
+        s.items.map(function (it) { return '<li><a href="' + it[0] + '">' + esc(it[1]) + '</a></li>'; }).join('') + '</ul></section>';
+    });
+    h += '</div>';
 
-    h += '<h2>Service Catalogue by Category (' + n + ' Services)</h2><p style="max-width:62ch">Services are grouped by the job they do in an enterprise AI system. Each page details step-by-step technical execution, production gotchas, edge cases, and architecture pairings.</p><div class="grid">';
-    A.categories.forEach(function (c) {
-      h += '<a class="card catcard" style="--h:' + c.hue + '" href="#/c/' + c.id + '">' + miniCube(c.hue) + '<div class="mini">' + c.items.length + ' services</div><h3>' + esc(c.name) + '</h3><p>' + esc(c.short) + '</p></a>';
+    h += '<h2>Common tasks</h2><ul class="tasks">' + G.tasks.map(function (t) {
+      return '<li><a href="' + t[1] + '">' + esc(t[0]) + '<span aria-hidden="true">→</span></a></li>';
+    }).join('') + '</ul>';
+
+    h += '<h2>Services by category</h2><div class="catlist">' + A.categories.map(function (c) {
+      return '<a href="#/c/' + c.id + '" style="--h:' + c.hue + '"><span class="dot"></span><b>' + esc(c.name) + '</b><small>' + c.items.length + '</small></a>';
+    }).join('') + '</div>';
+
+    h += '<div class="callout"><b>How far to trust a page</b>' + fmt(G.trust) + ' <a href="#/freshness">See what is verified</a>.</div></div>';
+    return h;
+  }
+
+  function pageStart() {
+    var G = A.guide;
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Start here</div><h1>Start here</h1><p class="lede">' + esc(G.intro) + '</p>';
+    h += '<h2>Paths by role</h2><div class="paths">';
+    G.paths.forEach(function (p) {
+      h += '<section class="path"><h3>' + esc(p.role) + '</h3><p>' + esc(p.goal) + '</p><ol>' +
+        p.steps.map(function (s) { return '<li><a href="' + s[0] + '">' + esc(s[1]) + '</a><span>' + esc(s[2]) + '</span></li>'; }).join('') + '</ol></section>';
     });
-    h += '</div><h2>Reference Architectures (' + A.architectures.length + ')</h2><p style="max-width:62ch">Production blueprints from classic RAG to multi-agent swarms, real-time voice, and continuous MLOps. Interactive step-through packet diagrams linking every node to its Azure service.</p><div class="grid">';
-    A.architectures.forEach(function (a) {
-      h += '<a class="card" style="--h:212" href="#/a/' + a.id + '"><div class="mini">Architecture</div><h3>' + esc(a.name) + '</h3><p>' + esc(a.short) + '</p></a>';
+    h += '</div><h2>From idea to production</h2><p>Six stages. Each one names the question to answer, what to do, and where the atlas helps.</p><ol class="stages">';
+    G.stages.forEach(function (s) {
+      h += '<li><h3>' + esc(s.name) + '</h3><p class="q">' + esc(s.question) + '</p>' + ul(s.do) +
+        '<p class="see">' + s.links.map(function (l) { return '<a href="' + l[0] + '">' + esc(l[1]) + '</a>'; }).join('') + '</p></li>';
     });
-    h += '</div><h2>Decision & Leadership Instruments</h2><p style="max-width:62ch">Defensible decision frameworks for engineering managers and principal engineers navigating high-stakes AI architectural decisions.</p><div class="grid">' +
-      '<a class="card" style="--h:212" href="#/d/em"><div class="mini">Decision tab</div><h3>Engineering managers</h3><p>Default calls, evidence to ask for and launch gates, across ' + A.decisions.length + ' guides.</p></a>' +
-      '<a class="card" style="--h:268" href="#/d/pe"><div class="mini">Decision tab</div><h3>Principal engineers</h3><p>Default designs, trade-offs and the tests to demand in design review.</p></a>' +
-      '<a class="card" style="--h:212" href="#/d/shaper"><div class="mini">Interactive</div><h3>Solution shaper</h3><p>Seven questions in, a starting stack and the decisions to make next out.</p></a>' +
-      '<a class="card" style="--h:150" href="#/d/checklists"><div class="mini">Checklist</div><h3>Readiness checklists</h3><p>Maturity ladder, production readiness and a decision-record template.</p></a>' +
-      '<a class="card" style="--h:185" href="#/d/calculator"><div class="mini">Calculator</div><h3>Cost per task</h3><p>See which levers move the bill most.</p></a>' +
-      '<a class="card" style="--h:40" href="#/toolkit"><div class="mini">Toolkit</div><h3>EM Frameworks & RACI</h3><p>Estimation model, RACI matrix, RAID log and review templates.</p></a>' +
-      '</div></div>';
+    h += '</ol><h2>How the site is organised</h2><div class="lists two">';
+    SECTIONS.slice(1).forEach(function (s) {
+      h += '<div class="box"><h3>' + esc(s.name) + '</h3><p class="fine">' + esc(s.blurb) + '</p><ul>' + s.items.map(function (it) { return '<li><a href="' + it[0] + '">' + esc(it[1]) + '</a></li>'; }).join('') + '</ul></div>';
+    });
+    h += '</div><h2>How far to trust a page</h2><p>' + fmt(G.trust) + '</p>' +
+      '<p>Press <kbd>/</kbd> or <kbd>Ctrl</kbd> + <kbd>K</kbd> anywhere to search. Unfamiliar term? Check the <a href="#/glossary">glossary</a>.</p>';
+    return h;
+  }
+
+  function pageGlossary() {
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Glossary</div><h1>Glossary</h1>' +
+      '<p class="lede">' + A.glossary.length + ' terms used across the atlas, in plain language, each with a link to where it matters.</p>' +
+      '<label class="gfilter"><span class="sr-only">Filter terms</span><input id="gq" type="search" placeholder="Filter terms…" autocomplete="off"></label>' +
+      '<p id="gnone" class="fine" hidden>No term matches. Try the site search with <kbd>/</kbd>.</p>';
+    A.glossaryGroups.forEach(function (g) {
+      var terms = A.glossary.filter(function (t) { return t.g === g.id; });
+      h += '<section class="gsec"><h2>' + esc(g.name) + '</h2><dl class="gloss">' + terms.map(function (t) {
+        return '<div class="gterm" data-hay="' + esc((t.term + ' ' + t.def).toLowerCase()) + '"><dt>' + esc(t.term) + '</dt><dd>' + fmt(t.def) +
+          '<span class="see">' + t.see.map(function (l) { return '<a href="' + l[0] + '">' + esc(l[1]) + '</a>'; }).join('') + '</span></dd></div>';
+      }).join('') + '</dl></section>';
+    });
+    afterRender = function () {
+      var input = $('#gq');
+      input.addEventListener('input', function () {
+        var v = input.value.trim().toLowerCase(), any = false;
+        $$('.gsec').forEach(function (sec) {
+          var shown = 0;
+          $$('.gterm', sec).forEach(function (el) { var ok = !v || el.getAttribute('data-hay').indexOf(v) > -1; el.hidden = !ok; if (ok) shown++; });
+          sec.hidden = !shown; if (shown) any = true;
+        });
+        $('#gnone').hidden = any;
+      });
+    };
     return h;
   }
 
   function serviceCard(s) {
-    return '<a class="card" style="--h:' + hueOf(s.cat) + '" href="#/s/' + s.id + '">' + miniCube(hueOf(s.cat)) + '<h3>' + esc(s.name) + '</h3><p>' + esc(s.tag) + '</p></a>';
+    return '<a class="card" style="--h:' + hueOf(s.cat) + '" href="#/s/' + s.id + '"><h3>' + esc(s.name) + '</h3><p>' + esc(s.tag) + '</p></a>';
   }
 
   function pageCategory(id) {
@@ -759,7 +772,7 @@
   /* ---------- operations ---------- */
   function pageOperations() {
     var op = A.operations;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Production Operations</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Production Operations</div>' +
       '<h1>' + esc(op.title) + '</h1>' +
       '<p class="lede">' + fmt(op.lede) + '</p>' +
       lifecycleNotice() +
@@ -1077,7 +1090,7 @@
   /* ---------- Architecture Advisor ---------- */
   function pageAdvisor() {
     var adv = A.advisor;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Interactive Tool</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Interactive Tool</div>' +
       '<h1>Azure AI Architecture Advisor</h1>' +
       '<p class="lede">' + esc(adv.lede) + '</p>' +
       lifecycleNotice() +
@@ -1155,7 +1168,7 @@
   /* ---------- RAG Engineering Lab ---------- */
   function pageRagLab() {
     var lab = A.ragLab;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Engineering Lab</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Engineering Lab</div>' +
       '<h1>' + esc(lab.title) + '</h1>' +
       '<p class="lede">' + esc(lab.lede) + '</p>' +
       lifecycleNotice() +
@@ -1347,7 +1360,7 @@
   /* ---------- Agent Pattern Explorer ---------- */
   function pageAgentPatterns() {
     var ap = A.agentPatterns;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Agentic AI</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Agentic AI</div>' +
       '<h1>' + esc(ap.title) + '</h1>' +
       '<p class="lede">' + esc(ap.lede) + '</p>' +
       lifecycleNotice() +
@@ -1443,7 +1456,7 @@
   /* ---------- AI Security & Governance Center ---------- */
   function pageSecurityCenter() {
     var sec = A.securityCenter;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Security & Risk</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Security & Risk</div>' +
       '<h1>' + esc(sec.title) + '</h1>' +
       '<p class="lede">' + esc(sec.lede) + '</p>' +
       '<div class="callout"><b>Enterprise Zero-Trust AI Framework</b>Deploying generative AI into regulated enterprises requires defense-in-depth across identity, network perimeter, data protection, agent blast radius, and automated regulatory governance gates.</div>';
@@ -1510,7 +1523,7 @@
   /* ---------- AI Evaluation & Quality Center ---------- */
   function pageEvaluationCenter() {
     var ec = A.evaluationCenter;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Quality Engineering</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Quality Engineering</div>' +
       '<h1>' + esc(ec.title) + '</h1>' +
       '<p class="lede">' + esc(ec.lede) + '</p>' +
       '<div class="callout"><b>Scientific AI Quality Engineering</b>Probabilistic AI systems require moving beyond informal spot-checks to automated evaluation pyramids, statistical test sets, and configurable release quality gates.</div>';
@@ -1717,7 +1730,7 @@
   /* ---------- AI FinOps ---------- */
   function pageFinOps() {
     var fo = A.finops, ps = fo.priceStatus || {};
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Cost & FinOps</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Cost & FinOps</div>' +
       '<h1>' + esc(fo.title) + '</h1>' +
       '<p class="lede">' + esc(fo.lede) + '</p>' +
       '<div class="callout warn" role="note"><b>Estimates, not Azure quotes</b>Prices on this page are <strong>illustrative and not sourced or dated</strong>. ' + esc(ps.note || '') +
@@ -1880,7 +1893,7 @@
     var v = A.verification, now = new Date();
     var recs = v.records, mods = v.modules, nServices = A.services.length;
     var verifiedMods = mods.filter(function (m) { return m.verified; }).length;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Content governance</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Content governance</div>' +
       '<h1>Content freshness and sources</h1>' +
       '<p class="lede">Azure AI changes monthly. This page shows exactly what in the Atlas has been checked against Microsoft documentation, on what date, and what has not. Anything not listed here should be treated as unverified.</p>' +
       '<div class="kpis" style="margin:18px 0">' +
@@ -1928,7 +1941,7 @@
   /* ---------- Production Troubleshooting Catalog ---------- */
   function pageTroubleshooting() {
     var tb = A.troubleshooting;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Operations & Reliability</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Operations & Reliability</div>' +
       '<h1>' + esc(tb.title) + '</h1>' +
       '<p class="lede">' + esc(tb.lede) + '</p>' +
       '<div class="callout"><b>Production Incident Diagnostics</b>Actionable root-cause procedures, diagnostics, and ready-to-run KQL queries for RAG systems, autonomous agent loops, and Azure platform infrastructure.</div>';
@@ -1999,7 +2012,7 @@
   /* ---------- Traditional ML & Enterprise Integration ---------- */
   function pageTraditionalML() {
     var ml = A.traditionalML;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Machine Learning & Data</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Machine Learning & Data</div>' +
       '<h1>' + esc(ml.title) + '</h1>' +
       '<p class="lede">' + esc(ml.lede) + '</p>' +
       '<div class="callout"><b>Predictive ML & Enterprise Integration</b>Enterprise AI Engineering Managers must balance generative AI with classical predictive machine learning, unified lakehouses, high-availability DR architectures, and ERP/CRM system integrations.</div>';
@@ -2075,7 +2088,7 @@
   /* ---------- AI Engineering Manager Workspace ---------- */
   function pageEMWorkspace() {
     var em = A.emWorkspace;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Leadership & Delivery</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Leadership & Delivery</div>' +
       '<h1>' + esc(em.title) + '</h1>' +
       '<p class="lede">' + esc(em.lede) + '</p>' +
       '<div class="callout"><b>Engineering Leadership Command Center</b>Evaluate AI use cases, estimate team headcount and sprint timelines, review solution designs, and assess team competency across the AI engineering lifecycle.</div>';
@@ -2202,7 +2215,7 @@
   /* ---------- Azure Services Comparison Matrix ---------- */
   function pageServiceMatrix() {
     var sm = A.serviceMatrix;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Platform Decisions</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Platform Decisions</div>' +
       '<h1>' + esc(sm.title) + '</h1>' +
       '<p class="lede">' + esc(sm.lede) + '</p>' +
       '<div class="callout"><b>Defensible Service Selection</b>Make rigorous, defensible technology decisions during architecture design reviews using our 14-field service breakdown and core Azure platform trade-off guides.</div>';
@@ -2260,7 +2273,7 @@
   /* ---------- Azure Cloud Foundation ---------- */
   function pageFoundation() {
     var fd = A.foundation;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Cloud Foundation</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Cloud Foundation</div>' +
       '<h1>' + esc(fd.title) + '</h1>' +
       '<p class="lede">' + esc(fd.lede) + '</p>' +
       '<div class="callout"><b>Enterprise Infrastructure Grounding</b>' +
@@ -2334,7 +2347,7 @@
   /* ---------- Microsoft Foundry Deep Dive ---------- */
   function pageFoundry() {
     var fd = A.foundry;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Microsoft Foundry</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Microsoft Foundry</div>' +
       '<h1>' + esc(fd.title) + '</h1>' +
       '<p class="lede">' + esc(fd.lede) + '</p>' +
       lifecycleNotice() +
@@ -2388,7 +2401,7 @@
   /* ---------- Advanced AI Engineering ---------- */
   function pageAdvancedAI() {
     var adv = A.advancedAI;
-    var h = '<div class="eyebrow"><a href="#/">Operating System</a> / Advanced AI Engineering</div>' +
+    var h = '<div class="eyebrow"><a href="#/">Atlas</a> / Advanced AI Engineering</div>' +
       '<h1>' + esc(adv.title) + '</h1>' +
       '<p class="lede">' + esc(adv.lede) + '</p>' +
       '<div class="callout"><b>Frontier AI Architectures & Hardening</b>' +
@@ -2426,63 +2439,48 @@
   function notFound() { return '<h1>Not found</h1><p class="lede">That page does not exist. <a href="#/">Back to the atlas</a>.</p>'; }
 
   /* ---------- sidebar ---------- */
-  function nl(href, label, cur) { return '<a class="nl" href="' + href + '"' + (cur ? ' aria-current="page"' : '') + '>' + label + '</a>'; }
   function renderSide(kind, id) {
-    var cur = kind === 's' && byId[id] ? byId[id].cat : (kind === 'c' ? id : null);
-    var curTheme = kind === 'd' && decById[id] ? decById[id].theme : null;
-    var h = '<h3>Management OS</h3>' +
-      nl('#/', 'Home Overview', !kind) +
-      nl('#/advisor', 'Architecture Advisor', kind === 'advisor') +
-      nl('#/em-workspace', 'EM Workspace & Staffing', kind === 'em-workspace') +
-      nl('#/finops', 'AI FinOps & ROI Calculator', kind === 'finops') +
-      nl('#/toolkit', 'Leadership Toolkit & RACI', kind === 'toolkit') +
-      nl('#/freshness', 'Content Freshness & Sources', kind === 'freshness');
-
-    h += '<h3>Engineering Centers</h3>' +
-      nl('#/foundation', 'Cloud Foundation & Networking', kind === 'foundation') +
-      nl('#/services-matrix', 'Services Decision Matrix', kind === 'services-matrix') +
-      nl('#/foundry', 'Microsoft Foundry Deep Dive', kind === 'foundry') +
-      nl('#/rag-lab', 'RAG Engineering Lab', kind === 'rag-lab') +
-      nl('#/agents', 'Agent Patterns (18)', kind === 'agents') +
-      nl('#/traditional-ml', 'Traditional ML & MLOps', kind === 'traditional-ml') +
-      nl('#/security-center', 'Security & Threat Catalog', kind === 'security-center') +
-      nl('#/evaluation', 'Evaluation & Quality Gates', kind === 'evaluation') +
-      nl('#/ops', 'Production Operations', kind === 'ops') +
-      nl('#/troubleshooting', 'Troubleshooting & KQL', kind === 'troubleshooting') +
-      nl('#/advanced-ai', 'Advanced AI Topics', kind === 'advanced-ai') +
-      nl('#/gov', 'Landing Zones & Governance', kind === 'gov') +
-      nl('#/labs', 'Labs & Roadmaps', kind === 'labs');
-
-    h += '<h3>Playbooks</h3>';
-    A.engineeringPlaybooks.forEach(function (p) {
-      var shortTitle = p.title.replace(' Playbook', '').replace(' Engineering & Orchestration', '').replace(' & Hardening', '');
-      h += nl('#/p/' + p.id, shortTitle, kind === 'p' && id === p.id);
+    var curHref = navHref(kind, id), curCat = kind === 's' && byId[id] ? byId[id].cat : (kind === 'c' ? id : null);
+    var h = '';
+    SECTIONS.forEach(function (s) {
+      h += '<h3>' + esc(s.name) + '</h3>' + s.items.map(function (it) {
+        return '<a class="nl" href="' + it[0] + '"' + (it[0] === curHref ? ' aria-current="page"' : '') + '>' + esc(it[1]) + '</a>';
+      }).join('');
     });
-
-    h += '<h3>Decisions & Tools</h3>' +
-      nl('#/d', 'All Decision Guides (' + A.decisions.length + ')', kind === 'd' && !id) +
-      nl('#/d/em', 'For engineering managers', kind === 'd' && id === 'em') +
-      nl('#/d/pe', 'For principal engineers', kind === 'd' && id === 'pe') +
-      nl('#/d/shaper', 'Solution shaper', kind === 'd' && id === 'shaper') +
-      nl('#/d/checklists', 'Readiness checklists', kind === 'd' && id === 'checklists') +
-      nl('#/d/calculator', 'Cost per task', kind === 'd' && id === 'calculator');
-
-    A.decisionThemes.forEach(function (t) {
-      var list = A.decisions.filter(function (d) { return d.theme === t.id; });
-      h += '<details' + (curTheme === t.id ? ' open' : '') + '><summary style="--h:' + THEME_HUE[t.id] + '"><span class="dot"></span><span style="flex:1">' + esc(t.name) + '</span><span class="n">' + list.length + '</span></summary><ul>' +
-        list.map(function (d) { return '<li><a href="#/d/' + d.id + '"' + (kind === 'd' && id === d.id ? ' aria-current="page"' : '') + '>' + esc(d.title) + '</a></li>'; }).join('') + '</ul></details>';
-    });
-
-    h += '<h3>Architectures (' + A.architectures.length + ')</h3>';
-    h += '<details' + (kind === 'a' && id ? ' open' : '') + '><summary style="--h:212"><span class="dot"></span><span>All Reference Blueprints</span><span class="n">' + A.architectures.length + '</span></summary><ul>' +
-      A.architectures.map(function (a) { return '<li><a href="#/a/' + a.id + '"' + (kind === 'a' && id === a.id ? ' aria-current="page"' : '') + '>' + esc(a.name) + '</a></li>'; }).join('') + '</ul></details>';
-
-    h += '<h3>Services Catalogue (' + A.services.length + ')</h3>';
+    h += '<h3>Services</h3>';
     A.categories.forEach(function (c) {
-      h += '<details' + (cur === c.id ? ' open' : '') + '><summary style="--h:' + c.hue + '"><span class="dot"></span><a href="#/c/' + c.id + '"' + (kind === 'c' && id === c.id ? ' aria-current="page"' : '') + '>' + esc(c.name) + '</a><span class="n">' + c.items.length + '</span></summary><ul>' +
+      h += '<details' + (curCat === c.id ? ' open' : '') + '><summary style="--h:' + c.hue + '"><span class="dot"></span><span class="sn">' + esc(c.name) + '</span><span class="n">' + c.items.length + '</span></summary><ul>' +
+        '<li><a href="#/c/' + c.id + '"' + (kind === 'c' && id === c.id ? ' aria-current="page"' : '') + '>Overview</a></li>' +
         c.items.map(function (s) { return '<li><a href="#/s/' + s.id + '"' + (kind === 's' && id === s.id ? ' aria-current="page"' : '') + '>' + esc(s.name) + '</a></li>'; }).join('') + '</ul></details>';
     });
     $('#side').innerHTML = h;
+  }
+
+  /* ---------- page helpers: "on this page" jump list and the section pager ---------- */
+  function addToc(main) {
+    var heads = $$(':scope > h2, :scope > .wide > h2, :scope > section > h2', main).filter(function (x) { return x.textContent.trim(); });
+    if (heads.length < 4) return;
+    var nav = document.createElement('nav');
+    nav.className = 'toc'; nav.setAttribute('aria-label', 'On this page');
+    nav.innerHTML = '<b>On this page</b>' + heads.map(function (x, i) { return '<button type="button" data-toc="' + i + '">' + esc(x.textContent.trim()) + '</button>'; }).join('');
+    nav.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-toc]'); if (!b) return;
+      var t = heads[+b.getAttribute('data-toc')]; t.setAttribute('tabindex', '-1'); t.scrollIntoView({ block: 'start' }); t.focus({ preventScroll: true });
+    });
+    var after = $('.lede', main) || $('h1', main);
+    after.parentNode.insertBefore(nav, after.nextSibling);
+  }
+  function addPager(main, kind, id) {
+    var href = '#/' + kind + (id ? '/' + id : ''), sec = null, i = -1;
+    SECTIONS.forEach(function (s) { s.items.forEach(function (it, j) { if (it[0] === href) { sec = s; i = j; } }); });
+    if (!sec || !kind) return;
+    var prev = sec.items[i - 1], next = sec.items[i + 1];
+    if (!prev && !next) return;
+    var el = document.createElement('nav');
+    el.className = 'pn secnav'; el.setAttribute('aria-label', sec.name + ' section');
+    el.innerHTML = (prev ? '<a href="' + prev[0] + '"><small>← ' + esc(sec.name) + '</small>' + esc(prev[1]) + '</a>' : '<span></span>') +
+      (next ? '<a href="' + next[0] + '"><small>' + esc(sec.name) + ' →</small>' + esc(next[1]) + '</a>' : '');
+    main.appendChild(el);
   }
 
   /* ---------- router ---------- */
@@ -2490,62 +2488,65 @@
     $$('.stepper').forEach(function (el) { if (el._stop) el._stop(); });
     var parts = location.hash.replace(/^#\/?/, '').split('/'), kind = parts[0] || '', id = parts[1] || '';
     pendingSteppers = []; afterRender = null;
-    var html, title = 'Azure AI Engineering OS — Enterprise AI/ML, Agents & RAG';
-    if (kind === 's' && byId[id]) { html = pageService(id); title = byId[id].name + ' — Azure AI Engineering OS'; }
-    else if (kind === 'c' && catById[id]) { html = pageCategory(id); title = catById[id].name + ' — Azure AI Engineering OS'; }
-    else if (kind === 'a') { if (id && archById[id]) { html = pageArch(id); title = archById[id].name + ' — Azure AI Engineering OS'; } else html = pageArchIndex(); }
-    else if (kind === 'advisor') { html = pageAdvisor(); title = 'Architecture Advisor — Azure AI Engineering OS'; }
-    else if (kind === 'rag-lab') { html = pageRagLab(); title = 'RAG Engineering Lab — Azure AI Engineering OS'; }
-    else if (kind === 'agents') { html = pageAgentPatterns(); title = 'Agentic AI Architecture Patterns — Azure AI Engineering OS'; }
-    else if (kind === 'security-center') { html = pageSecurityCenter(); title = 'AI Security & Governance Center — Azure AI Engineering OS'; }
-    else if (kind === 'evaluation') { html = pageEvaluationCenter(); title = 'AI Evaluation & Quality Center — Azure AI Engineering OS'; }
-    else if (kind === 'freshness') { html = pageFreshness(); title = 'Content freshness and sources — Azure AI Engineering OS'; }
-    else if (kind === 'finops') { html = pageFinOps(); title = 'AI FinOps & Cost Engineering — Azure AI Engineering OS'; }
-    else if (kind === 'troubleshooting') { html = pageTroubleshooting(); title = 'Production Troubleshooting & Failure Catalog — Azure AI Engineering OS'; }
-    else if (kind === 'traditional-ml') { html = pageTraditionalML(); title = 'Traditional ML, Data Architecture & Enterprise Integration — Azure AI Engineering OS'; }
-    else if (kind === 'em-workspace') { html = pageEMWorkspace(); title = 'AI Engineering Manager Workspace — Azure AI Engineering OS'; }
-    else if (kind === 'services-matrix') { html = pageServiceMatrix(); title = 'Azure Services Decision Matrix — Azure AI Engineering OS'; }
-    else if (kind === 'foundation') { html = pageFoundation(); title = 'Azure Cloud Foundation — Azure AI Engineering OS'; }
-    else if (kind === 'foundry') { html = pageFoundry(); title = 'Microsoft Foundry Deep Dive — Azure AI Engineering OS'; }
-    else if (kind === 'advanced-ai') { html = pageAdvancedAI(); title = 'Advanced AI Engineering — Azure AI Engineering OS'; }
+    var html, title = 'Azure AI Atlas — Design, build and run AI systems on Azure';
+    if (kind === 's' && byId[id]) { html = pageService(id); title = byId[id].name + ' — Azure AI Atlas'; }
+    else if (kind === 'c' && catById[id]) { html = pageCategory(id); title = catById[id].name + ' — Azure AI Atlas'; }
+    else if (kind === 'a') { if (id && archById[id]) { html = pageArch(id); title = archById[id].name + ' — Azure AI Atlas'; } else html = pageArchIndex(); }
+    else if (kind === 'advisor') { html = pageAdvisor(); title = 'Architecture Advisor — Azure AI Atlas'; }
+    else if (kind === 'rag-lab') { html = pageRagLab(); title = 'RAG Engineering Lab — Azure AI Atlas'; }
+    else if (kind === 'agents') { html = pageAgentPatterns(); title = 'Agentic AI Architecture Patterns — Azure AI Atlas'; }
+    else if (kind === 'security-center') { html = pageSecurityCenter(); title = 'AI Security & Governance Center — Azure AI Atlas'; }
+    else if (kind === 'evaluation') { html = pageEvaluationCenter(); title = 'AI Evaluation & Quality Center — Azure AI Atlas'; }
+    else if (kind === 'freshness') { html = pageFreshness(); title = 'Content freshness and sources — Azure AI Atlas'; }
+    else if (kind === 'finops') { html = pageFinOps(); title = 'AI FinOps & Cost Engineering — Azure AI Atlas'; }
+    else if (kind === 'troubleshooting') { html = pageTroubleshooting(); title = 'Production Troubleshooting & Failure Catalog — Azure AI Atlas'; }
+    else if (kind === 'traditional-ml') { html = pageTraditionalML(); title = 'Traditional ML, Data Architecture & Enterprise Integration — Azure AI Atlas'; }
+    else if (kind === 'em-workspace') { html = pageEMWorkspace(); title = 'AI Engineering Manager Workspace — Azure AI Atlas'; }
+    else if (kind === 'services-matrix') { html = pageServiceMatrix(); title = 'Azure Services Decision Matrix — Azure AI Atlas'; }
+    else if (kind === 'foundation') { html = pageFoundation(); title = 'Azure Cloud Foundation — Azure AI Atlas'; }
+    else if (kind === 'foundry') { html = pageFoundry(); title = 'Microsoft Foundry Deep Dive — Azure AI Atlas'; }
+    else if (kind === 'advanced-ai') { html = pageAdvancedAI(); title = 'Advanced AI Engineering — Azure AI Atlas'; }
     else if (kind === 'd') {
       var TOOLS = { shaper: ['Solution shaper', pageShaper], checklists: ['Readiness checklists', pageChecklists], calculator: ['Cost per task', pageCalculator] };
-      if (!id || id === 'em' || id === 'pe' || id === 'all') { html = pageDecisionHub(id); title = (id === 'em' ? 'Decisions for engineering managers' : id === 'pe' ? 'Decisions for principal engineers' : 'Decision guides') + ' — Azure AI Engineering OS'; }
-      else if (TOOLS[id]) { html = TOOLS[id][1](); title = TOOLS[id][0] + ' — Azure AI Engineering OS'; }
-      else if (decById[id]) { html = pageDecision(id); title = decById[id].title + ' — Azure AI Engineering OS'; }
+      if (!id || id === 'em' || id === 'pe' || id === 'all') { html = pageDecisionHub(id); title = (id === 'em' ? 'Decisions for engineering managers' : id === 'pe' ? 'Decisions for principal engineers' : 'Decision guides') + ' — Azure AI Atlas'; }
+      else if (TOOLS[id]) { html = TOOLS[id][1](); title = TOOLS[id][0] + ' — Azure AI Atlas'; }
+      else if (decById[id]) { html = pageDecision(id); title = decById[id].title + ' — Azure AI Atlas'; }
       else html = notFound();
     }
     else if (kind === 'p') {
       if (id) {
         var pb = A.engineeringPlaybooks.find(function (p) { return p.id === id; });
-        if (pb) { html = pagePlaybook(id); title = pb.title + ' — Azure AI Engineering OS'; }
+        if (pb) { html = pagePlaybook(id); title = pb.title + ' — Azure AI Atlas'; }
         else html = notFound();
       } else {
         html = pagePlaybooksIndex();
-        title = 'AI Engineering Playbooks — Azure AI Engineering OS';
+        title = 'AI Engineering Playbooks — Azure AI Atlas';
       }
     }
     else if (kind === 'gov') {
       html = pageGovernance();
-      title = 'Enterprise AI Governance & Landing Zones — Azure AI Engineering OS';
+      title = 'Enterprise AI Governance & Landing Zones — Azure AI Atlas';
     }
     else if (kind === 'ops') {
       html = pageOperations();
-      title = 'Production AI Operations Centre — Azure AI Engineering OS';
+      title = 'Production AI Operations Centre — Azure AI Atlas';
     }
     else if (kind === 'toolkit') {
       html = pageToolkit();
-      title = 'AI Engineering Manager Toolkit — Azure AI Engineering OS';
+      title = 'AI Engineering Manager Toolkit — Azure AI Atlas';
     }
     else if (kind === 'labs') {
       html = pageLabs();
-      title = 'Hands-on Labs & Learning Roadmaps — Azure AI Engineering OS';
+      title = 'Hands-on Labs & Learning Roadmaps — Azure AI Atlas';
     }
+    else if (kind === 'start') { html = pageStart(); title = 'Start here — Azure AI Atlas'; }
+    else if (kind === 'glossary') { html = pageGlossary(); title = 'Glossary — Azure AI Atlas'; }
     else if (!kind) html = pageHome();
     else html = notFound();
     var main = $('#main'); main.innerHTML = html;
     pendingSteppers.forEach(function (spec, i) { mountStepper($('[data-sp="' + i + '"]', main), spec); });
     if (afterRender) afterRender();
+    if (html.indexOf('<h1>Not found</h1>') !== 0) { addToc(main); addPager(main, kind, id); }
     renderSide(kind, id);
     document.title = title;
     window.scrollTo(0, 0);
@@ -2603,6 +2604,7 @@
     var cur = resultsEl.querySelector('a.sel'); if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest' });
   }
   $('#searchBtn').addEventListener('click', openSearch);
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-open-search]')) openSearch(); });
   overlay.addEventListener('click', function (e) {
     var chip = e.target.closest('[data-kind]');
     if (chip) { kind = chip.getAttribute('data-kind'); paintFilters(); runSearch(); q.focus(); return; }

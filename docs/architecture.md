@@ -12,6 +12,7 @@ assets/app.js           router, page renderers, calculators UI, search UI
 assets/style.css        all styling, light and dark
 data/*.js               content and domain logic, one file per module; each assigns to window.ATLAS
 data/verification.js    content-governance registry (what has been verified, when, against what)
+data/guide.js           orientation content: Start here paths and stages, common tasks, glossary (concepts only)
 scripts/check.mjs       data and governance validation (runs in CI and before every deploy)
 scripts/serve.mjs       tiny static server for local use and the smoke test
 scripts/smoke.mjs       browser smoke test (Playwright)
@@ -36,6 +37,7 @@ All text from data goes through `esc()` before it enters markup. `[[service-id]]
 | Pattern | Page |
 |---|---|
 | `#/` | Home |
+| `#/start`, `#/glossary` | Start here, Glossary |
 | `#/c/<category>`, `#/s/<service>` | Category and service pages |
 | `#/a`, `#/a/<id>` | Architecture index and detail |
 | `#/d`, `#/d/em`, `#/d/pe`, `#/d/<decision>` | Decision hub, role tabs, guides |
@@ -45,6 +47,10 @@ All text from data goes through `esc()` before it enters markup. `[[service-id]]
 | `#/freshness` | Content freshness and sources |
 
 Routes from before this work are unchanged, so bookmarks keep working.
+
+## Navigation
+
+`SECTIONS` in `app.js` is the one list of pages, in five groups: Start, Design, Build, Secure and operate, Lead and budget. The sidebar, the home page and the section pager all read it, so a new module page needs one entry there. `navHref()` maps a route to its sidebar entry (a decision guide highlights "Decision guides"). After each render, `addToc()` adds an "On this page" list when a page has four or more `h2` headings. It uses buttons, not `#` links, because the hash is the router. `addPager()` adds previous and next links inside the section.
 
 ## Search
 

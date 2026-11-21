@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Azure AI Engineering OS — Enterprise AI/ML, Agents & RAG</title>
+<title>Azure AI Atlas — Design, build and run AI systems on Azure</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="The Azure AI Engineering Management Operating System: Architecture Advisor, Agent Patterns, RAG Engineering Lab, Security & Governance, AI FinOps, Evaluation Center, and Operations.">
-<meta name="theme-color" content="#eaf1f9">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:title" content="Azure AI Engineering OS — Enterprise AI/ML, Agents & RAG">
 <meta property="og:description" content="Production blueprints, decision engines, evaluation frameworks, security threat models, and FinOps calculators for AI Engineering Managers.">
 <meta property="og:type" content="website">
@@ -18,55 +18,39 @@
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="top">
-  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open navigation" aria-expanded="false">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open navigation" aria-expanded="false" aria-controls="side">
     <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
   </button>
   <a class="brand" href="#/">
-    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 6.3v1.4L16 17 5 10.7V9.3z" class="b-top"/><path d="M5 10.7L16 17v12L5 22.7z" class="b-left"/><path d="M27 10.7L16 17v12l11-6.3z" class="b-right"/></svg>
-    <span>Azure <em>AI Engineering OS</em></span>
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 6.3v1.4L16 17 5 10.7V9.3z" class="b-top"/><path d="M5 10.7L16 17v12L5 22.7z" class="b-left"/><path d="M27 10.7L16 17v12l11-6.3z" class="b-right"/></svg>
+    <span>Azure AI Atlas</span>
   </a>
-  <nav class="top-links" aria-label="Primary">
-    <a href="https://sadiqgpasha89.github.io/" title="Return to Sadiq G Pasha Portfolio" style="font-weight:700;">← Portfolio</a>
-    <a href="#/advisor" title="Architecture Decision Advisor">Advisor</a>
-    <a href="#/foundation" title="Cloud Foundation & Networking">Foundation</a>
-    <a href="#/services-matrix" title="Service Comparison Matrix">Services</a>
-    <a href="#/foundry" title="Microsoft Foundry Deep Dive">Foundry</a>
-    <a href="#/rag-lab" title="RAG Engineering Lab">RAG Lab</a>
-    <a href="#/agents" title="Agentic AI Architecture Patterns">Agents</a>
-    <a href="#/traditional-ml" title="Traditional ML & MLOps">MLOps</a>
-    <a href="#/a" title="20 Reference Architectures">Architectures</a>
-    <a href="#/security-center" title="AI Security & Governance">Security</a>
-    <a href="#/evaluation" title="AI Evaluation & Quality Center">Evals</a>
-    <a href="#/ops" title="Production Operations & CI/CD">Ops</a>
-    <a href="#/finops" title="AI FinOps & Unit Economics">FinOps</a>
-    <a href="#/em-workspace" title="Engineering Manager Workspace">EM Space</a>
-    <a href="#/troubleshooting" title="Failure Troubleshooting Runbooks">Troubleshooting</a>
-    <a href="#/advanced-ai" title="Advanced AI Topics">Advanced AI</a>
-    <a href="#/labs" title="Hands-on Labs">Labs</a>
-  </nav>
-  <button class="search-btn" id="searchBtn" aria-label="Search services">
+  <button class="search-btn" id="searchBtn" aria-label="Search the atlas">
     <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    <span>Search</span><kbd>/</kbd>
+    <span>Search services, patterns, runbooks…</span><kbd>/</kbd>
   </button>
+  <nav class="top-links" aria-label="Site">
+    <a href="#/start">Start here</a>
+    <a href="https://sadiqgpasha89.github.io/" title="Sadiq G Pasha portfolio">Portfolio</a>
+  </nav>
   <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">
     <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M16 11.5A6.5 6.5 0 018.5 4a6.5 6.5 0 107.5 7.5z" fill="currentColor"/></svg>
   </button>
 </header>
 
 <div class="shell">
-  <aside class="side" id="side" aria-label="Services by category"></aside>
+  <aside class="side" id="side" aria-label="Site navigation"></aside>
   <div class="scrim" id="scrim"></div>
   <main id="main" tabindex="-1"><noscript><p class="noscript">This atlas draws its diagrams with JavaScript. Please enable it and reload.</p></noscript></main>
 </div>
 
 <footer class="foot">
-  <p>Azure AI Engineering Management Operating System — Built for AI Engineering Managers, Principal Architects, and Staff MLOps Engineers.</p>
-  <p>Independent educational & decision-support project. Not affiliated with or endorsed by Microsoft.</p>
+  <p>Azure AI Atlas, by Sadiq G Pasha. An independent educational and decision-support project, not affiliated with or endorsed by Microsoft. Check quotas, prices and availability in Microsoft Learn before production. <a href="#/freshness">What is verified</a></p>
 </footer>
 
 <div class="overlay" id="overlay" hidden>
   <div class="dialog" role="dialog" aria-modal="true" aria-label="Search services">
-    <input id="q" type="search" placeholder="Search services, patterns, runbooks, gotchas…" autocomplete="off" spellcheck="false">
+    <input id="q" type="search" aria-label="Search the atlas" placeholder="Search services, patterns, runbooks, terms…" autocomplete="off" spellcheck="false">
     <div id="searchFilters" class="sfilters" role="group" aria-label="Filter results by type"></div>
     <p id="searchStatus" class="sr-only" role="status" aria-live="polite"></p>
     <ul id="results" role="listbox"></ul>
@@ -107,6 +91,7 @@
 <script src="data/foundation.js"></script>
 <script src="data/foundry.js"></script>
 <script src="data/advancedai.js"></script>
+<script src="data/guide.js"></script>
 <script src="assets/search.js"></script>
 <script src="assets/app.js"></script>
 </body>

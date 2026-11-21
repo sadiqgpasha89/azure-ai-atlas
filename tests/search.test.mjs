@@ -25,7 +25,7 @@ test('no entry has an empty or broken name, summary or link', () => {
 
 test('every link resolves to a real route or record', () => {
   const ids = { s: new Set(A.services.map(x => x.id)), a: new Set(A.architectures.map(x => x.id)), d: new Set(A.decisions.map(x => x.id)), p: new Set(A.engineeringPlaybooks.map(x => x.id)) };
-  const modules = new Set(['gov', 'ops', 'toolkit', 'labs', 'rag-lab', 'agents', 'security-center', 'evaluation', 'troubleshooting', 'traditional-ml', 'em-workspace', 'services-matrix', 'foundation', 'foundry', 'advanced-ai', 'advisor', 'finops', 'freshness']);
+  const modules = new Set(['gov', 'ops', 'toolkit', 'labs', 'rag-lab', 'agents', 'security-center', 'evaluation', 'troubleshooting', 'traditional-ml', 'em-workspace', 'services-matrix', 'foundation', 'foundry', 'advanced-ai', 'advisor', 'finops', 'freshness', 'start', 'glossary']);
   const decTools = new Set(['em', 'pe', 'shaper', 'checklists', 'calculator']);
   for (const it of index) {
     const [, kind, id] = it.href.split('/');
@@ -80,4 +80,11 @@ test('query is case-insensitive and ignores extra whitespace', () => {
 test('the verification page is discoverable', () => {
   assert.ok(top('verified sources').some(h => h.href === '#/freshness'));
   assert.ok(top('model retirement').some(h => h.href === '#/freshness'));
+});
+
+test('the start page and glossary terms are discoverable', () => {
+  assert.ok(top('start here').some(h => h.href === '#/start'), 'start page');
+  assert.ok(top('glossary').some(h => h.href === '#/glossary'), 'glossary page');
+  assert.ok(top('groundedness', 'guide', 8).some(h => h.type === 'Glossary' && h.name === 'Groundedness'), 'glossary term');
+  assert.ok(top('reciprocal rank fusion', 'all', 8).some(h => h.href === '#/glossary'), 'glossary term by full name');
 });
