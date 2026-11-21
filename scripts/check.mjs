@@ -365,6 +365,38 @@ for (const f of fs.readdirSync(path.join(root, 'data'))) {
   if (m) err(`data/${f}: names retired/legacy model "${m[0]}"; use a tier description or verify via the registry`);
 }
 
+// orientation content (data/guide.js): every link is a real route, every text is clean
+{
+  const decSet = new Set(A.decisions.map(d => d.id)), pbSet = new Set(A.engineeringPlaybooks.map(p => p.id));
+  const pages = new Set(['', 'start', 'glossary', 'freshness', 'advisor', 'foundation', 'services-matrix', 'foundry', 'rag-lab', 'agents', 'traditional-ml', 'a', 'security-center', 'evaluation', 'ops', 'finops', 'em-workspace', 'troubleshooting', 'advanced-ai', 'labs', 'toolkit', 'gov', 'p', 'd']);
+  const routeExists = (h) => {
+    const m = /^#\/([a-z0-9-]*)(?:\/([a-z0-9-]+))?$/.exec(h || ''); if (!m) return false;
+    const [, k, id] = m;
+    if (!id) return pages.has(k);
+    if (k === 's') return ids.has(id); if (k === 'c') return cats.has(id); if (k === 'a') return archIds.has(id); if (k === 'p') return pbSet.has(id);
+    if (k === 'd') return decSet.has(id) || ['em', 'pe', 'shaper', 'checklists', 'calculator'].includes(id);
+    return false;
+  };
+  const G = A.guide, link = (where, h) => { if (!routeExists(h)) err(`${where}: unknown route ${h}`); };
+  if (!G || !A.glossary || !A.glossaryGroups) err('guide: missing A.guide, A.glossary or A.glossaryGroups');
+  else {
+    checkText('guide.intro', G.intro); checkText('guide.trust', G.trust);
+    G.paths.forEach((p, i) => { checkText(`guide.paths[${i}].goal`, p.goal); p.steps.forEach((s, j) => { link(`guide.paths[${i}].steps[${j}]`, s[0]); checkText(`guide.paths[${i}].steps[${j}]`, s[2]); }); });
+    G.stages.forEach((s, i) => { checkText(`guide.stages[${i}].question`, s.question); s.do.forEach((d, j) => checkText(`guide.stages[${i}].do[${j}]`, d)); s.links.forEach((l, j) => link(`guide.stages[${i}].links[${j}]`, l[0])); });
+    G.tasks.forEach((t, i) => link(`guide.tasks[${i}]`, t[1]));
+    const groups = new Set(A.glossaryGroups.map(g => g.id)), terms = new Set();
+    A.glossary.forEach((t, i) => {
+      const w = `glossary ${t.term || i}`;
+      if (!groups.has(t.g)) err(`${w}: unknown group ${t.g}`);
+      if (terms.has(t.term)) err(`${w}: duplicate term`); terms.add(t.term);
+      checkText(`${w}.def`, t.def);
+      if (!t.see || !t.see.length) err(`${w}: needs at least one link`);
+      (t.see || []).forEach((l, j) => { link(`${w}.see[${j}]`, l[0]); if (!l[1]) err(`${w}.see[${j}]: empty label`); });
+    });
+    A.glossaryGroups.forEach(g => { if (!A.glossary.some(t => t.g === g.id)) err(`glossary group ${g.id}: has no terms`); });
+  }
+}
+
 for (const c of A.categories) {
   if (!A.services.some(s => s.cat === c.id)) err(`category ${c.id}: has no services`);
   checkText(`category ${c.id}.lens`, c.lens);

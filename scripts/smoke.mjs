@@ -39,7 +39,7 @@ const ids = await probe.page.evaluate(() => {
   return { s: A.services.map(x => x.id), a: A.architectures.map(x => x.id), d: A.decisions.map(x => x.id), p: A.engineeringPlaybooks.map(x => x.id), c: A.categories.map(x => x.id) };
 });
 await probe.ctx.close();
-const fixed = ['', 'advisor', 'foundation', 'services-matrix', 'foundry', 'rag-lab', 'agents', 'traditional-ml', 'a', 'security-center', 'evaluation', 'ops', 'finops', 'freshness', 'em-workspace', 'troubleshooting', 'advanced-ai', 'labs', 'toolkit', 'gov', 'p', 'd', 'd/em', 'd/pe', 'd/shaper', 'd/checklists', 'd/calculator'];
+const fixed = ['', 'start', 'glossary', 'advisor', 'foundation', 'services-matrix', 'foundry', 'rag-lab', 'agents', 'traditional-ml', 'a', 'security-center', 'evaluation', 'ops', 'finops', 'freshness', 'em-workspace', 'troubleshooting', 'advanced-ai', 'labs', 'toolkit', 'gov', 'p', 'd', 'd/em', 'd/pe', 'd/shaper', 'd/checklists', 'd/calculator'];
 const routes = [...fixed, ...ids.c.map(x => 'c/' + x), ...ids.s.map(x => 's/' + x), ...ids.a.map(x => 'a/' + x), ...ids.d.map(x => 'd/' + x), ...ids.p.map(x => 'p/' + x)];
 const known = new Set(routes);
 const linkTargets = new Set();
@@ -168,12 +168,21 @@ for (const l of linkTargets) {
   if (!/Unverified/i.test(await page.innerText('#main'))) fail('service page', 'unchecked service should say it is unverified');
   await page.goto(base + '/index.html#/s/ai-search');
   if (!/Verified 20\d\d-\d\d-\d\d/i.test(await page.innerText('#main'))) fail('service page', 'verified service should show its date');
+  await page.goto(base + '/index.html#/glossary');
+  await page.fill('#gq', 'groundedness');
+  if (await page.locator('.gterm:visible').count() !== 1) fail('glossary', 'filter "groundedness" should leave one term');
+  await page.fill('#gq', 'zzzqqq');
+  if (!(await page.isVisible('#gnone'))) fail('glossary', 'empty filter result should say so');
+  if (!(await page.locator('.toc button').count())) fail('glossary', 'missing "on this page" list');
+  await page.goto(base + '/index.html#/');
+  await page.click('[data-open-search]');
+  if (await page.isHidden('#overlay')) fail('home', 'hero search did not open the search dialog');
   errors.forEach(e => fail('misc', e));
   await ctx.close();
 }
 
 await browser.close();
 server.close();
-console.log(`smoke: ${routes.length} routes x 2 widths, search, finops, theme, freshness`);
+console.log(`smoke: ${routes.length} routes x 2 widths, search, finops, theme, freshness, glossary`);
 if (failures.length) { console.error(`\n${failures.length} failure(s):`); failures.slice(0, 60).forEach(f => console.error(' - ' + f)); process.exit(1); }
 console.log('smoke OK');
